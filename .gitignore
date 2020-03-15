@@ -1,0 +1,10 @@
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Ignore all cleandata/ except "Enchentes_LatLong"
+/data/cleandata/*
+!/data/cleandata/Ordens de serviço
+
+/data/cleandata/Ordens de serviço/* 
+!Enchentes_LatLong.csv
