@@ -54,6 +54,9 @@ def derivative_threshold(timeSeries, threshold, plot = True, plt_start = None, p
 
 def derivative_zero(timeSeries, n_zeros, plot = False, plt_start = None, plt_stop = None, ylim = None):
     """ 
+    For a index i, search in a region [i:i+n_zeros] and [i-n_zeros:i] if derivative is zero.
+    const[i] is True if all values inside regions are zeros.
+
     Inputs:
         timeSeries - Pandas Series
         n_zeros - Number of consecutive zeros necessary
@@ -74,9 +77,9 @@ def derivative_zero(timeSeries, n_zeros, plot = False, plt_start = None, plt_sto
         aux = True
         for n in range(n_zeros):
             if (i+n >= len(d_ts)):
-                aux = aux and (d_ts[-1] == 0 or d_ts[i - n] == 0)
-            elif (i+n < 0):
-                aux = aux and (d_ts[i + n] == 0 or d_ts[0] == 0)
+                aux = aux and d_ts[i - n] == 0
+            elif (i-n < 0):
+                aux = aux and d_ts[i + n] == 0
             else:
                 aux = aux and (d_ts[i + n] == 0 or d_ts[i - n] == 0)
         const.append(aux)
@@ -168,22 +171,22 @@ def plot_regions(timeSeries, regions, total_len, start, stop, plt_type = 'region
     plt.plot(timeSeries.index[start:stop],timeSeries[start:stop])
     plt.title(title)
 
-    for reg in regions: 
-        if (reg[0] >= start and reg[0] < stop) or (reg[0] > start and reg[1] < stop)\
-             or (reg[1] < start and reg[0] > stop):
-            if reg[0] < start and (reg[1] > start and reg[1] < stop):
+    for reg in regions:
+        if (reg[0] >= start and reg[0] <= stop) or (reg[1] >= start and reg[1] <= stop) or \
+        (reg[0] <= start and reg[1] >= stop):
+            if reg[0] <= start and (reg[1] >= start and reg[1] <= stop):
                 plt_start = start
                 plt_stop = reg[1]
-            elif (reg[0] > start and reg[0] < stop) and reg[1] > stop :
+            elif (reg[0] >= start and reg[0] <= stop) and reg[1] >= stop :
                 plt_start = reg[0]
-                plt_stop = reg[1]
-            elif (reg[0] < start and reg[0] > stop):
+                plt_stop = stop
+            elif (reg[0] <= start and reg[1] >= stop):
                 plt_start = start
                 plt_stop = stop
             else:
                 plt_start = reg[0]
                 plt_stop = reg[1]
-            if plt_type == 'region': 
+            if plt_type == 'region':    
                 plt.axvspan(plt_start , plt_stop, color = 'red')
             else:
                 x = list(range(plt_start,plt_stop))
