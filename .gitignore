@@ -8,3 +8,8 @@
 
 /data/cleandata/Ordens de serviço/* 
 !Enchentes_LatLong.csv
+
+# Artigos 
+/Articles
+
+__pycache__/
