@@ -154,11 +154,11 @@ for d in directories:
 
 # Merge
 keys = list(concatanated.keys())
-estacao0 = concatanated[keys[0]].copy( deep = True).drop(columns=['Data', 'Hora'])
-estacao1 = concatanated[keys[1]].copy( deep = True).drop(columns=['Data', 'Hora'])
-estacao2 = concatanated[keys[2]].copy( deep = True).drop(columns=['Data', 'Hora'])
-estacao3 = concatanated[keys[3]].copy( deep = True).drop(columns=['Data', 'Hora'])
-estacao4 = concatanated[keys[4]].copy( deep = True).drop(columns=['Data', 'Hora'])
+estacao0 = concatanated[keys[0]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao1 = concatanated[keys[1]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao2 = concatanated[keys[2]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao3 = concatanated[keys[3]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao4 = concatanated[keys[4]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
 
 merge1 = estacao0.merge(estacao1, on = 'Data / Hora', how = 'outer', suffixes = ('_0', '_1'))
 merge2 = estacao2.merge(estacao3, on = 'Data / Hora', how = 'outer', suffixes = ('_2', '_3'))
@@ -179,6 +179,9 @@ merged.insert(0, 'Data','')
 merged.insert(1, 'Hora','')
 merged[['Data', 'Hora']] = merged['Data / Hora'].str.split(expand = True)
 
+logging.info(' sorting data')
+merged['Data / Hora'] = pd.to_datetime(merged['Data / Hora'])
+merged = merged.sort_values('Data / Hora').reset_index()
 
 if INCLUDE_MEAN:
     merged = include_mean(merged)
