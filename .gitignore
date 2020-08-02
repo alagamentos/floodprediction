@@ -13,3 +13,6 @@
 /Articles
 
 __pycache__/
+
+# Virtual Environment
+venv/

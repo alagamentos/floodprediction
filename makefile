@@ -1,6 +1,9 @@
+setup:
+	python3 -m venv venv
+	source ./venv/bin/activate
+	pip install -r requirements.txt
 
-all: 
-	pip install -r requirements.txt 
+all:
 	make clean
 	make get_regions
 
@@ -10,3 +13,4 @@ clean:
 
 get_regions:
 	python ./develop/Pipeline/get_regions.py
+	

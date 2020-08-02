@@ -1,3 +1,12 @@
+# TCC - Sistema Inteligente de Previsão de Alagamentos
+
+## Integrantes
+Nome | RA | GitHub
+------------ | ------------- | -------------
+Felipe Ippolito | 12.01378-0 | [feippolito](https://github.com/feippolito)
+Felipe Andrade | 15.00175-0 | [Kaisen-san](https://github.com/Kaisen-san)
+Vinícius Pereira | 16.03343-4 | [VinPer](https://github.com/VinPer)
+
 ## Estrutura do projeto
 
 ```
@@ -14,29 +23,36 @@
 ├── requirements.txt
 ```
 
----
-## Make
+## Make commands
+
+Instala o Virtual Environment do Python, junto com todos os pacotes necessários
+
 ```bash
-make clean
+make setup
 ```
-Deleta todos os dados existentes de data/cleandata/Info pluviometricas e executa  `clean_infopluviometricas.py`- duas pastas em cleandata são criadas:
+
+---
+
+Deleta todos os dados existentes de *data/cleandata/Info pluviometricas* e executa `clean_infopluviometricas.py`. Duas pastas em *cleandata* são criadas:
  - **Merged Data**: Contém um arquivo único com todos os dados de info pluvimétrica.
  - **Concatanated**:  Para cada estação disponível cria um arquivo com todos os dados concatenados.
 
+```bash
+make clean
+```
+
  ---
+
+Acha as regiões com erro dos dados *info pluviométrica*. Cria um novo arquivo em *data/cleandata/Merged Data/**merged_wRegions.csv***
+
 ```bash
 make get_regions
 ```
-Acha as regiões com erro dos dados *info pluviométrica*. Cria um novo arquivo em data/cleandata/Merged Data/**merged_wRegions.csv** 
 
 ---
+
+Executa todos os makes anteriores
+
 ```bash
 make all
 ```
-Instala os pacotes necessários (pip - comando abaixo) e executa todos os makes anterirores.
-
-```bash
-pip install -r requirements.txt
-```
-
-

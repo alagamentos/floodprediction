@@ -96,7 +96,7 @@ def include_mean(df):
     return df
 
 
-root = '/home/felipe/Documents/TCC'
+root = os.getcwd()
 path = pjoin(root, 'data/rawdata/Info pluviometricas')
 files = []
 directories = []
