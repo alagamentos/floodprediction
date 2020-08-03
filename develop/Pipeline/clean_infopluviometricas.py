@@ -154,11 +154,11 @@ for d in directories:
 
 # Merge
 keys = list(concatanated.keys())
-estacao0 = concatanated[keys[0]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
-estacao1 = concatanated[keys[1]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
-estacao2 = concatanated[keys[2]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
-estacao3 = concatanated[keys[3]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
-estacao4 = concatanated[keys[4]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao0 = concatanated[keys[0]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
+estacao1 = concatanated[keys[1]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
+estacao2 = concatanated[keys[2]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
+estacao3 = concatanated[keys[3]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
+estacao4 = concatanated[keys[4]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
 
 merge1 = estacao0.merge(estacao1, on = 'Data / Hora', how = 'outer', suffixes = ('_0', '_1'))
 merge2 = estacao2.merge(estacao3, on = 'Data / Hora', how = 'outer', suffixes = ('_2', '_3'))
