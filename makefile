@@ -18,3 +18,6 @@ clean:
 get_regions:
 	source ./venv/bin/activate
 	python ./develop/Pipeline/get_regions.py
+
+commit:
+	python pythonify.py
