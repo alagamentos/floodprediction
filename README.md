@@ -54,5 +54,5 @@ make get_regions
 Executa todos os makes anteriores
 
 ```bash
-make all
+make build
 ```
