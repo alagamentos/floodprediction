@@ -51,18 +51,21 @@ def get_regions(df,
 
     # Error Union
     nans = df.isna()   
-    error = [zeros[i] or peaks[i] or nans[i] or non_zeros[i] for i in range(len(peaks))]
+    error = [zeros[i] or peaks[i] or non_zeros[i] for i in range(len(peaks))]
     error_reg = list_2_regions(error)
     
     # Expand margins 
     if margins is not None:
         error_reg = increase_margins(3, error_reg, len(peaks))
-    
+
+    # Include NaNs
+    error = regions_2_list(error_reg, len(df))
+    error = [nans[i] or error[i] for i in range(len(error))]
+   
     # Plot Results
     if plot_final :
+        error_reg = list_2_regions(error)
         plot_regions(df, error_reg, **final_kwargs)
-
-    error = regions_2_list(error_reg, len(df))
     
     return error
 
@@ -70,8 +73,8 @@ def get_regions(df,
 if __name__ == '__main__':
     
     root = Path(__file__).resolve().parents[2] # resolve() -> absolute path
-    data_path = pjoin(root, 'data/cleandata/Info pluviometricas/Merged Data/merged.csv' )
-    save_path = pjoin(root, 'data/cleandata/Info pluviometricas/Merged Data/merged_wRegions.csv' )
+    data_path = pjoin(root, 'data/cleandata/Info pluviometricas/Merged Data/merged.csv')
+    save_path = pjoin(root, 'data/cleandata/Info pluviometricas/Merged Data/merged_wRegions.csv')
 
     df = pd.read_csv(data_path,
                     sep = ';',
@@ -111,7 +114,7 @@ if __name__ == '__main__':
 
         'RadiacaoSolar':{
             'd_threshold': 850,
-            'z_threshold':60,
+            'z_threshold':100,
             'margins':5,
             'nz_threshold': 3},
 

@@ -181,7 +181,7 @@ for col in um.columns:
 
 # #### RadiacaoSolar
 
-# In[12]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'RadiacaoSolar' in i]
@@ -190,13 +190,16 @@ um.head()
 start, stop = 150000, 150500
 for col in um.columns:
     peaks = derivative_threshold(um[col].fillna(0), 750, False, start, stop)
-    zeros = derivative_zero(um[col].fillna(0), 100, False, plot = False, plt_start = start, plt_stop = stop)
+    zeros = derivative_zero(um[col].fillna(0), 60, False, plot = True, plt_start = start, plt_stop = stop)
     const_not_null = derivative_zero(um[col].fillna(0), 3, True, False, start, stop)
     nans = um[col].isna()
     error = [zeros[i] or const_not_null[i] or peaks[i] for i in range(len(zeros))]
-    error = nans
+    # error = nans
     error_reg = list_2_regions(error)
     error_reg = increase_margins(5, error_reg, len(zeros))
+    error = regions_2_list(error_reg, len(peaks))
+    error = [nans[i] or error[i] for i in range(len(error))]
+    error_reg = list_2_regions(error)
     plot_regions(um[col].fillna(0), error_reg, start, stop, plt_type = 'lines')
 
 

@@ -3,7 +3,7 @@
 
 # Esse *notebook* é a primeira tentative de recontruir os dados com as regiões de erro já identificadas,
 
-# In[4]:
+# In[1]:
 
 
 import sys
@@ -15,7 +15,7 @@ imp.reload(utils)
 from utils import *
 
 
-# In[5]:
+# In[2]:
 
 
 # Python imports
@@ -28,11 +28,11 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 
 # Notebook Theme
-try:
-    from jupyterthemes import jtplot
-    jtplot.style()
-except:
-    pass
+# try:
+#     from jupyterthemes import jtplot
+#     jtplot.style()
+# except:
+#     pass
 
 # ML imports
 from sklearn.model_selection import train_test_split, TimeSeriesSplit
@@ -49,11 +49,11 @@ ip.head()
 
 # ## Validate Regions
 
-# In[6]:
+# In[3]:
 
 
 select = 'RadiacaoSolar_4'
-start, stop = 0, 1000
+start, stop = 150000, 150500
 
 ## ===================================
 error = ip[select + '_error'].to_list()
@@ -68,9 +68,9 @@ error_reg = list_2_regions(error)
 plot_regions(ip[select].fillna(0), error_reg, start, stop, plt_type = 'lines')
 
 
-# ## Regressor RadiacaoSolar_0
+# ## Interpolation
 
-# In[7]:
+# In[4]:
 
 
 cols_rad = [i for i in ip.columns if 'RadiacaoSolar' in i]
@@ -78,7 +78,60 @@ rad = ip[cols_rad].copy(deep = True)
 ip[cols_rad].head()
 
 
+# In[5]:
+
+
+print(ip['RadiacaoSolar_0_error'].sum())
+print(ip['RadiacaoSolar_1_error'].sum())
+print(ip['RadiacaoSolar_2_error'].sum())
+print(ip['RadiacaoSolar_3_error'].sum())
+print(ip['RadiacaoSolar_4_error'].sum())
+
+
+# In[6]:
+
+
+error = ip['RadiacaoSolar_0_error']
+error_reg = list_2_regions(error)
+
+
+# In[7]:
+
+
+reg_size = [i[1] - i[0] for i in error_reg]
+max_size = 5
+
+interpol_reg = [error_reg[i] for i in range(len(reg_size)) if reg_size[i] <= max_size]
+ip['RadiacaoSolar_0_interpol']  = regions_2_list(interpol_reg, len(ip))
+ip.loc[ip['RadiacaoSolar_0_interpol'],'RadiacaoSolar_0_error'] = False
+#ip['RadiacaoSolar_0_error'] = ip['RadiacaoSolar_0_error'] & ~ip['RadiacaoSolar_0_interpol']
+
+
 # In[8]:
+
+
+s = ip['RadiacaoSolar_0']
+s = s.fillna(-1)
+s[ip['RadiacaoSolar_0_interpol']] = np.nan
+s = s.interpolate(method = 'linear', limit = max_size)
+s[s == -1] = np.nan
+ip['RadiacaoSolar_0'] = s
+
+
+# In[9]:
+
+
+start, stop = 150000, 150500
+plt.figure(figsize = (12,7))
+plt.plot(s[start:stop], lw = 2)
+plt.plot(s[start:stop].where(ip['RadiacaoSolar_0_interpol'][start:stop]), c = 'red', lw =2)
+plt.plot(s[start:stop].where(ip['RadiacaoSolar_0_error'][start:stop]), c = 'black', lw = 2)
+plt.show()
+
+
+# ## Regressor RadiacaoSolar_0
+
+# In[10]:
 
 
 label = 'RadiacaoSolar_0'
@@ -107,14 +160,14 @@ features = rad.drop(columns=label).columns.to_list()
 # 
 # > Shift = atrasar valores por uma amostra
 
-# In[9]:
+# In[11]:
 
 
 horas = 24
 print('Amostras necessárias:', horas*60/ 15)
 
 
-# In[10]:
+# In[12]:
 
 
 rad_d = rad.copy(deep = True)
@@ -132,7 +185,7 @@ rad_d.head(5)
 
 # ## Eliminar dados errados
 
-# In[11]:
+# In[13]:
 
 
 error_cols_all_features = [i for i in rad_d.columns if 'error' in i ]
@@ -153,7 +206,7 @@ print('Dados corretos:', len(rad_e_all_features), 'amostras')
 
 # Os dados com erro representam 89.9% de todo o dataset, isso é, considerando o erro das outras estações e o erro do label (**RadiacaoSolar_0**) para as colunas de atraso (*delay*).
 
-# In[12]:
+# In[14]:
 
 
 error_cols = [i for i in rad_d.columns if 'delay_error' in i or i == 'RadiacaoSolar_0_error']
@@ -174,7 +227,7 @@ print('Dados corretos:', len(rad_e), 'amostras')
 
 # Quando não consideramos os dados das outras estações com erro, os dados errados caiem de 89,9% para 22.9%. Portanto a seguir utilizaremos a segunda opção e para lidar com os dados errados das outras estações será incluido no treinamento os features de erro *'RadiacaoSolar_x_error'* .
 
-# In[13]:
+# In[15]:
 
 
 # Achar Continuidade
@@ -191,7 +244,7 @@ for i in range(1,len(rad_0.index ) -1):
 print(len(regions))
 
 
-# In[14]:
+# In[16]:
 
 
 rad_e.columns
@@ -199,18 +252,30 @@ plot_cols = [i for i in rad_e.columns if 'delay' not in i and 'error' not in i]
 print(plot_cols)
 
 
-# In[15]:
+# In[17]:
 
 
-figsize = (12,7 * len(plot_cols))
-fig, ax = plt.subplots(len(plot_cols), 1,figsize = figsize)
-i = 0
-for col in plot_cols:
-    for reg in regions:
-        start, stop = reg
-        ax[i].plot(rad_e[[col]].loc[start:stop].index, rad_e[[col]].loc[start:stop])
-        ax[i].set_title(col)
-    i+=1
+# figsize = (12,7 * len(plot_cols))
+# fig, ax = plt.subplots(len(plot_cols), 1,figsize = figsize)
+# i = 0
+# for col in ['RadiacaoSolar_0']:
+#     for reg in regions:
+#         start, stop = reg
+#         ax[i].plot(rad_e[[col]].loc[start:stop].index, rad_e[[col]].loc[start:stop])
+#         ax[i].set_title(col)
+#     i+=1
+# plt.show()
+
+
+# In[18]:
+
+
+start, stop = 0, 150500
+
+plt.figure(figsize= (12,12))
+plt.plot(ip['RadiacaoSolar_0'][start:stop].fillna(0))
+plt.plot(ip['RadiacaoSolar_0'][start:stop].where(ip['RadiacaoSolar_0_error'][start:stop]),
+          c = 'red')
 plt.show()
 
 
@@ -259,7 +324,7 @@ plt.show()
 # - https://www.kaggle.com/c/ieee-fraud-detection/discussion/103065
 # - https://www.kaggle.com/kashnitsky/correct-time-aware-cross-validation-scheme
 
-# In[16]:
+# In[19]:
 
 
 n_splits = 3
@@ -282,7 +347,7 @@ for train_index, test_index in tscv.split(rad_e[[label]].dropna()):
     X_test.append(rad_e[features].iloc[test_index])
 
 
-# In[17]:
+# In[20]:
 
 
 # Check CV regions
@@ -295,7 +360,7 @@ for n in range(n_splits):
 
 # ## Create model
 
-# In[18]:
+# In[21]:
 
 
 xgb = []
@@ -310,7 +375,7 @@ for n in range(n_splits):
 
 # ##  Score
 
-# In[16]:
+# In[22]:
 
 
 # ================ #
@@ -320,7 +385,7 @@ for n in range(n_splits):
 
 # ## Predict tests samples
 
-# In[19]:
+# In[23]:
 
 
 start, stop = 0, 1000
@@ -341,7 +406,7 @@ plt.show()
 
 # ## Predict on faulty data
 
-# In[20]:
+# In[24]:
 
 
 drop_cols = [i for i in rad_d.columns if 'delay_error' in i]
@@ -349,7 +414,7 @@ drop_cols.append(label)
 drop_cols.append(label+'_error')
 
 
-# In[21]:
+# In[25]:
 
 
 val_predict = []
@@ -357,7 +422,7 @@ for n in range(n_splits):
     val_predict.append(xgb[n].predict(rad_d.drop(columns = drop_cols)))
 
 
-# In[22]:
+# In[26]:
 
 
 start, stop = 0, 1000
@@ -371,10 +436,10 @@ for n in range(n_splits):
 plt.show()
 
 
-# In[23]:
+# In[27]:
 
 
-start, stop = 337500, 360000
+start, stop = 337750, 338200
 
 fig, ax = plt.subplots(n_splits, 1, figsize = (12,7*n_splits))
 
@@ -391,19 +456,25 @@ plt.show()
 
 # ## Recurrent prediction
 
-# In[24]:
+# In[28]:
 
 
 rad_d.head(2)
 
 
-# In[25]:
+# In[29]:
+
+
+rad_d[start+30:stop].head(10)
+
+
+# In[30]:
 
 
 recurrent_y = np.zeros(len(rad_d), dtype=np.float64)
 rad_recurrent = rad_d.drop(columns = drop_cols).copy(deep = True)
 
-start, stop = 0, 1000
+start, stop = 337750, 338500
 for i in range(start, stop, 1):
     x = rad_recurrent.loc[[i]]
     pred_ = xgb[2].predict(x)
@@ -412,17 +483,18 @@ for i in range(start, stop, 1):
         rad_recurrent.loc[i + l, 'delay_' + str(l) ] = pred_
 
 
-# In[26]:
+# In[31]:
 
 
 plt.figure(figsize = (12,7))
-plt.plot(rad_d['RadiacaoSolar_1'][start:stop], label =  'Original')
-plt.plot(recurrent_y[start:stop],'--', label = 'Previsao')
+plt.plot(rad_d['RadiacaoSolar_0'][start:stop], label =  'Original')
+plt.plot(rad_d['RadiacaoSolar_0'][start:stop].index,
+         recurrent_y[start:stop],'--', label = 'Previsao')
 plt.legend()
 plt.show()
 
 
-# In[27]:
+# In[32]:
 
 
 len(recurrent_y) * lookbackSize
