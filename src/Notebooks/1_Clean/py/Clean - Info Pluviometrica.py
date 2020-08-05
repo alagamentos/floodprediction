@@ -1,10 +1,18 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
 
 SAVE = True # Merged files
-SAVE_SINGLES = False # Save each individual xls file into csv
-SAVE_CONCATANATED = True # Save each station as a csv file
+SAVE_SINGLES = True # Save each individual xls file into csv
+SAVE_CONCATENATED = True # Save each station as a csv file
 INCLUDE_MEAN = False # Include mean of all 4 stations on merged dataframe
 
-# ======================
+
+# In[ ]:
+
+
 
 import pandas as pd
 import numpy as np
@@ -19,6 +27,9 @@ from pathlib import Path
 import logging
 
 logging.basicConfig(level = logging.INFO, format = '## Clean - %(levelname)s: %(message)s' )
+
+
+# In[ ]:
 
 
 # Functions
@@ -67,9 +78,9 @@ def save_to_file(df, file):
     #logging.info('saving to ', save_path, '\n')
     df.to_csv(save_path, sep = ';', index = False)
        
-def concatanate(df_list, name, concat_path ,save = True):
+def concatenate(df_list, name, concat_path ,save = True):
     '''
-    concatanate - For each station turn mutiples files into one
+    concatenate - For each station turn mutiples files into one
     '''
     if df_list:
         df = pd.concat(df_list, axis = 0)
@@ -96,7 +107,10 @@ def include_mean(df):
     return df
 
 
-root = os.getcwd()
+# In[ ]:
+
+
+root = '/home/felipe/Documents/TCC'
 path = pjoin(root, 'data/rawdata/Info pluviometricas')
 files = []
 directories = []
@@ -106,6 +120,10 @@ for r, d, f in os.walk(path):
     for file in f:
         if '.xls' in file:
             files.append(pjoin(r, file))
+
+
+# In[ ]:
+
 
 # Create dir
 _path = pjoin(root, "data/cleandata")
@@ -119,19 +137,27 @@ if SAVE_SINGLES:
         _path = pjoin(root ,"data/cleandata/Info pluviometricas", directory)
         create_dir(_path)
 
-if SAVE_CONCATANATED:
-    _path = pjoin(root, "data/cleandata/Info pluviometricas/Concatanated Data/")
+if SAVE_CONCATENATED:
+    _path = pjoin(root, "data/cleandata/Info pluviometricas/Concatenated Data/")
     create_dir(_path)
     
     for directory in directories:
-        _path = pjoin(root ,"data/cleandata/Info pluviometricas/Concatanated Data", directory)
+        _path = pjoin(root ,"data/cleandata/Info pluviometricas/Concatenated Data", directory)
         create_dir(_path)
+
+
+# In[ ]:
+
 
 # Load csvs
 dic = {directory: [] for directory in directories}
 
 #Load cleaned data into dictonary
 logging.info(f' loading  {len(files)}/90  files')
+
+
+# In[ ]:
+
 
 i = 0
 for file in files:
@@ -144,25 +170,35 @@ for file in files:
             dic[d].append( clean(df, file, SAVE_SINGLES) )
             i += 1
 
+
+# In[ ]:
+
+
 # Concatanate and save
 logging.info(' merging files')
-concatanated = {}
+concatenated = {}
 for d in directories:
-    _path = pjoin(root ,"data/cleandata/Info pluviometricas/Concatanated Data", d)
-    concatanated[d] = concatanate(dic[d], d, _path, SAVE_CONCATANATED) 
+    _path = pjoin(root ,"data/cleandata/Info pluviometricas/Concatenated Data", d)
+    concatenated[d] = concatenate(dic[d], d, _path, SAVE_CONCATENATED) 
+
+
+# In[ ]:
 
 
 # Merge
-keys = list(concatanated.keys())
-estacao0 = concatanated[keys[0]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
-estacao1 = concatanated[keys[1]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
-estacao2 = concatanated[keys[2]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
-estacao3 = concatanated[keys[3]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
-estacao4 = concatanated[keys[4]].copy( deep = True).drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'], keep='last')
+keys = list(concatenated.keys())
+estacao0 = concatenated[keys[0]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao1 = concatenated[keys[1]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao2 = concatenated[keys[2]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao3 = concatenated[keys[3]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao4 = concatenated[keys[4]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
 
 merge1 = estacao0.merge(estacao1, on = 'Data / Hora', how = 'outer', suffixes = ('_0', '_1'))
 merge2 = estacao2.merge(estacao3, on = 'Data / Hora', how = 'outer', suffixes = ('_2', '_3'))
 merge3 = merge1.merge(merge2, on = 'Data / Hora', how = 'outer')
+
+
+# In[ ]:
 
 
 # Manualy ad suffixes to estacao4
@@ -179,12 +215,20 @@ merged.insert(0, 'Data','')
 merged.insert(1, 'Hora','')
 merged[['Data', 'Hora']] = merged['Data / Hora'].str.split(expand = True)
 
-logging.info(' sorting data')
+# Sort By Data / Hora
 merged['Data / Hora'] = pd.to_datetime(merged['Data / Hora'])
 merged = merged.sort_values('Data / Hora').reset_index()
 
+
+# In[ ]:
+
+
 if INCLUDE_MEAN:
     merged = include_mean(merged)
+
+
+# In[ ]:
+
 
 if SAVE:
     logging.info(' saving files')

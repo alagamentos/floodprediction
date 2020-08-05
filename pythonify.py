@@ -1,6 +1,6 @@
 import os
 
-root = os.getcwd() + '/develop/Notebooks'
+root = os.getcwd() + '/src/Notebooks'
 directories = []
 
 for r, d, f in os.walk(root):

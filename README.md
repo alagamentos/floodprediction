@@ -12,18 +12,26 @@ Vinícius Pereira | 16.03343-4 | [VinPer](https://github.com/VinPer)
 ```
 .
 ├── data
-│   ├── cleandata 
-│   ├── rawdata 
-├── develop
-│   ├── Notebooks 
+│   ├── cleandata
+│   ├── rawdata
+├── src
+│   ├── Notebooks
 │   ├── Pipeline
 │   ├── PowerBI
-├── makefile
+├── Makefile
 ├── README.md
 ├── requirements.txt
 ```
 
-## Make commands
+## Requerimentos
+
+É necessário ter instalado na máquina os seguintes programas:
+
+- Python3
+- Jupyter notebook
+- NodeJS
+
+## Comandos Make
 
 Instala o Virtual Environment do Python, junto com todos os pacotes necessários
 
@@ -33,9 +41,17 @@ make setup
 
 ---
 
-Deleta todos os dados existentes de *data/cleandata/Info pluviometricas* e executa `clean_infopluviometricas.py`. Duas pastas em *cleandata* são criadas:
- - **Merged Data**: Contém um arquivo único com todos os dados de info pluvimétrica.
- - **Concatanated**:  Para cada estação disponível cria um arquivo com todos os dados concatenados.
+Gera os arquivos Python a partir dos Jupyter notebooks existentes afim de facilitar o rastreio das mudanças. **DEVE SER EXECUTADO ANTES DE CADA COMMIT!**
+
+```bash
+make commit
+```
+
+---
+
+Deleta todas as pastas existentes em *data/cleandata/Info pluviometricas* e executa o arquivo `clean_infopluviometricas.py`. Dessa execução são geradas duas pastas em *cleandata*:
+ - **Merged Data**: Contém um arquivo único com todos os dados das informações pluvimétricas.
+ - **Concatenated**: Contém um arquivo para cada estação com todos os dados da mesma concatenados.
 
 ```bash
 make clean
@@ -43,7 +59,7 @@ make clean
 
  ---
 
-Acha as regiões com erro dos dados *info pluviométrica*. Cria um novo arquivo em *data/cleandata/Merged Data/**merged_wRegions.csv***
+Acha as regiões com erro nos dados das informações pluviométricas e cria um novo arquivo em *data/cleandata/Merged Data/**merged_wRegions.csv***
 
 ```bash
 make get_regions
@@ -51,8 +67,11 @@ make get_regions
 
 ---
 
-Executa todos os makes anteriores
+Executa todos os makes relacionados a manipulação de dados:
 
 ```bash
 make build
 ```
+
+## Referências
+- [Artigo utilizados na revisão bibliográfica](https://drive.google.com/drive/folders/1RDT4sAvsjU82O3m3slLdigGo8T5wgxBc?usp=sharing)

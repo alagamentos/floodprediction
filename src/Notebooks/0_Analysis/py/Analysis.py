@@ -25,11 +25,11 @@ except:
 # In[2]:
 
 
-est0 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatanated Data/Camilopolis/Camilopolis.csv', sep=';')
-est1 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatanated Data/Erasmo Assunção/Erasmo Assunção.csv', sep=';')
-est2 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatanated Data/Paraiso/Paraiso.csv', sep=';')
-est3 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatanated Data/RM 9/RM 9.csv', sep=';')
-est4 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatanated Data/Vitória/Vitória.csv', sep=';')
+est0 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatenated Data/Camilopolis/Camilopolis.csv', sep=';')
+est1 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatenated Data/Erasmo Assunção/Erasmo Assunção.csv', sep=';')
+est2 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatenated Data/Paraiso/Paraiso.csv', sep=';')
+est3 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatenated Data/RM 9/RM 9.csv', sep=';')
+est4 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatenated Data/Vitória/Vitória.csv', sep=';')
 
 est = [est0, est1, est2, est3, est4]
 
