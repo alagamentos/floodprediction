@@ -68,17 +68,25 @@ error_reg = list_2_regions(error)
 plot_regions(ip[select].fillna(0), error_reg, start, stop, plt_type = 'lines')
 
 
-# ## Interpolation
-
 # In[4]:
 
 
-cols_rad = [i for i in ip.columns if 'RadiacaoSolar' in i]
-rad = ip[cols_rad].copy(deep = True)
-ip[cols_rad].head()
+ip[['Date', 'Time']] = ip['Data / Hora'].str.split(expand=True)
+ip[['Hora','Min','Seg']] = ip['Time'].str.split(':', expand = True)
+ip['Hora'] = ip['Hora'].astype(int)
 
+
+# ## Interpolation
 
 # In[5]:
+
+
+cols_rad = [i for i in ip.columns if 'RadiacaoSolar' in i]
+rad = ip[['Hora'] + cols_rad].copy(deep = True)
+rad.head()
+
+
+# In[6]:
 
 
 print(ip['RadiacaoSolar_0_error'].sum())
@@ -88,50 +96,50 @@ print(ip['RadiacaoSolar_3_error'].sum())
 print(ip['RadiacaoSolar_4_error'].sum())
 
 
-# In[6]:
+# In[7]:
 
 
-error = ip['RadiacaoSolar_0_error']
+error = rad['RadiacaoSolar_0_error']
 error_reg = list_2_regions(error)
 
 
-# In[7]:
+# In[8]:
 
 
 reg_size = [i[1] - i[0] for i in error_reg]
 max_size = 5
 
 interpol_reg = [error_reg[i] for i in range(len(reg_size)) if reg_size[i] <= max_size]
-ip['RadiacaoSolar_0_interpol']  = regions_2_list(interpol_reg, len(ip))
-ip.loc[ip['RadiacaoSolar_0_interpol'],'RadiacaoSolar_0_error'] = False
-#ip['RadiacaoSolar_0_error'] = ip['RadiacaoSolar_0_error'] & ~ip['RadiacaoSolar_0_interpol']
-
-
-# In[8]:
-
-
-s = ip['RadiacaoSolar_0']
-s = s.fillna(-1)
-s[ip['RadiacaoSolar_0_interpol']] = np.nan
-s = s.interpolate(method = 'linear', limit = max_size)
-s[s == -1] = np.nan
-ip['RadiacaoSolar_0'] = s
+rad['RadiacaoSolar_0_interpol']  = regions_2_list(interpol_reg, len(rad))
+rad.loc[rad['RadiacaoSolar_0_interpol'],'RadiacaoSolar_0_error'] = False
+#rad['RadiacaoSolar_0_error'] = rad['RadiacaoSolar_0_error'] & ~rad['RadiacaoSolar_0_interpol']
 
 
 # In[9]:
 
 
+s = rad['RadiacaoSolar_0']
+s = s.fillna(-1)
+s[rad['RadiacaoSolar_0_interpol']] = np.nan
+s = s.interpolate(method = 'linear', limit = max_size)
+s[s == -1] = np.nan
+rad['RadiacaoSolar_0'] = s
+
+
+# In[10]:
+
+
 start, stop = 150000, 150500
 plt.figure(figsize = (12,7))
 plt.plot(s[start:stop], lw = 2)
-plt.plot(s[start:stop].where(ip['RadiacaoSolar_0_interpol'][start:stop]), c = 'red', lw =2)
-plt.plot(s[start:stop].where(ip['RadiacaoSolar_0_error'][start:stop]), c = 'black', lw = 2)
+plt.plot(s[start:stop].where(rad['RadiacaoSolar_0_interpol'][start:stop]), c = 'red', lw =2)
+plt.plot(s[start:stop].where(rad['RadiacaoSolar_0_error'][start:stop]), c = 'black', lw = 2)
 plt.show()
 
 
 # ## Regressor RadiacaoSolar_0
 
-# In[10]:
+# In[11]:
 
 
 label = 'RadiacaoSolar_0'
@@ -160,23 +168,23 @@ features = rad.drop(columns=label).columns.to_list()
 # 
 # > Shift = atrasar valores por uma amostra
 
-# In[11]:
+# In[12]:
 
 
 horas = 24
 print('Amostras necessárias:', horas*60/ 15)
 
 
-# In[12]:
+# In[13]:
 
 
 rad_d = rad.copy(deep = True)
 lookbackSize = 30
 
 for i in range(1,lookbackSize + 1):
-    rad_d['delay_' + str(i)] = ip['RadiacaoSolar_0'].shift(i)
+    rad_d['delay_' + str(i)] = rad['RadiacaoSolar_0'].shift(i)
 for i in range(1,lookbackSize + 1):
-    rad_d['delay_error_' + str(i)] = ip['RadiacaoSolar_0_error'].shift(i)
+    rad_d['delay_error_' + str(i)] = rad['RadiacaoSolar_0_error'].shift(i)
     
 cols_delay = [i for i in rad_d.columns if 'delay' in i]
 print('Dataframe completo: ', len(rad_d), 'amostras')
@@ -185,7 +193,7 @@ rad_d.head(5)
 
 # ## Eliminar dados errados
 
-# In[13]:
+# In[14]:
 
 
 error_cols_all_features = [i for i in rad_d.columns if 'error' in i ]
@@ -206,7 +214,7 @@ print('Dados corretos:', len(rad_e_all_features), 'amostras')
 
 # Os dados com erro representam 89.9% de todo o dataset, isso é, considerando o erro das outras estações e o erro do label (**RadiacaoSolar_0**) para as colunas de atraso (*delay*).
 
-# In[14]:
+# In[15]:
 
 
 error_cols = [i for i in rad_d.columns if 'delay_error' in i or i == 'RadiacaoSolar_0_error']
@@ -227,7 +235,7 @@ print('Dados corretos:', len(rad_e), 'amostras')
 
 # Quando não consideramos os dados das outras estações com erro, os dados errados caiem de 89,9% para 22.9%. Portanto a seguir utilizaremos a segunda opção e para lidar com os dados errados das outras estações será incluido no treinamento os features de erro *'RadiacaoSolar_x_error'* .
 
-# In[15]:
+# In[16]:
 
 
 # Achar Continuidade
@@ -244,7 +252,7 @@ for i in range(1,len(rad_0.index ) -1):
 print(len(regions))
 
 
-# In[16]:
+# In[17]:
 
 
 rad_e.columns
@@ -252,7 +260,7 @@ plot_cols = [i for i in rad_e.columns if 'delay' not in i and 'error' not in i]
 print(plot_cols)
 
 
-# In[17]:
+# In[18]:
 
 
 # figsize = (12,7 * len(plot_cols))
@@ -267,14 +275,14 @@ print(plot_cols)
 # plt.show()
 
 
-# In[18]:
+# In[19]:
 
 
-start, stop = 0, 150500
+start, stop = 0, 1000
 
 plt.figure(figsize= (12,12))
-plt.plot(ip['RadiacaoSolar_0'][start:stop].fillna(0))
-plt.plot(ip['RadiacaoSolar_0'][start:stop].where(ip['RadiacaoSolar_0_error'][start:stop]),
+plt.plot(rad['RadiacaoSolar_0'][start:stop].fillna(0))
+plt.plot(rad['RadiacaoSolar_0'][start:stop].where(rad['RadiacaoSolar_0_error'][start:stop]),
           c = 'red')
 plt.show()
 
@@ -324,7 +332,7 @@ plt.show()
 # - https://www.kaggle.com/c/ieee-fraud-detection/discussion/103065
 # - https://www.kaggle.com/kashnitsky/correct-time-aware-cross-validation-scheme
 
-# In[19]:
+# In[20]:
 
 
 n_splits = 3
@@ -347,7 +355,7 @@ for train_index, test_index in tscv.split(rad_e[[label]].dropna()):
     X_test.append(rad_e[features].iloc[test_index])
 
 
-# In[20]:
+# In[21]:
 
 
 # Check CV regions
@@ -360,7 +368,7 @@ for n in range(n_splits):
 
 # ## Create model
 
-# In[21]:
+# In[22]:
 
 
 xgb = []
@@ -375,7 +383,7 @@ for n in range(n_splits):
 
 # ##  Score
 
-# In[22]:
+# In[ ]:
 
 
 # ================ #
@@ -459,18 +467,6 @@ plt.show()
 # In[28]:
 
 
-rad_d.head(2)
-
-
-# In[29]:
-
-
-rad_d[start+30:stop].head(10)
-
-
-# In[30]:
-
-
 recurrent_y = np.zeros(len(rad_d), dtype=np.float64)
 rad_recurrent = rad_d.drop(columns = drop_cols).copy(deep = True)
 
@@ -483,7 +479,7 @@ for i in range(start, stop, 1):
         rad_recurrent.loc[i + l, 'delay_' + str(l) ] = pred_
 
 
-# In[31]:
+# In[29]:
 
 
 plt.figure(figsize = (12,7))
@@ -494,7 +490,7 @@ plt.legend()
 plt.show()
 
 
-# In[32]:
+# In[30]:
 
 
 len(recurrent_y) * lookbackSize
@@ -521,3 +517,23 @@ len(recurrent_y) * lookbackSize
 #     - Otimizar hiper-parametros: **Hyperopt**
 #     - Incluir Rede LSTM com XGBoost 
 # > https://towardsdatascience.com/power-of-xgboost-lstm-in-forecasting-natural-gas-price-f426fada80f0
+
+# ### Previsão nas regiões consideradas erradas
+
+# In[33]:
+
+
+get_ipython().run_cell_magic('time', '', "rad_recurrent = rad_d.drop(columns = drop_cols).copy(deep = True)\nprediction = rad_d[['RadiacaoSolar_0','RadiacaoSolar_0_error']]\nprediction['RadiacaoSolar_0_pred'] = prediction['RadiacaoSolar_0']\n\npredict_regions = list_2_regions(rad_d['RadiacaoSolar_0_error'])\nfor i,p in enumerate(predict_regions[0:30]):\n    print(i,'/', len(predict_regions))\n    start, stop = p[0], p[1]\n    recurrent_y = np.zeros(stop - start, dtype=np.float64)\n    for i in range(start, stop):\n        x = rad_recurrent.loc[[i]]\n        pred_ = xgb[2].predict(x)\n        prediction.loc[i,'RadiacaoSolar_0_pred'] = pred_\n        for l in range(1, lookbackSize+1):\n            rad_recurrent.loc[i + l, 'delay_' + str(l) ] = pred_     \n    ")
+
+
+# In[35]:
+
+
+for r in range(30):
+    start, stop = predict_regions[r][0] - 100, predict_regions[r][1] + 100
+    plt.figure(figsize=(12,7))
+    plt.plot(prediction['RadiacaoSolar_0'][start:stop] )
+    plt.plot(prediction['RadiacaoSolar_0_pred'][start:stop]
+             .where(prediction['RadiacaoSolar_0_error'][start:stop]))
+    plt.show()
+
