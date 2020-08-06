@@ -4,3 +4,5 @@ pandas>=1.0
 matplotlib>=3.1
 xlrd
 scikit-learn
+plotly>=4.9
+kaleido
