@@ -113,6 +113,8 @@ if __name__ == '__main__':
       if '.xls' in file:
         files.append(pjoin(r, file))
 
+  directories.sort()
+
   # Create dir
   _path = pjoin(root, "data/cleandata")
   create_dir(_path)
