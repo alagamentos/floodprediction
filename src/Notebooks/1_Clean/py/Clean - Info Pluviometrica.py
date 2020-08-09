@@ -44,7 +44,7 @@ def clean(df, file, save = True):
     '''
     df.columns = (list(df.iloc[2].values)) # Get column names
     df = df.loc[:, df.columns.notnull()]   # Remove nan columns
-    df = df[~((df['Data / Hora'] == 'Data / Hora') &
+    df = df[~((df['Data_Hora'] == 'Data_Hora') &
               (df['Pressão Atmosférica'] == 'Pressão Atmosférica'))] # Remove all headers
 
     df = df[df.iloc[:,0].str.contains(':', na = False) &
@@ -52,16 +52,16 @@ def clean(df, file, save = True):
 
     df.insert(0, 'Data','')
     df.insert(1, 'Hora','')
-    df[['Data', 'Hora']] = df['Data / Hora'].str.split(expand = True)
-    #df.drop('Data / Hora', axis = 1, inplace = True) # Split into 2 columns
+    df[['Data', 'Hora']] = df['Data_Hora'].str.split(expand = True)
+    #df.drop('Data_Hora', axis = 1, inplace = True) # Split into 2 columns
     
     drop_cols = [4, 6, 7, 10, 12, 14, 15, 17, 20, 22 ]
     #    drop_cols = [3, 5, 6, 9, 11, 12, 14, 16, 19, 2]
     df = df.drop(df.columns[drop_cols],axis=1)
 
-    col_names = ['Data', 'Hora', 'Data / Hora',
+    col_names = ['Data', 'Hora', 'Data_Hora',
                  'UmidadeRelativa', 'PressaoAtmosferica',
-                 'Temperatura do Ar', 'TemperaturaInterna',
+                 'TemperaturaDoAr', 'TemperaturaInterna',
                  'PontoDeOrvalho', 'SensacaoTermica',
                  'RadiacaoSolar', 'DirecaoDoVento',
                  'VelocidadeDoVento', 'Precipitacao']
@@ -98,7 +98,7 @@ def save_concat(df, name, path):
 def include_mean(df):
     col_names = ['UmidadeRelativa_', 'PressaoAtmosferica_', 'SensacaoTermica_', 
                  'RadiacaoSolar_', 'DirecaoDoVento_', 'VelocidadeDoVento_', 'Precipitacao_',
-                 'PontoDeOrvalho_', 'Temperatura do Ar_', 'TemperaturaInterna_']
+                 'PontoDeOrvalho_', 'TemperaturaDoAr_', 'TemperaturaInterna_']
     
     for col_name in col_names:
         selected_cols = [col for col in df.columns if col_name in col]
@@ -187,15 +187,15 @@ for d in directories:
 
 # Merge
 keys = list(concatenated.keys())
-estacao0 = concatenated[keys[0]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
-estacao1 = concatenated[keys[1]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
-estacao2 = concatenated[keys[2]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
-estacao3 = concatenated[keys[3]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
-estacao4 = concatenated[keys[4]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data / Hora'])
+estacao0 = concatenated[keys[0]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data_Hora'])
+estacao1 = concatenated[keys[1]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data_Hora'])
+estacao2 = concatenated[keys[2]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data_Hora'])
+estacao3 = concatenated[keys[3]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data_Hora'])
+estacao4 = concatenated[keys[4]].drop(columns=['Data', 'Hora']).drop_duplicates(subset = ['Data_Hora'])
 
-merge1 = estacao0.merge(estacao1, on = 'Data / Hora', how = 'outer', suffixes = ('_0', '_1'))
-merge2 = estacao2.merge(estacao3, on = 'Data / Hora', how = 'outer', suffixes = ('_2', '_3'))
-merge3 = merge1.merge(merge2, on = 'Data / Hora', how = 'outer')
+merge1 = estacao0.merge(estacao1, on = 'Data_Hora', how = 'outer', suffixes = ('_0', '_1'))
+merge2 = estacao2.merge(estacao3, on = 'Data_Hora', how = 'outer', suffixes = ('_2', '_3'))
+merge3 = merge1.merge(merge2, on = 'Data_Hora', how = 'outer')
 
 
 # In[ ]:
@@ -204,20 +204,20 @@ merge3 = merge1.merge(merge2, on = 'Data / Hora', how = 'outer')
 # Manualy ad suffixes to estacao4
 new_cols = []
 for col in estacao4.columns:
-    if col != 'Data / Hora':
+    if col != 'Data_Hora':
         col = col + '_4'
     new_cols.append(col)
 estacao4.columns = new_cols
 
-merged = merge3.merge(estacao4, on = 'Data / Hora', how = 'outer')
+merged = merge3.merge(estacao4, on = 'Data_Hora', how = 'outer')
 
 merged.insert(0, 'Data','')
 merged.insert(1, 'Hora','')
-merged[['Data', 'Hora']] = merged['Data / Hora'].str.split(expand = True)
+merged[['Data', 'Hora']] = merged['Data_Hora'].str.split(expand = True)
 
-# Sort By Data / Hora
-merged['Data / Hora'] = pd.to_datetime(merged['Data / Hora'])
-merged = merged.sort_values('Data / Hora').reset_index()
+# Sort By Data_Hora
+merged['Data_Hora'] = pd.to_datetime(merged['Data_Hora'])
+merged = merged.sort_values('Data_Hora').reset_index()
 
 
 # In[ ]:

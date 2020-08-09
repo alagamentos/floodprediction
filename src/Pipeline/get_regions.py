@@ -93,7 +93,7 @@ if __name__ == '__main__':
        'z_threshold': 7,
        'margins': 5},
 
-      'Temperatura do Ar':
+      'TemperaturaDoAr':
       {'d_threshold': 6,
        'z_threshold': 4,
        'margins': 2},
@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
       'RadiacaoSolar': {
           'd_threshold': 850,
-          'z_threshold': 100,
+          'z_threshold': 50,
           'margins': 5,
           'nz_threshold': 3},
 

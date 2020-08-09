@@ -55,13 +55,13 @@ print(min(min_), max(max_))
 # In[5]:
 
 
-merge1 = est0.merge(est1, on = 'Data / Hora', how = 'outer', suffixes = ('_0', '_1'))
+merge1 = est0.merge(est1, on = 'Data_Hora', how = 'outer', suffixes = ('_0', '_1'))
 
 
 # In[6]:
 
 
-merge2 = est2.merge(est3, on = 'Data / Hora', how = 'outer', suffixes = ('_2', '_3'))
+merge2 = est2.merge(est3, on = 'Data_Hora', how = 'outer', suffixes = ('_2', '_3'))
 
 
 # In[7]:
@@ -69,7 +69,7 @@ merge2 = est2.merge(est3, on = 'Data / Hora', how = 'outer', suffixes = ('_2', '
 
 new_cols = []
 for col in est4.columns:
-    if col != 'Data / Hora':
+    if col != 'Data_Hora':
         col = col + '_4'
     new_cols.append(col)
     
@@ -79,13 +79,13 @@ est4.columns = new_cols
 # In[8]:
 
 
-merge3 = merge1.merge(merge2, on = 'Data / Hora', how = 'outer')
+merge3 = merge1.merge(merge2, on = 'Data_Hora', how = 'outer')
 
 
 # In[9]:
 
 
-final = merge3.merge(est4, on = 'Data / Hora', how = 'outer')
+final = merge3.merge(est4, on = 'Data_Hora', how = 'outer')
 
 
 # In[10]:

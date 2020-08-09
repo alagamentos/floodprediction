@@ -1,4 +1,4 @@
-xgboost>=0.9
+xgboost>=1.1
 numpy>=1.14
 pandas>=1.0
 matplotlib>=3.1
@@ -6,3 +6,5 @@ xlrd
 scikit-learn
 plotly>=4.9
 kaleido
+google-cloud-bigquery
+tqdm

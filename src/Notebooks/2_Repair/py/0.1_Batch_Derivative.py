@@ -41,7 +41,7 @@ ip.head()
 """
 UmidadeRelativa
 PressaoAtmosferica
-Temperatura do Ar
+TemperaturaDoAr
 TemperaturaInterna
 PontoDeOrvalho
 SensacaoTermica
@@ -96,12 +96,12 @@ for col in um.columns:
     plot_regions(um[col], error_reg, 11100, 11500, plt_type = 'lines', ylim=[900, 950])
 
 
-# #### Temperatura do Ar
+# #### TemperaturaDoAr
 
 # In[7]:
 
 
-cols_um = [i for i in ip.columns if 'Temperatura do Ar' in i]
+cols_um = [i for i in ip.columns if 'TemperaturaDoAr' in i]
 um = ip[cols_um].fillna(np.nan)
 um.head()
 
@@ -113,12 +113,12 @@ for col in um.columns:
     error_reg = list_2_regions(error)
     error_reg = increase_margins(3, error_reg, len(peaks))
     plot_regions(um[col], error_reg, 1000, 1500, plt_type = 'lines',
-                 title = 'Temperatura do Ar', figsize = (11, 8), lw = 3)
+                 title = 'TemperaturaDoAr', figsize = (11, 8), lw = 3)
 
 
 # #### TemperaturaInterna
 
-# In[8]:
+# In[10]:
 
 
 cols_um = [i for i in ip.columns if 'TemperaturaInterna' in i]
@@ -137,7 +137,7 @@ for col in um.columns:
 
 # #### PontoDeOrvalho
 
-# In[9]:
+# In[11]:
 
 
 cols_um = [i for i in ip.columns if 'PontoDeOrvalho' in i]
@@ -156,19 +156,13 @@ for col in um.columns:
 
 # #### SensacaoTermica
 
-# In[10]:
-
-
-um
-
-
-# In[11]:
+# In[28]:
 
 
 cols_um = [i for i in ip.columns if 'SensacaoTermica' in i]
 um = ip[cols_um].fillna(np.nan)
 um.head()
-start, stop = 390000, 393177
+start, stop = 200000, 200500
 for col in um.columns:
     peaks = derivative_threshold(um[col].fillna(0), 4, False, start, stop)
     zeros = derivative_zero(um[col].fillna(0), 10, False, False, start, stop)
@@ -181,16 +175,16 @@ for col in um.columns:
 
 # #### RadiacaoSolar
 
-# In[ ]:
+# In[29]:
 
 
 cols_um = [i for i in ip.columns if 'RadiacaoSolar' in i]
 um = ip[cols_um].fillna(np.nan)
 um.head()
-start, stop = 150000, 150500
+start, stop = 0, 1000
 for col in um.columns:
     peaks = derivative_threshold(um[col].fillna(0), 750, False, start, stop)
-    zeros = derivative_zero(um[col].fillna(0), 60, False, plot = True, plt_start = start, plt_stop = stop)
+    zeros = derivative_zero(um[col].fillna(0), 50, False, plot = False, plt_start = start, plt_stop = stop)
     const_not_null = derivative_zero(um[col].fillna(0), 3, True, False, start, stop)
     nans = um[col].isna()
     error = [zeros[i] or const_not_null[i] or peaks[i] for i in range(len(zeros))]
@@ -205,7 +199,7 @@ for col in um.columns:
 
 # #### DirecaoDoVento
 
-# In[13]:
+# In[30]:
 
 
 cols_um = [i for i in ip.columns if 'DirecaoDoVento' in i]
@@ -224,7 +218,7 @@ for col in um.columns[:-1]:
 
 # #### Velocidade do Vento
 
-# In[14]:
+# In[15]:
 
 
 cols_um = [i for i in ip.columns if 'VelocidadeDoVento' in i]

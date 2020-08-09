@@ -71,7 +71,7 @@ plot_regions(ip[select].fillna(0), error_reg, start, stop, plt_type = 'lines')
 # In[4]:
 
 
-ip[['Date', 'Time']] = ip['Data / Hora'].str.split(expand=True)
+ip[['Date', 'Time']] = ip['Data_Hora'].str.split(expand=True)
 ip[['Hora','Min','Seg']] = ip['Time'].str.split(':', expand = True)
 ip['Hora'] = ip['Hora'].astype(int)
 
@@ -179,7 +179,7 @@ print('Amostras necessárias:', horas*60/ 15)
 
 
 rad_d = rad.copy(deep = True)
-lookbackSize = 30
+lookbackSize = 2
 
 for i in range(1,lookbackSize + 1):
     rad_d['delay_' + str(i)] = rad['RadiacaoSolar_0'].shift(i)
@@ -371,19 +371,12 @@ for n in range(n_splits):
 # In[22]:
 
 
-xgb = []
-y_predict = []
-
-for n in range(n_splits):
-    xgb.append(xgboost.XGBRegressor(objective='reg:squarederror'))
-    xgb[n].fit(X_train[n], y_train[n])
-    
-    y_predict.append(xgb[n].predict(X_test[n]))
+get_ipython().run_cell_magic('time', '', "xgb = []\ny_predict = []\n\nfor n in range(n_splits):\n    xgb.append(xgboost.XGBRegressor(objective='reg:squarederror',\n                                        tree_method = 'gpu_hist' )) \n    xgb[n].fit(X_train[n], y_train[n])\n    \n    y_predict.append(xgb[n].predict(X_test[n]))")
 
 
 # ##  Score
 
-# In[ ]:
+# In[23]:
 
 
 # ================ #
@@ -393,7 +386,7 @@ for n in range(n_splits):
 
 # ## Predict tests samples
 
-# In[23]:
+# In[24]:
 
 
 start, stop = 0, 1000
@@ -414,7 +407,7 @@ plt.show()
 
 # ## Predict on faulty data
 
-# In[24]:
+# In[25]:
 
 
 drop_cols = [i for i in rad_d.columns if 'delay_error' in i]
@@ -422,7 +415,7 @@ drop_cols.append(label)
 drop_cols.append(label+'_error')
 
 
-# In[25]:
+# In[26]:
 
 
 val_predict = []
@@ -430,7 +423,7 @@ for n in range(n_splits):
     val_predict.append(xgb[n].predict(rad_d.drop(columns = drop_cols)))
 
 
-# In[26]:
+# In[27]:
 
 
 start, stop = 0, 1000
@@ -444,7 +437,7 @@ for n in range(n_splits):
 plt.show()
 
 
-# In[27]:
+# In[28]:
 
 
 start, stop = 337750, 338200
@@ -464,7 +457,7 @@ plt.show()
 
 # ## Recurrent prediction
 
-# In[28]:
+# In[29]:
 
 
 recurrent_y = np.zeros(len(rad_d), dtype=np.float64)
@@ -479,7 +472,7 @@ for i in range(start, stop, 1):
         rad_recurrent.loc[i + l, 'delay_' + str(l) ] = pred_
 
 
-# In[29]:
+# In[30]:
 
 
 plt.figure(figsize = (12,7))
@@ -490,7 +483,15 @@ plt.legend()
 plt.show()
 
 
-# In[30]:
+# In[42]:
+
+
+from sklearn.metrics import r2_score
+
+r2_score(rad_d['RadiacaoSolar_0'][start:stop].fillna(0), recurrent_y[start:stop])
+
+
+# In[31]:
 
 
 len(recurrent_y) * lookbackSize
@@ -520,13 +521,124 @@ len(recurrent_y) * lookbackSize
 
 # ### Previsão nas regiões consideradas erradas
 
+# In[32]:
+
+
+get_ipython().run_cell_magic('time', '', "rad_recurrent = rad_d.drop(columns = drop_cols).copy(deep = True)\nprediction = rad_d[['RadiacaoSolar_0','RadiacaoSolar_0_error']]\nprediction['RadiacaoSolar_0_pred'] = prediction['RadiacaoSolar_0']\n\npredict_regions = list_2_regions(rad_d['RadiacaoSolar_0_error'])\nfor i,p in enumerate(predict_regions[0:30]):\n    print(i,'/', len(predict_regions))\n    start, stop = p[0], p[1]\n    for i in range(start, stop):\n        x = rad_recurrent.loc[[i]]\n        pred_ = xgb[2].predict(x)\n        prediction.loc[i,'RadiacaoSolar_0_pred'] = pred_\n        for l in range(1, lookbackSize+1):\n            rad_recurrent.loc[i + l, 'delay_' + str(l) ] = pred_     \n    ")
+
+
 # In[33]:
 
 
-get_ipython().run_cell_magic('time', '', "rad_recurrent = rad_d.drop(columns = drop_cols).copy(deep = True)\nprediction = rad_d[['RadiacaoSolar_0','RadiacaoSolar_0_error']]\nprediction['RadiacaoSolar_0_pred'] = prediction['RadiacaoSolar_0']\n\npredict_regions = list_2_regions(rad_d['RadiacaoSolar_0_error'])\nfor i,p in enumerate(predict_regions[0:30]):\n    print(i,'/', len(predict_regions))\n    start, stop = p[0], p[1]\n    recurrent_y = np.zeros(stop - start, dtype=np.float64)\n    for i in range(start, stop):\n        x = rad_recurrent.loc[[i]]\n        pred_ = xgb[2].predict(x)\n        prediction.loc[i,'RadiacaoSolar_0_pred'] = pred_\n        for l in range(1, lookbackSize+1):\n            rad_recurrent.loc[i + l, 'delay_' + str(l) ] = pred_     \n    ")
+for r in range(30):
+    start, stop = predict_regions[r][0] - 100, predict_regions[r][1] + 100
+    plt.figure(figsize=(12,7))
+    plt.plot(prediction['RadiacaoSolar_0'][start:stop] )
+    plt.plot(prediction['RadiacaoSolar_0_pred'][start:stop]
+             .where(prediction['RadiacaoSolar_0_error'][start:stop]))
+    plt.show()
+
+
+# In[34]:
+
+
+get_ipython().run_cell_magic('time', '', "\nrad_recurrent = rad_d.drop(columns = drop_cols).copy(deep = True)\nprediction_ = rad_d[['RadiacaoSolar_0','RadiacaoSolar_0_error']]\nprediction_['RadiacaoSolar_0_pred'] = prediction['RadiacaoSolar_0']\n\ndcols = ['delay_' + str(i+1) for i in range(lookbackSize)]\n\npredict_regions = list_2_regions(rad_d['RadiacaoSolar_0_error'])\nfor i,p in enumerate(predict_regions[0:30]):\n    print(i,'/', len(predict_regions))\n    start, stop = p[0], p[1]\n    for j in range(start, stop):\n        pred_ = xgb[2].predict(rad_recurrent.loc[[j]])\n        prediction_.loc[j,'RadiacaoSolar_0_pred'] = pred_\n        matrix = rad_recurrent.loc[j+1:j+lookbackSize+1, dcols].values\n        np.fill_diagonal(matrix, pred_)\n        rad_recurrent.loc[j+1:j+lookbackSize+1, dcols] = matrix")
 
 
 # In[35]:
+
+
+for r in range(30):
+    start, stop = predict_regions[r][0] - 100, predict_regions[r][1] + 100
+    plt.figure(figsize=(12,7))
+    plt.plot(prediction['RadiacaoSolar_0'][start:stop] )
+    plt.plot(prediction['RadiacaoSolar_0_pred'][start:stop]
+             .where(prediction['RadiacaoSolar_0_error'][start:stop]))
+    plt.show()
+
+
+# In[36]:
+
+
+get_ipython().run_cell_magic('time', '', '\ndef predict_region(p, prediction, rad_recurrent, xgb):\n    rad_recurrent = rad_recurrent.copy(deep = True)\n    start, stop = p[0], p[1]\n    y_predict = []\n    for j in range(start, stop):\n        pred_ = xgb[2].predict(rad_recurrent.loc[[j]])\n        y_predict.append(pred_)\n        matrix = rad_recurrent.loc[j+1:j+lookbackSize+1, dcols].values\n        np.fill_diagonal(matrix, pred_)\n        rad_recurrent.loc[j+1:j+lookbackSize+1, dcols] = matrix\n    return y_predict\n\nimport threading\nfrom queue import Queue\n\njobs = Queue()\n\ndef do_stuff(q, prediction, rad_recurrent, xgb):\n    while not q.empty():\n        p = q.get()\n        print(f\'Working on {p}\')\n        y = predict_region(p, prediction, rad_recurrent, xgb)\n        prediction.loc[p[0]:p[1]-1, \'RadiacaoSolar_0_pred\'] = y\n        print(f\'Finished {p}\')\n        q.task_done()\n\nfor i,p in enumerate(predict_regions[0:30]):\n    jobs.put(p)\nprint("waiting for queue to complete", jobs.qsize(), "tasks")\n\nfor i in range(8):\n    worker = threading.Thread(target=do_stuff,\n                              args=(jobs, prediction, rad_recurrent, xgb))\n    worker.start()\n\njobs.join()\nprint("all done")')
+
+
+# In[37]:
+
+
+for i, p in enumerate(predict_regions[0:number_of_plots]):
+  start, stop = p[0] - 100, p[1] + 100
+  fig = go.Figure()
+  fig.add_trace(go.Scatter(
+    x = df_error[label][start:stop].index,
+    y = df_error[label][start:stop],
+    mode='lines', name = 'Real', connectgaps = False))
+  fig.add_trace(go.Scatter(
+    x = prediction[label][start:stop]
+      .where(prediction[label + '_error'][start:stop]).index,
+    y = prediction[label][start:stop]
+      .where(prediction[label + '_error'][start:stop]),
+    mode = 'lines', name = 'Prediction'))
+
+  fig.write_image(f'images/{label}_{i}.jpg')
+
+
+# In[ ]:
+
+
+for r in range(30):
+    start, stop = predict_regions[r][0] - 100, predict_regions[r][1] + 100
+    plt.figure(figsize=(12,7))
+    plt.plot(prediction['RadiacaoSolar_0'][start:stop] )
+    plt.plot(prediction['RadiacaoSolar_0_pred'][start:stop]
+             .where(prediction['RadiacaoSolar_0_error'][start:stop]))
+    plt.show()
+
+
+# In[ ]:
+
+
+import concurrent
+import time
+def predict_region(xgb, prediction, df_recurrent, label, dcols, p):
+    df_recurrent = df_recurrent.copy(deep = True)
+    start, stop = p[0], p[1]
+    y_predict = []
+    for j in range(start, stop):
+        pred_ = xgb.predict(df_recurrent.loc[[j]])
+        #prediction.loc[j,label] = pred_
+        y_predict.append(pred_)
+        matrix = df_recurrent.loc[j+1:j+1+lookbackSize, dcols].values
+        np.fill_diagonal(matrix, pred_)
+        df_recurrent.loc[j+1:j+1+lookbackSize, dcols] = matrix
+    #return prediction, start, stop
+    return y_predict
+
+rad_recurrent = rad_d.drop(columns = drop_cols).copy(deep = True)
+prediction_ = rad_d[['RadiacaoSolar_0','RadiacaoSolar_0_error']]
+prediction_['RadiacaoSolar_0_pred'] = prediction['RadiacaoSolar_0']
+dcols = ['delay_' + str(i+1) for i in range(lookbackSize)]
+
+predict_regions = list_2_regions(rad_d['RadiacaoSolar_0_error'])
+
+time_start = time.time()
+with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    futures = {executor.submit(predict_region, xgb[2], prediction, rad_recurrent, label, dcols, p): p for p in predict_regions[0:30]}
+
+    for future in concurrent.futures.as_completed(futures):
+        pr = futures[future]
+        try:
+            data = future.result()
+            prediction.loc[pr[0]:pr[1]-1, label] = data
+        except Exception as exc:
+            print(f'Generated an exception: {exc}')
+        else:
+            print(f'{pr[0]}-{pr[1]} finished')
+
+print(f"Time: {time.time() - time_start} seconds") # 28.737205028533936
+
+
+# In[ ]:
 
 
 for r in range(30):

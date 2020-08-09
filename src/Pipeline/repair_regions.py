@@ -165,71 +165,74 @@ if __name__ == '__main__':
                    dtype={'Local_0': object, 'Local_1': object,
                           'Local_2': object, 'Local_3': object})
 
-  df[['Date', 'Time']] = df['Data / Hora'].str.split(expand=True)
+  df[['Date', 'Time']] = df['Data_Hora'].str.split(expand=True)
   df[['Hora', 'Min', 'Seg']] = df['Time'].str.split(':', expand=True)
+  df[['Ano', 'Mes', 'Dia']] = df['Date'].str.split('-', expand = True)
   df['Hora'] = df['Hora'].astype(int)
   df['Min'] = df['Min'].astype(int)
-  df['Seg'] = df['Seg'].astype(int)
+  df['Ano'] = df['Ano'].astype(int)
+  df['Mes'] = df['Mes'].astype(int)
+  df['Dia'] = df['Dia'].astype(int)
 
   config = {
       'UmidadeRelativa':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
-       'extra_features': ['Hora']},
+       'lookbackSize': 6,
+       'extra_features': ['Hora', 'Mes']},
 
       'PressaoAtmosferica':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
-       'extra_features': ['Hora']},
+       'lookbackSize': 6,
+       'extra_features': ['Hora','Mes']},
 
-      'Temperatura do Ar':
+      'TemperaturaDoAr':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
-       'extra_features': ['Hora']},
+       'lookbackSize': 8,
+       'extra_features': ['Hora', 'Mes']},
 
       'TemperaturaInterna':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
+       'lookbackSize': 6,
        'extra_features': ['Hora']},
 
       'PontoDeOrvalho':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
+       'lookbackSize': 6,
        'extra_features': ['Hora']},
 
       'SensacaoTermica':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
-       'extra_features': ['Hora']},
+       'lookbackSize': 6,
+       'extra_features': ['Hora','Mes']},
 
       'RadiacaoSolar':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
+       'lookbackSize': 6,
        'extra_features': ['Hora']},
 
       'DirecaoDoVento':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
-       'extra_features': ['Hora']},
+       'lookbackSize': 6,
+       'extra_features': []},
 
       'VelocidadeDoVento':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
+       'lookbackSize': 6,
        'extra_features': ['Hora']},
 
       'Precipitacao':
       {'max_interpolation_size': 5,
        'max_region_size':100,
-       'lookbackSize': 5,
+       'lookbackSize': 6,
        'extra_features': ['Hora']},
   }
 
@@ -266,4 +269,4 @@ if __name__ == '__main__':
     repair_regions(df, label, **config[label.split('_')[0]])
     logging.info(f'({i}/{len(df_cols)}) Done training for {label}\n')
 
-  df.to_csv(save_path)
+  df.to_csv(save_path, , decimal='.', sep=';', index=False)
