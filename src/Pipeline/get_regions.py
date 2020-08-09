@@ -75,7 +75,7 @@ if __name__ == '__main__':
   data_path = pjoin(
       root, 'data/cleandata/Info pluviometricas/Merged Data/merged.csv')
   save_path = pjoin(
-      root, 'data/cleandata/Info pluviometricas/Merged Data/merged_wRegions.csv')
+      root, 'data/cleandata/Info pluviometricas/Merged Data/regions.csv')
 
   df = pd.read_csv(data_path,
                    sep=';',
@@ -146,6 +146,9 @@ if __name__ == '__main__':
 
     i += 1
 
-  df.to_csv(save_path, decimal='.', sep=';', index=False)
+
+  save_cols = ['Data_Hora'] + [i for i in df.columns if '_error' in i]
+
+  df[save_cols].to_csv(save_path, decimal='.', sep=';', index=False)
   logging.info('New file created at:' + save_path)
   logging.info('Done!')

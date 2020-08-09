@@ -156,14 +156,21 @@ def repair_regions(df, label, max_region_size=None, lookbackSize=None, extra_fea
 if __name__ == '__main__':
   root = os.getcwd()
   data_path = pjoin(
-      root, 'data/cleandata/Info pluviometricas/Merged Data/merged_wRegions.csv')
+      root, 'data/cleandata/Info pluviometricas/Merged Data/merged.csv')
+
+  regions_path = pjoin(
+      root, 'data/cleandata/Info pluviometricas/Merged Data/regions.csv')
 
   save_path = pjoin(root, 'data/cleandata/Info pluviometricas/Merged Data/merged_Repaired.csv')
 
-  df = pd.read_csv(data_path,
+  data = pd.read_csv(data_path,
                    sep=';',
                    dtype={'Local_0': object, 'Local_1': object,
                           'Local_2': object, 'Local_3': object})
+
+  regions = pd.read_csv(regions_path, sep =';')
+
+  df = data.merge(regions, on = 'Data_Hora')
 
   df[['Date', 'Time']] = df['Data_Hora'].str.split(expand=True)
   df[['Hora', 'Min', 'Seg']] = df['Time'].str.split(':', expand=True)
@@ -269,4 +276,6 @@ if __name__ == '__main__':
     repair_regions(df, label, **config[label.split('_')[0]])
     logging.info(f'({i}/{len(df_cols)}) Done training for {label}\n')
 
-  df.to_csv(save_path, , decimal='.', sep=';', index=False)
+  save_cols = ['Data_Hora'] + [i for i in df.columsn if ('_interpol' in i) or ('_pred' in i) or ('_repaired' in i) ]
+
+  df[save_cols].to_csv(save_path, decimal='.', sep=';', index=False)
