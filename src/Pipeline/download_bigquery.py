@@ -22,5 +22,5 @@ df_merged_wRegions.to_csv('data/cleandata/Info pluviometricas/Merged Data/repair
 
 lat_lng_estacoes_path = 'data/cleandata/Estacoes/lat_lng_estacoes.csv'
 if not os.path.exists(lat_lng_estacoes_path):
-  df_lng_lng_estacoes = pd.read_gbq(f'SELECT * FROM {PROJECT_ID}.{TABLE_repaired}', credentials=CREDENTIALS, project_id=PROJECT_ID)
+  df_lng_lng_estacoes = pd.read_gbq(f'SELECT * FROM {PROJECT_ID}.{TABLE_lat_lng_estacoes}', credentials=CREDENTIALS, project_id=PROJECT_ID)
   df_lng_lng_estacoes.to_csv(lat_lng_estacoes_path,  decimal='.', sep=';', index=False)
