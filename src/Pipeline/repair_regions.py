@@ -159,9 +159,9 @@ if __name__ == '__main__':
       root, 'data/cleandata/Info pluviometricas/Merged Data/merged.csv')
 
   regions_path = pjoin(
-      root, 'data/cleandata/Info pluviometricas/Merged Data/regions.csv')
+      root, 'data/cleandata/Info pluviometricas/Merged Data/error_regions.csv')
 
-  save_path = pjoin(root, 'data/cleandata/Info pluviometricas/Merged Data/merged_Repaired.csv')
+  save_path = pjoin(root, 'data/cleandata/Info pluviometricas/Merged Data/repaired.csv')
 
   data = pd.read_csv(data_path,
                    sep=';',
@@ -276,6 +276,6 @@ if __name__ == '__main__':
     repair_regions(df, label, **config[label.split('_')[0]])
     logging.info(f'({i}/{len(df_cols)}) Done training for {label}\n')
 
-  save_cols = ['Data_Hora'] + [i for i in df.columsn if ('_interpol' in i) or ('_pred' in i) or ('_repaired' in i) ]
+  save_cols = ['Data_Hora'] + [i for i in df.columns if ('_interpol' in i) or ('_pred' in i) or ('_repaired' in i) ]
 
   df[save_cols].to_csv(save_path, decimal='.', sep=';', index=False)

@@ -75,7 +75,7 @@ if __name__ == '__main__':
   data_path = pjoin(
       root, 'data/cleandata/Info pluviometricas/Merged Data/merged.csv')
   save_path = pjoin(
-      root, 'data/cleandata/Info pluviometricas/Merged Data/regions.csv')
+      root, 'data/cleandata/Info pluviometricas/Merged Data/error_regions.csv')
 
   df = pd.read_csv(data_path,
                    sep=';',
