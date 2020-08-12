@@ -35,7 +35,7 @@ print(ip.columns)
 ip.head()
 
 
-# In[3]:
+# In[ ]:
 
 
 """
@@ -51,7 +51,7 @@ Precipitacao
 """;
 
 
-# In[4]:
+# In[ ]:
 
 
 """VelocidadeDoVento"""
@@ -59,7 +59,7 @@ Precipitacao
 
 # #### Umidade Relativa 
 
-# In[5]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'UmidadeRelativa' in i]
@@ -79,7 +79,7 @@ for col in um.columns:
 
 # #### PressaoAtmosferica
 
-# In[6]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'PressaoAtmosferica' in i]
@@ -98,7 +98,7 @@ for col in um.columns:
 
 # #### TemperaturaDoAr
 
-# In[7]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'TemperaturaDoAr' in i]
@@ -118,7 +118,7 @@ for col in um.columns:
 
 # #### TemperaturaInterna
 
-# In[10]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'TemperaturaInterna' in i]
@@ -137,7 +137,7 @@ for col in um.columns:
 
 # #### PontoDeOrvalho
 
-# In[11]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'PontoDeOrvalho' in i]
@@ -156,7 +156,7 @@ for col in um.columns:
 
 # #### SensacaoTermica
 
-# In[28]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'SensacaoTermica' in i]
@@ -175,7 +175,7 @@ for col in um.columns:
 
 # #### RadiacaoSolar
 
-# In[29]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'RadiacaoSolar' in i]
@@ -199,7 +199,7 @@ for col in um.columns:
 
 # #### DirecaoDoVento
 
-# In[30]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'DirecaoDoVento' in i]
@@ -218,7 +218,7 @@ for col in um.columns[:-1]:
 
 # #### Velocidade do Vento
 
-# In[15]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'VelocidadeDoVento' in i]
@@ -237,7 +237,7 @@ for col in um.columns:
 
 # #### Precipitacao
 
-# In[15]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'Precipitacao' in i]
