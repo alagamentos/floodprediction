@@ -3,6 +3,13 @@ from google.oauth2 import service_account
 import pandas as pd
 import os
 
+# Windows
+import google.cloud.bigquery_storage_v1.client
+from functools import partialmethod
+# Set a two hours timeout
+google.cloud.bigquery_storage_v1.client.BigQueryReadClient.read_rows = \
+    partialmethod(google.cloud.bigquery_storage_v1.client.BigQueryReadClient.read_rows, timeout=3600*2)
+
 PROJECT_ID = 'temporal-285820'
 TABLE_merged = 'info_pluviometrica.merged'
 TABLE_regions = 'info_pluviometrica.error_regions'
