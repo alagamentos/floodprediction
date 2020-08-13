@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO,
                     format='## find_regions - %(levelname)s: %(message)s ')
 
 
-def get_regions(df,
+def get_error_regions(df,
                 d_threshold=None,
                 z_threshold=None,
                 nz_threshold=None,
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     for col in cols:
       logging.info(col)
       new_col = col + "_error"
-      df[new_col] = get_regions(df[col], **config[key])
+      df[new_col] = get_error_regions(df[col], **config[key])
 
     i += 1
 
