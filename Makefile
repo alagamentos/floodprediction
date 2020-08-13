@@ -9,16 +9,22 @@ setup:
 build:
 	source ./venv/bin/activate
 	make clean
-	make get_regions
+	make error_regions
 
 clean:
 	source ./venv/bin/activate
 	if [ -d "./data/cleandata/Info pluviometricas" ]; then rm -r "./data/cleandata/Info pluviometricas"; fi
 	python ./src/Pipeline/clean_infopluviometricas.py
 
-get_regions:
+error_regions:
 	source ./venv/bin/activate
-	python ./src/Pipeline/get_regions.py
+	python ./src/Pipeline/error_regions.py
 
 commit:
 	python pythonify.py
+
+upload_bq:
+	python ./src/Pipeline/upload_bigquery.py
+
+download_bq:
+	python ./src/Pipeline/download_bigquery.py

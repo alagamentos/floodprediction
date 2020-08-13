@@ -62,16 +62,32 @@ make clean
 Acha as regiões com erro nos dados das informações pluviométricas e cria um novo arquivo em *data/cleandata/Merged Data/**merged_wRegions.csv***
 
 ```bash
-make get_regions
+make error_regions
 ```
 
 ---
 
-Executa todos os makes relacionados a manipulação de dados:
+Executa todos os makes relacionados a manipulação de dados (*clean* e *error_regions*)
 
 ```bash
 make build
 ```
 
+---
+
+Realiza o upload dos dados dos arquivos de *merged.csv*, *error_regions.csv* e *repaired.csv* da pasta *data/cleandata/Info pluviometricas/Merged Data* para o BigQuery
+
+```bash
+make upload_bq
+```
+
+---
+
+Realiza o download dos dados no BigQuery para os arquivos de *merged.csv*, *error_regions.csv* e *repaired.csv* na pasta *data/cleandata/Info pluviometricas/Merged Data*.
+
+```bash
+make download_bq
+```
+
 ## Referências
-- [Artigo utilizados na revisão bibliográfica](https://drive.google.com/drive/folders/1RDT4sAvsjU82O3m3slLdigGo8T5wgxBc?usp=sharing)
+- [Artigos utilizados na revisão bibliográfica](https://drive.google.com/drive/folders/1RDT4sAvsjU82O3m3slLdigGo8T5wgxBc?usp=sharing)
