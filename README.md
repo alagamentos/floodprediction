@@ -31,6 +31,8 @@ Vinícius Pereira | 16.03343-4 | [VinPer](https://github.com/VinPer)
 - Jupyter notebook
 - NodeJS
 
+Para ter acesso aos dados no BigQuery é necessário ter a chave de acesso do projeto criado na plataforma. Isso não impacta o uso do projeto localmente, porém será necessário executar a limpeza dos dados através do `make build`, o que demora cerca 1h30 (a depender do poder de processamento do computador). Solicite a chave de acesso aos integrantes do grupo, e uma vez com o arquivo .zip em mãos, extraia-o e copie e cole a pasta *key* para dentro da pasta raiz do projeto.
+
 ## Comandos Make
 
 Instala o Virtual Environment do Python, junto com todos os pacotes necessários
