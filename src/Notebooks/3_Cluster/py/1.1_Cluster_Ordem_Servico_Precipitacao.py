@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
@@ -14,7 +14,7 @@ with urlopen(path) as response:
 SA = [ i for i in counties['features'] if i['properties']['name'] == 'Santo André' ][0]
 
 
-# In[2]:
+# In[ ]:
 
 
 import pandas as pd
@@ -28,7 +28,7 @@ import plotly as py
 py.offline.init_notebook_mode()
 
 
-# In[3]:
+# In[ ]:
 
 
 df = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.csv',
@@ -37,8 +37,7 @@ df = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.c
 est = pd.read_csv('../../../data/cleandata/Estacoes/lat_lng_estacoes.csv', sep = ';')
 
 
-
-# In[4]:
+# In[ ]:
 
 
 def Calculate_Dist(lat1, lon1, lat2, lon2):
@@ -63,14 +62,14 @@ def get_distances(estacoes, ord_serv):
     return ord_serv
 
 
-# In[5]:
+# In[ ]:
 
 
 ord_serv = get_distances(est, df)
 ord_serv.loc[ord_serv['Distance'] > 4.5, 'Est. Prox'] = 'Null'
 
 
-# In[6]:
+# In[ ]:
 
 
 fig = go.Figure()
@@ -104,12 +103,13 @@ fig.add_trace(go.Scatter(x = est['lng'],
 fig.show()
 
 
-# In[7]:
+# In[ ]:
 
 
 ord_serv = ord_serv[['lat','lng','Data', 'Est. Prox']]
-ord_serv.loc[:,'Data'] = pd.to_datetime(ord_serv.loc[:,'Data'])
+ord_serv.loc[:,'Data'] = pd.to_datetime(ord_serv.loc[:,'Data']) 
 ord_serv = ord_serv.sort_values('Data')
+ord_serv = ord_serv[ord_serv['Data'] >= '2011-01-13']
 
 ord_serv['pos'] = ord_serv['lat'].astype(str).str.rstrip() +                   ord_serv['lng'].astype(str).str.rstrip() 
 
@@ -119,7 +119,7 @@ le.fit(ord_serv['pos'])
 ord_serv['pos'] = le.transform(ord_serv['pos'])
 
 
-# In[27]:
+# In[ ]:
 
 
 my_index = np.sort(ord_serv['pos'].unique())
@@ -129,7 +129,7 @@ df = pd.DataFrame(columns=list(my_cols), index = list(my_index))
 df.loc[:,:] = 0
 
 
-# In[28]:
+# In[ ]:
 
 
 from datetime import datetime
@@ -144,43 +144,29 @@ for d in df.columns:
     selected_dates = ord_serv[(ord_serv['Data'] > lim_dates[0]) &
                         (ord_serv['Data'] <= lim_dates[1])]
         
-    selected = selected_dates.pos
-    df.loc[df.index.isin(selected),d] = 1
+    df.loc[df.index.isin(selected_dates.pos),d] = 1
 
 
-# In[29]:
+# In[ ]:
 
 
 ord_serv.head(1)
 
 
-# In[30]:
-
-
-df.head(1)
-
-
-# In[45]:
+# In[ ]:
 
 
 my_map = dict(zip(ord_serv['pos'], ord_serv['Est. Prox']))
 df['Estacao'] = df.index.map(my_map)
-df = df[~(df['Estacao'] == 'Null')]
+#df = df[~(df['Estacao'] == 'Null')]
 
 df_est = pd.DataFrame(columns=list(my_cols))
 
 for est in ord_serv['Est. Prox'].unique():
-    df_est.loc[est,:] =  df[df['Estacao'] == est].drop(columns = ['Estacao']).sum(axis = 0)
-    
+    df_est.loc[est,:] =  df[df['Estacao'] == est].drop(columns = ['Estacao']).sum(axis = 0)    
 
 
-# In[59]:
-
-
-df_plot
-
-
-# In[61]:
+# In[ ]:
 
 
 import plotly.express as px
@@ -194,15 +180,110 @@ fig = px.line(df_plot, x="Date", y=list(df_plot.columns)[:-1],
 fig.show()
 
 
-# In[67]:
+# In[ ]:
 
 
-df_est
+merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv',
+                    sep = ';')
+
+local_cols = [i for i in merged.columns if 'Local' in i]
+merged[local_cols].head(1)
 
 
-# ### Incluir Precipitação para cada dia relativo a cada estação!
-# 
-# \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ \\/ 
+# In[ ]:
+
+
+merged[merged['Data'] == '08/05/19'][precipitacao_cols].sum()
+
+
+# In[ ]:
+
+
+merged.head(1)
+
+
+# In[ ]:
+
+
+precipitacao_cols = ['Data_Hora'] + [i for i in merged.columns if 'Precipitacao' in i]
+
+fig = px.line(merged, x="Data_Hora", y=precipitacao_cols[1:],
+              title='Precipitacao')
+fig.show()
+
+
+# In[ ]:
+
+
+precipitacao = merged[precipitacao_cols]
+
+precipitacao['Data'] = pd.to_datetime(precipitacao['Data_Hora']).dt.strftime('%Y-%m-%d')
+precipitacao = precipitacao.drop(columns = 'Data_Hora')
+
+# Selectionar somente dias com chamadas de ordem de serviço
+precipitacao = precipitacao[precipitacao.Data.isin(my_cols)]
+
+
+# In[ ]:
+
+
+rename_dict = dict(zip(['Precipitacao_0','Precipitacao_1','Precipitacao_2','Precipitacao_3','Precipitacao_4'],
+                       ['Camilopolis','Erasmo','Paraiso','RM','Vitoria']))
+
+precipitacao = precipitacao.groupby('Data').mean()
+precipitacao = precipitacao.rename(columns = rename_dict)
+
+
+# In[ ]:
+
+
+precipitacao_plot = precipitacao.copy()
+precipitacao_plot['Date'] = pd.to_datetime(precipitacao.index)
+
+fig = px.line(precipitacao_plot, x="Date", y=list(precipitacao_plot.columns)[:-1],
+              title='Precipitacao')
+fig.show()
+
+
+# In[ ]:
+
+
+t_precipitacao = precipitacao.T.add_suffix('_precipitacao').copy()
+
+df_est = df_est.reset_index().merge(t_precipitacao.reset_index(), on = 'index')
+
+
+# In[ ]:
+
+
+df_est = df_est.dropna(axis = 1)
+df_est = df_est.set_index('index')
+
+
+# In[ ]:
+
+
+t_df_est = df_est.T.copy()
+t_df_est = t_df_est[t_df_est.columns.sort_values()].astype(float)
+
+
+# In[ ]:
+
+
+df_plot[df_plot.columns.sort_values()].drop(columns = ['Date']).astype(float).corr()
+
+
+# In[ ]:
+
+
+t_df_est.corr()
+
+
+# In[ ]:
+
+
+precipitacao_plot.corr()
+
 
 # In[ ]:
 
@@ -214,9 +295,9 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 
-X = df.values
+X = df_est.values
 
-range_n_clusters = [2, 3, 4, 5, 6]
+range_n_clusters = [2]
 
 inertias = []
 
@@ -311,72 +392,15 @@ plt.show()
 # In[ ]:
 
 
+cluster_labels
+
+
+# In[ ]:
+
+
 plt.plot(range_n_clusters, inertias, '-o', color='black')
 plt.xlabel('number of clusters, k')
 plt.ylabel('inertia')
 plt.xticks(range_n_clusters)
 plt.show()
-
-
-# In[ ]:
-
-
-plt.plot(range_n_clusters, s_value)
-
-
-# In[ ]:
-
-
-ord_serv[ord_serv['cluster'] == 0].shape
-
-
-# In[ ]:
-
-
-ord_serv['cluster'] = ord_serv['epos'].map(dict(zip(df.index,cluster_labels)))
-
-
-# In[ ]:
-
-
-ord_serv.Data
-
-
-# In[ ]:
-
-
-import plotly.express as px
-
-ord_serv['str_Data'] = ord_serv.Data.dt.strftime('%Y-%m-%d')
-
-cluster_ord_serv = ord_serv#[ord_serv['cluster'] == 0]
-
-fig = px.scatter(cluster_ord_serv, x="lng", y="lat", color='cluster', hover_data= ['str_Data']
-                )
-fig.update_traces(selector={'name':'Europe'}) 
-fig.show()
-
-
-# In[ ]:
-
-
-fig = go.Figure()
-
-colors = dict(zip(list(range(len(ord_serv.cluster.unique())+ 1 )),
-              ['black', 'blue', 'teal', 'green', 'yellow', 'red' ]))
-
-fig.add_trace(go.Scatter(x=ord_serv['lng'],
-                         y= ord_serv['lat'],
-                         marker=dict(
-                                    size=7,
-                                    color=ord_serv['cluster'].apply(lambda x: colors[x]), #set color equal to a variable
-                                    showscale=False
-                                ),
-                    showlegend = True,
-                    mode='markers',
-                    name='markers'))
-
-
-
-fig.show()
 
