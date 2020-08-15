@@ -114,9 +114,10 @@ def round_date(date_string):
         date_concat = left + minute + ':' + '00'
         date_concat = datetime.datetime.strptime(date_concat, '%d/%m/%y %H:%M:%S')
         date_concat = date_concat + datetime.timedelta(hours = 1)
-        date_concat = date_concat.strftime('%Y/%m/%d %H:%M:%S')
     else:
         date_concat = left + minute + ':' + '00'
+        date_concat = datetime.datetime.strptime(date_concat, '%d/%m/%y %H:%M:%S')
+    date_concat = date_concat.strftime('%Y/%m/%d %H:%M:%S')
 
     return date_concat
 
