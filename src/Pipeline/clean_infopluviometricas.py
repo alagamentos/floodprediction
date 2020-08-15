@@ -7,7 +7,7 @@ import xlrd
 import sys
 import numpy as np
 import pandas as pd
-import datetime
+from datetime import datetime, timedelta
 
 SAVE = True  # Merged files
 SAVE_SINGLES = False  # Save each individual xls file into csv
@@ -112,14 +112,17 @@ def round_date(date_string):
     if minute == '60':
         minute = '00'
         date_concat = left + minute + ':' + '00'
-        date_concat = datetime.datetime.strptime(date_concat, '%d/%m/%y %H:%M:%S')
-        date_concat = date_concat + datetime.timedelta(hours = 1)
+        date_concat = datetime.strptime(date_concat, '%d/%m/%y %H:%M:%S')
+        date_concat = date_concat + timedelta(hours = 1)
     else:
         date_concat = left + minute + ':' + '00'
-        date_concat = datetime.datetime.strptime(date_concat, '%d/%m/%y %H:%M:%S')
+        date_concat = datetime.strptime(date_concat, '%d/%m/%y %H:%M:%S')
     date_concat = date_concat.strftime('%Y/%m/%d %H:%M:%S')
 
     return date_concat
+
+def days_hours_minutes(td):
+  return int(td.days), td.seconds//3600, (td.seconds//60)%60
 
 if __name__ == '__main__':
   root = os.getcwd()
@@ -229,13 +232,28 @@ if __name__ == '__main__':
 
   merged = merge3.merge(estacao4, on='Data_Hora', how='outer')
 
-  merged.insert(0, 'Data', '')
-  merged.insert(1, 'Hora', '')
-  merged[['Data', 'Hora']] = merged['Data_Hora'].str.split(expand=True)
-
   logging.info(' sorting data')
   merged['Data_Hora'] = pd.to_datetime(merged['Data_Hora'], format='%Y/%m/%d %H:%M:%S')
   merged = merged.sort_values('Data_Hora').reset_index()
+
+  # Create date_vec
+  start, stop = merged['Data_Hora'].iloc[0], merged['Data_Hora'].iloc[-1]
+  d,h,m = days_hours_minutes(stop - start)
+  total_days = d + h/24 + m/24/60 + (1 / 24 / 4)
+
+  date_vec= [start + timedelta(x) for x in
+             np.arange(0, total_days, 1 / 24 / 4)]
+
+  logging.info(f'{len(list(set(date_vec) - set(merged["Data_Hora"])))} missing samples')
+
+  # Merge with date_vec
+  new_df = pd.DataFrame(date_vec, columns=['Data_Hora'])
+  new_df['Data_Hora'] = pd.to_datetime(new_df['Data_Hora'], yearfirst=True)
+  merged = new_df.merge(merged, how = 'left', on = 'Data_Hora')
+
+  local_cols = [col for col in merged.columns if 'Local' in col]
+  for col in local_cols:
+    merged.loc[:,col] = merged[col].dropna().unique()
 
   if INCLUDE_MEAN:
     merged = include_mean(merged)
