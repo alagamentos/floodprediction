@@ -114,7 +114,7 @@ def round_date(date_string):
         date_concat = left + minute + ':' + '00'
         date_concat = datetime.datetime.strptime(date_concat, '%d/%m/%y %H:%M:%S')
         date_concat = date_concat + datetime.timedelta(hours = 1)
-        date_concat = date_concat.strftime('%d/%m/%y %H:%M:%S')
+        date_concat = date_concat.strftime('%Y/%m/%d %H:%M:%S')
     else:
         date_concat = left + minute + ':' + '00'
 
@@ -233,7 +233,7 @@ if __name__ == '__main__':
   merged[['Data', 'Hora']] = merged['Data_Hora'].str.split(expand=True)
 
   logging.info(' sorting data')
-  merged['Data_Hora'] = pd.to_datetime(merged['Data_Hora'])
+  merged['Data_Hora'] = pd.to_datetime(merged['Data_Hora'], format='%Y/%m/%d %H:%M:%S')
   merged = merged.sort_values('Data_Hora').reset_index()
 
   if INCLUDE_MEAN:
