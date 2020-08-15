@@ -61,7 +61,7 @@ make clean
 
  ---
 
-Acha as regiões com erro nos dados das informações pluviométricas e cria um novo arquivo em *data/cleandata/Merged Data/**merged_wRegions.csv***
+Acha as regiões com erro nos dados das informações pluviométricas e cria um novo arquivo em *data/cleandata/Merged Data/**error_regions.csv***
 
 ```bash
 make error_regions
@@ -69,7 +69,15 @@ make error_regions
 
 ---
 
-Executa todos os makes relacionados a manipulação de dados (*clean* e *error_regions*)
+Interpola os dados das regiões de erro e depois aplica o regressor XGBoost nos mesmos. Um novo arquivo é criado em *data/cleandata/Merged Data/**repaired.csv***
+
+```bash
+make repair_regions
+```
+
+---
+
+Executa todos os makes relacionados a manipulação de dados (*clean*, *error_regions* e *repair_regions*)
 
 ```bash
 make build
