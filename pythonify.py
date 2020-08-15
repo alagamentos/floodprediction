@@ -1,15 +1,15 @@
 import os
 
-root = os.getcwd() + '/src/Notebooks'
-directories = []
+files = os.popen('git diff --cached --name-only').read().splitlines()
 
-for r, d, f in os.walk(root):
-  directories.extend(d)
+for file in files:
+  if os.path.exists(file) and '.ipynb' not in file:
+    continue
 
-  for file in f:
-    if '.ipynb' in file:
-      if not os.path.exists(r + '/py'):
-        os.mkdir(r + '/py')
+  dirname = f'{os.path.dirname(file)}/py'
 
-      string = f'jupyter nbconvert "{r}/{file}" --to="python" --output-dir={r}/py'
-      os.system(string)
+  if not os.path.exists(dirname):
+    os.mkdir(dirname)
+
+  strReturn = f'jupyter nbconvert "{file}" --to="python" --output-dir={dirname}'
+  os.system(strReturn)
