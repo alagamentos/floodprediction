@@ -1,9 +1,15 @@
 import os
+from subprocess import PIPE, run
 
-files = os.popen('git diff --cached --name-only').read().splitlines()
+command = 'git diff --cached --name-only'
+
+files = run(command.split(' '), stdout=PIPE) \
+          .stdout.decode('unicode_escape') \
+          .encode('latin1').decode('utf-8') \
+          .replace('"', '').splitlines()
 
 for file in files:
-  if os.path.exists(file) and '.ipynb' not in file:
+  if not os.path.exists(file) or '.ipynb' not in file:
     continue
 
   dirname = f'{os.path.dirname(file)}/py'
