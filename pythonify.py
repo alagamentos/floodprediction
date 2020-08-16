@@ -9,6 +9,7 @@ files = run(command.split(' '), stdout=PIPE) \
           .replace('"', '').splitlines()
 
 for file in files:
+  # Check whether file was deleted or it's not a Jupyter Notebook
   if not os.path.exists(file) or '.ipynb' not in file:
     continue
 
