@@ -1,16 +1,22 @@
-# Jupyter Notebook
+# Jupyter Notebook temporary data files
 .ipynb_checkpoints
 **/.ipynb_checkpoints/
 
 # Ignore all /data/cleandata/ folders and files, except 'Enchentes_LatLong.csv'
-data/cleandata/
+data/cleandata/**
+!data/cleandata/Ordens de serviço/
+data/cleandata/Ordens de serviço/**
 !data/cleandata/Ordens de serviço/Enchentes_LatLong.csv
 
-__pycache__/
-
-# Virtual Environment
+# Virtual Environment folder
 venv/
 
+# BigQuery key folder
+key/
+
+# Data validation images folder
 images/
 
-key/
+# Other folders
+__pycache__/
+.vscode/
