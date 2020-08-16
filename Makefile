@@ -19,9 +19,6 @@ error_regions:
 repair_regions:
 	python ./src/Pipeline/repair_regions.py
 
-commit:
-	python pythonify.py
-
 upload_bq:
 	python ./src/Pipeline/upload_bigquery.py
 

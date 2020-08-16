@@ -57,14 +57,6 @@ make setup
 
 ---
 
-Gera os arquivos Python a partir dos Jupyter notebooks existentes afim de facilitar o rastreio das mudanças. **DEVE SER EXECUTADO ANTES DE CADA COMMIT!**
-
-```bash
-make commit
-```
-
----
-
 Deleta todas as pastas existentes em *data/cleandata/Info pluviometricas* e executa o arquivo `clean_infopluviometricas.py`. Dessa execução são geradas duas pastas em *cleandata*:
  - **Merged Data**: Contém um arquivo único com todos os dados das informações pluvimétricas.
  - **Concatenated**: Contém um arquivo para cada estação com todos os dados da mesma concatenados.
