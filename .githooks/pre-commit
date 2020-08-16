@@ -1,6 +1,5 @@
 #!/bin/sh
 
-source ./venv/bin/activate
 python pythonify.py
 
 git add src/Notebooks/**/py/*.py
