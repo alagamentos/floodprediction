@@ -25,17 +25,31 @@ Vinícius Pereira | 16.03343-4 | [VinPer](https://github.com/VinPer)
 
 ## Requerimentos
 
-É necessário ter instalado na máquina os seguintes programas:
+É necessário ter instalado os seguintes programas:
 
-- Python3
-- Jupyter notebook
-- NodeJS
+- [Python3](https://www.python.org/downloads)
+- [Jupyter Notebook](https://jupyter.org/install)
+- [NodeJS](https://nodejs.org/en/download)
+- [Make](http://gnuwin32.sourceforge.net/packages/make.htm) *(já vem instalado no Linux)*
 
-Para ter acesso aos dados no BigQuery é necessário ter a chave de acesso do projeto criado na plataforma. Isso não impacta o uso do projeto localmente, porém será necessário executar a limpeza dos dados através do `make build`, o que demora cerca 1h30 (a depender do poder de processamento do computador). Solicite a chave de acesso aos integrantes do grupo, e uma vez com o arquivo .zip em mãos, extraia-o e copie e cole a pasta *key* para dentro da pasta raiz do projeto.
+Caso queira utilizar o [Virtual Environment](https://docs.python.org/3/tutorial/venv.html) do *Python*, rode os seguintes comandos na pasta raíz do projeto:
+
+```bash
+python -m venv venv # Cria o virtual environment
+source ./venv/bin/activate # Ativa o virtual environment
+```
+
+> Após a instalação dos programas, rode o comando `make setup` na pasta raíz do projeto
+
+### BigQuery
+
+Para acessar os dados no [BigQuery](https://cloud.google.com/bigquery) é necessário ter a chave de acesso do projeto criado na plataforma. Isso não impacta o uso do projeto localmente, porém será necessário executar a limpeza dos dados através do `make build`, o que demora cerca 1h30 (a depender do poder de processamento do computador), além de não ser possível rodar os comandos `make upload_bq` e `make download_bq`. Caso tenha interesse, solicite a chave de acesso aos integrantes do grupo.
+
+> Uma vez com o arquivo *key.zip* em mãos, extraia-o e copie e cole a pasta *key* para dentro da pasta raíz do projeto.
 
 ## Comandos Make
 
-Instala o Virtual Environment do Python, junto com todos os pacotes necessários
+Configura o ambiente local e instala todas as dependências necessárias
 
 ```bash
 make setup
