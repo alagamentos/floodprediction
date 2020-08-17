@@ -16,7 +16,7 @@ INCLUDE_MEAN = False  # Include mean of all 4 stations on merged dataframe
 
 
 logging.basicConfig(level=logging.INFO,
-                    format='## Clean - %(levelname)s: %(message)s')
+                    format='## Clean InfoPluviométrica - %(levelname)s: %(message)s')
 
 
 def create_dir(_path):
@@ -244,7 +244,7 @@ if __name__ == '__main__':
   date_vec= [start + timedelta(x) for x in
              np.arange(0, total_days, 1 / 24 / 4)]
 
-  logging.info(f'{len(list(set(date_vec) - set(merged["Data_Hora"])))} missing samples')
+  logging.info(f' {len(list(set(date_vec) - set(merged["Data_Hora"])))} missing samples')
 
   # Merge with date_vec
   new_df = pd.DataFrame(date_vec, columns=['Data_Hora'])

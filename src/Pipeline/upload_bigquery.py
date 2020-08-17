@@ -7,6 +7,7 @@ TABLE_merged = 'info_pluviometrica.merged'
 TABLE_merged_wregions = 'info_pluviometrica.regions'
 TABLE_repaired = 'info_pluviometrica.repaired'
 TABLE_lat_lng_estacoes = 'estacoes.lat_lng_estacoes'
+TABLE_openwehather_hisotry = 'openweather.history'
 
 CREDENTIALS   = service_account.Credentials.from_service_account_file('key/temporal-285820-cde76c259484.json')
 pandas_gbq.context.credentials = CREDENTIALS
@@ -36,9 +37,16 @@ df_repaired = pd.read_csv('data/cleandata/Info pluviometricas/Merged Data/repair
 pandas_gbq.to_gbq(df_repaired, TABLE_repaired, project_id=PROJECT_ID, credentials=CREDENTIALS, if_exists='replace')
 print('regions done!')
 
-# # lat_lng_estacoes
-# df_lat_lng_estacoes = pd.read_csv( 'data/cleandata/Estacoes/lat_lng_estacoes.csv',
-#             sep = ';')
+# lat_lng_estacoes
+df_lat_lng_estacoes = pd.read_csv( 'data/cleandata/Estacoes/lat_lng_estacoes.csv',
+            sep = ';')
 
-# pandas_gbq.to_gbq(df_lat_lng_estacoes, TABLE_lat_lng_estacoes, project_id=PROJECT_ID, credentials=CREDENTIALS, if_exists='replace')
-# print('lat_lng_estacoes done!')
+pandas_gbq.to_gbq(df_lat_lng_estacoes, TABLE_lat_lng_estacoes, project_id=PROJECT_ID, credentials=CREDENTIALS, if_exists='replace')
+print('lat_lng_estacoes done!')
+
+# history bulk openweather
+openweather_history = pd.read_csv('data/cleandata/openweather/history_bulk.csv',
+            sep = ';')
+
+pandas_gbq.to_gbq(openweather_history, TABLE_openwehather_hisotry, project_id=PROJECT_ID, credentials=CREDENTIALS, if_exists='replace')
+print('history bulk openweather done!')
