@@ -15,8 +15,7 @@ SAVE_CONCATENATED = True  # Save each station as a csv file
 INCLUDE_MEAN = False  # Include mean of all 4 stations on merged dataframe
 
 
-logging.basicConfig(level=logging.INFO,
-                    format='## Clean InfoPluviométrica - %(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format='## Clean InfoPluviométrica - %(levelname)s: %(message)s')
 
 
 def create_dir(_path):
@@ -249,11 +248,11 @@ if __name__ == '__main__':
   # Merge with date_vec
   new_df = pd.DataFrame(date_vec, columns=['Data_Hora'])
   new_df['Data_Hora'] = pd.to_datetime(new_df['Data_Hora'], yearfirst=True)
-  merged = new_df.merge(merged, how = 'left', on = 'Data_Hora')
+  merged = new_df.merge(merged, how='left', on='Data_Hora')
 
   local_cols = [col for col in merged.columns if 'Local' in col]
   for col in local_cols:
-    merged.loc[:,col] = merged[col].dropna().unique()
+    merged.loc[:, col] = merged[col].dropna().unique()[0]
 
   if INCLUDE_MEAN:
     merged = include_mean(merged)
