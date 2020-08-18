@@ -1,34 +1,32 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import pandas as pd
 import numpy as np
 
 
-# In[2]:
+# In[ ]:
 
 
-merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv',
-                     sep = ';')
+merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')
 
 
-# In[3]:
+# In[ ]:
 
 
-merged['Data_Hora'] = pd.to_datetime(merged['Data_Hora'],
-                                     yearfirst= True).sort_values(ascending =  True)
+merged['Data_Hora'] = pd.to_datetime(merged['Data_Hora'], yearfirst= True).sort_values(ascending =  True)
 
 
-# In[4]:
+# In[ ]:
 
 
 start, stop = merged['Data_Hora'].iloc[0], merged['Data_Hora'].iloc[-1]
 
 
-# In[5]:
+# In[ ]:
 
 
 def days_hours_minutes(td):
@@ -37,7 +35,7 @@ def days_hours_minutes(td):
 days_hours_minutes(stop - start)
 
 
-# In[6]:
+# In[ ]:
 
 
 from datetime import date, timedelta
@@ -56,26 +54,26 @@ print('Amostras Faltantes:', len(missing),
       '\nDeveria ser:',len(merged['Data_Hora']))
 
 
-# In[7]:
+# In[ ]:
 
 
 new_df = pd.DataFrame(date_vec, columns=['Data_Hora'])
 new_df['Data_Hora'] = pd.to_datetime(new_df['Data_Hora'], yearfirst=True)
 
 
-# In[8]:
+# In[ ]:
 
 
 merged = new_df.merge(merged, how = 'left', on = 'Data_Hora')
 
 
-# In[10]:
+# In[ ]:
 
 
 list(merged[merged['Local_0'].isna()].Data_Hora.unique())
 
 
-# In[11]:
+# In[ ]:
 
 
 local_cols = [col for col in merged.columns if 'Local' in col]

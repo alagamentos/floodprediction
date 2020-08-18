@@ -3,13 +3,13 @@
 
 # ## Import data
 
-# In[1]:
+# In[ ]:
 
 
 import pandas as pd
 
 
-# In[2]:
+# In[ ]:
 
 
 # Create dir
@@ -26,7 +26,7 @@ if not path.exists("./cleandata/Ordens de serviço"):
 
 # ## Import data
 
-# In[3]:
+# In[ ]:
 
 
 os_raw = pd.read_excel('../../../data/rawdata/Ordens de serviço/Enchentes - 01012010 a 30092019.xlsx')
@@ -34,7 +34,7 @@ os_raw = pd.read_excel('../../../data/rawdata/Ordens de serviço/Enchentes - 010
 
 # ## Separate date from data
 
-# In[4]:
+# In[ ]:
 
 
 os_null = os_raw.iloc[:,1:5].isnull().copy(deep = True) # Check if null columns 1:5
@@ -49,7 +49,7 @@ dados.drop(index=[0], inplace=True)
 
 # ## Append date on data
 
-# In[5]:
+# In[ ]:
 
 
 for i in range(len(datas.index)):
@@ -63,13 +63,13 @@ for i in range(len(datas.index)):
         dados.loc[start:end,'Data'] = datas.iloc[i,0] 
 
 
-# In[6]:
+# In[ ]:
 
 
 dados.tail(5)
 
 
-# In[7]:
+# In[ ]:
 
 
 dados.columns = ['ID1',
@@ -83,13 +83,13 @@ dados.columns = ['ID1',
                  'Data']
 
 
-# In[8]:
+# In[ ]:
 
 
 dados.head()
 
 
-# In[9]:
+# In[ ]:
 
 
 dados = dados.replace({';': ','}, regex=True)
@@ -97,7 +97,7 @@ dados = dados.replace({';': ','}, regex=True)
 
 # # Save data
 
-# In[11]:
+# In[ ]:
 
 
 dados.to_csv(

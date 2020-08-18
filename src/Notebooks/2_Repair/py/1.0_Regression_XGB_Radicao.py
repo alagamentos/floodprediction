@@ -3,7 +3,7 @@
 
 # Esse *notebook* é a primeira tentative de recontruir os dados com as regiões de erro já identificadas,
 
-# In[1]:
+# In[ ]:
 
 
 import sys
@@ -15,7 +15,7 @@ imp.reload(utils)
 from utils import *
 
 
-# In[2]:
+# In[ ]:
 
 
 # Python imports
@@ -49,7 +49,7 @@ ip.head()
 
 # ## Validate Regions
 
-# In[3]:
+# In[ ]:
 
 
 select = 'RadiacaoSolar_4'
@@ -68,7 +68,7 @@ error_reg = list_2_regions(error)
 plot_regions(ip[select].fillna(0), error_reg, start, stop, plt_type = 'lines')
 
 
-# In[4]:
+# In[ ]:
 
 
 ip[['Date', 'Time']] = ip['Data_Hora'].str.split(expand=True)
@@ -78,7 +78,7 @@ ip['Hora'] = ip['Hora'].astype(int)
 
 # ## Interpolation
 
-# In[5]:
+# In[ ]:
 
 
 cols_rad = [i for i in ip.columns if 'RadiacaoSolar' in i]
@@ -86,7 +86,7 @@ rad = ip[['Hora'] + cols_rad].copy(deep = True)
 rad.head()
 
 
-# In[6]:
+# In[ ]:
 
 
 print(ip['RadiacaoSolar_0_error'].sum())
@@ -96,14 +96,14 @@ print(ip['RadiacaoSolar_3_error'].sum())
 print(ip['RadiacaoSolar_4_error'].sum())
 
 
-# In[7]:
+# In[ ]:
 
 
 error = rad['RadiacaoSolar_0_error']
 error_reg = list_2_regions(error)
 
 
-# In[8]:
+# In[ ]:
 
 
 reg_size = [i[1] - i[0] for i in error_reg]
@@ -115,7 +115,7 @@ rad.loc[rad['RadiacaoSolar_0_interpol'],'RadiacaoSolar_0_error'] = False
 #rad['RadiacaoSolar_0_error'] = rad['RadiacaoSolar_0_error'] & ~rad['RadiacaoSolar_0_interpol']
 
 
-# In[9]:
+# In[ ]:
 
 
 s = rad['RadiacaoSolar_0']
@@ -126,7 +126,7 @@ s[s == -1] = np.nan
 rad['RadiacaoSolar_0'] = s
 
 
-# In[10]:
+# In[ ]:
 
 
 start, stop = 150000, 150500
@@ -139,7 +139,7 @@ plt.show()
 
 # ## Regressor RadiacaoSolar_0
 
-# In[11]:
+# In[ ]:
 
 
 label = 'RadiacaoSolar_0'
@@ -168,14 +168,14 @@ features = rad.drop(columns=label).columns.to_list()
 # 
 # > Shift = atrasar valores por uma amostra
 
-# In[12]:
+# In[ ]:
 
 
 horas = 24
 print('Amostras necessárias:', horas*60/ 15)
 
 
-# In[13]:
+# In[ ]:
 
 
 rad_d = rad.copy(deep = True)
@@ -193,7 +193,7 @@ rad_d.head(5)
 
 # ## Eliminar dados errados
 
-# In[14]:
+# In[ ]:
 
 
 error_cols_all_features = [i for i in rad_d.columns if 'error' in i ]
@@ -214,7 +214,7 @@ print('Dados corretos:', len(rad_e_all_features), 'amostras')
 
 # Os dados com erro representam 89.9% de todo o dataset, isso é, considerando o erro das outras estações e o erro do label (**RadiacaoSolar_0**) para as colunas de atraso (*delay*).
 
-# In[15]:
+# In[ ]:
 
 
 error_cols = [i for i in rad_d.columns if 'delay_error' in i or i == 'RadiacaoSolar_0_error']
@@ -235,7 +235,7 @@ print('Dados corretos:', len(rad_e), 'amostras')
 
 # Quando não consideramos os dados das outras estações com erro, os dados errados caiem de 89,9% para 22.9%. Portanto a seguir utilizaremos a segunda opção e para lidar com os dados errados das outras estações será incluido no treinamento os features de erro *'RadiacaoSolar_x_error'* .
 
-# In[16]:
+# In[ ]:
 
 
 # Achar Continuidade
@@ -252,7 +252,7 @@ for i in range(1,len(rad_0.index ) -1):
 print(len(regions))
 
 
-# In[17]:
+# In[ ]:
 
 
 rad_e.columns
@@ -260,7 +260,7 @@ plot_cols = [i for i in rad_e.columns if 'delay' not in i and 'error' not in i]
 print(plot_cols)
 
 
-# In[18]:
+# In[ ]:
 
 
 # figsize = (12,7 * len(plot_cols))
@@ -275,7 +275,7 @@ print(plot_cols)
 # plt.show()
 
 
-# In[19]:
+# In[ ]:
 
 
 start, stop = 0, 1000
@@ -332,7 +332,7 @@ plt.show()
 # - https://www.kaggle.com/c/ieee-fraud-detection/discussion/103065
 # - https://www.kaggle.com/kashnitsky/correct-time-aware-cross-validation-scheme
 
-# In[20]:
+# In[ ]:
 
 
 n_splits = 3
@@ -355,7 +355,7 @@ for train_index, test_index in tscv.split(rad_e[[label]].dropna()):
     X_test.append(rad_e[features].iloc[test_index])
 
 
-# In[21]:
+# In[ ]:
 
 
 # Check CV regions
@@ -368,7 +368,7 @@ for n in range(n_splits):
 
 # ## Create model
 
-# In[22]:
+# In[ ]:
 
 
 get_ipython().run_cell_magic('time', '', "xgb = []\ny_predict = []\n\nfor n in range(n_splits):\n    xgb.append(xgboost.XGBRegressor(objective='reg:squarederror',\n                                        tree_method = 'gpu_hist' )) \n    xgb[n].fit(X_train[n], y_train[n])\n    \n    y_predict.append(xgb[n].predict(X_test[n]))")
@@ -376,7 +376,7 @@ get_ipython().run_cell_magic('time', '', "xgb = []\ny_predict = []\n\nfor n in r
 
 # ##  Score
 
-# In[23]:
+# In[ ]:
 
 
 # ================ #
@@ -386,7 +386,7 @@ get_ipython().run_cell_magic('time', '', "xgb = []\ny_predict = []\n\nfor n in r
 
 # ## Predict tests samples
 
-# In[24]:
+# In[ ]:
 
 
 start, stop = 0, 1000
@@ -407,7 +407,7 @@ plt.show()
 
 # ## Predict on faulty data
 
-# In[25]:
+# In[ ]:
 
 
 drop_cols = [i for i in rad_d.columns if 'delay_error' in i]
@@ -415,7 +415,7 @@ drop_cols.append(label)
 drop_cols.append(label+'_error')
 
 
-# In[26]:
+# In[ ]:
 
 
 val_predict = []
@@ -423,7 +423,7 @@ for n in range(n_splits):
     val_predict.append(xgb[n].predict(rad_d.drop(columns = drop_cols)))
 
 
-# In[27]:
+# In[ ]:
 
 
 start, stop = 0, 1000
@@ -437,7 +437,7 @@ for n in range(n_splits):
 plt.show()
 
 
-# In[28]:
+# In[ ]:
 
 
 start, stop = 337750, 338200
@@ -457,7 +457,7 @@ plt.show()
 
 # ## Recurrent prediction
 
-# In[29]:
+# In[ ]:
 
 
 recurrent_y = np.zeros(len(rad_d), dtype=np.float64)
@@ -472,7 +472,7 @@ for i in range(start, stop, 1):
         rad_recurrent.loc[i + l, 'delay_' + str(l) ] = pred_
 
 
-# In[30]:
+# In[ ]:
 
 
 plt.figure(figsize = (12,7))
@@ -483,7 +483,7 @@ plt.legend()
 plt.show()
 
 
-# In[42]:
+# In[ ]:
 
 
 from sklearn.metrics import r2_score
@@ -491,7 +491,7 @@ from sklearn.metrics import r2_score
 r2_score(rad_d['RadiacaoSolar_0'][start:stop].fillna(0), recurrent_y[start:stop])
 
 
-# In[31]:
+# In[ ]:
 
 
 len(recurrent_y) * lookbackSize
@@ -521,13 +521,13 @@ len(recurrent_y) * lookbackSize
 
 # ### Previsão nas regiões consideradas erradas
 
-# In[32]:
+# In[ ]:
 
 
 get_ipython().run_cell_magic('time', '', "rad_recurrent = rad_d.drop(columns = drop_cols).copy(deep = True)\nprediction = rad_d[['RadiacaoSolar_0','RadiacaoSolar_0_error']]\nprediction['RadiacaoSolar_0_pred'] = prediction['RadiacaoSolar_0']\n\npredict_regions = list_2_regions(rad_d['RadiacaoSolar_0_error'])\nfor i,p in enumerate(predict_regions[0:30]):\n    print(i,'/', len(predict_regions))\n    start, stop = p[0], p[1]\n    for i in range(start, stop):\n        x = rad_recurrent.loc[[i]]\n        pred_ = xgb[2].predict(x)\n        prediction.loc[i,'RadiacaoSolar_0_pred'] = pred_\n        for l in range(1, lookbackSize+1):\n            rad_recurrent.loc[i + l, 'delay_' + str(l) ] = pred_     \n    ")
 
 
-# In[33]:
+# In[ ]:
 
 
 for r in range(30):
@@ -539,13 +539,13 @@ for r in range(30):
     plt.show()
 
 
-# In[34]:
+# In[ ]:
 
 
 get_ipython().run_cell_magic('time', '', "\nrad_recurrent = rad_d.drop(columns = drop_cols).copy(deep = True)\nprediction_ = rad_d[['RadiacaoSolar_0','RadiacaoSolar_0_error']]\nprediction_['RadiacaoSolar_0_pred'] = prediction['RadiacaoSolar_0']\n\ndcols = ['delay_' + str(i+1) for i in range(lookbackSize)]\n\npredict_regions = list_2_regions(rad_d['RadiacaoSolar_0_error'])\nfor i,p in enumerate(predict_regions[0:30]):\n    print(i,'/', len(predict_regions))\n    start, stop = p[0], p[1]\n    for j in range(start, stop):\n        pred_ = xgb[2].predict(rad_recurrent.loc[[j]])\n        prediction_.loc[j,'RadiacaoSolar_0_pred'] = pred_\n        matrix = rad_recurrent.loc[j+1:j+lookbackSize+1, dcols].values\n        np.fill_diagonal(matrix, pred_)\n        rad_recurrent.loc[j+1:j+lookbackSize+1, dcols] = matrix")
 
 
-# In[35]:
+# In[ ]:
 
 
 for r in range(30):
@@ -557,13 +557,13 @@ for r in range(30):
     plt.show()
 
 
-# In[36]:
+# In[ ]:
 
 
 get_ipython().run_cell_magic('time', '', '\ndef predict_region(p, prediction, rad_recurrent, xgb):\n    rad_recurrent = rad_recurrent.copy(deep = True)\n    start, stop = p[0], p[1]\n    y_predict = []\n    for j in range(start, stop):\n        pred_ = xgb[2].predict(rad_recurrent.loc[[j]])\n        y_predict.append(pred_)\n        matrix = rad_recurrent.loc[j+1:j+lookbackSize+1, dcols].values\n        np.fill_diagonal(matrix, pred_)\n        rad_recurrent.loc[j+1:j+lookbackSize+1, dcols] = matrix\n    return y_predict\n\nimport threading\nfrom queue import Queue\n\njobs = Queue()\n\ndef do_stuff(q, prediction, rad_recurrent, xgb):\n    while not q.empty():\n        p = q.get()\n        print(f\'Working on {p}\')\n        y = predict_region(p, prediction, rad_recurrent, xgb)\n        prediction.loc[p[0]:p[1]-1, \'RadiacaoSolar_0_pred\'] = y\n        print(f\'Finished {p}\')\n        q.task_done()\n\nfor i,p in enumerate(predict_regions[0:30]):\n    jobs.put(p)\nprint("waiting for queue to complete", jobs.qsize(), "tasks")\n\nfor i in range(8):\n    worker = threading.Thread(target=do_stuff,\n                              args=(jobs, prediction, rad_recurrent, xgb))\n    worker.start()\n\njobs.join()\nprint("all done")')
 
 
-# In[37]:
+# In[ ]:
 
 
 for i, p in enumerate(predict_regions[0:number_of_plots]):

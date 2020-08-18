@@ -13,7 +13,6 @@ INCLUDE_MEAN = False # Include mean of all 4 stations on merged dataframe
 # In[ ]:
 
 
-
 import pandas as pd
 import numpy as np
 import sys

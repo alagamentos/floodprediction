@@ -3,7 +3,7 @@
 
 # # Inicialização
 
-# In[1]:
+# In[ ]:
 
 
 path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
@@ -16,7 +16,7 @@ with urlopen(path) as response:
 SA = [ i for i in counties['features'] if i['properties']['name'] == 'Santo André' ][0]
 
 
-# In[2]:
+# In[ ]:
 
 
 import pandas as pd
@@ -33,7 +33,7 @@ from datetime import timedelta
 py.offline.init_notebook_mode()
 
 
-# In[3]:
+# In[ ]:
 
 
 df = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.csv',
@@ -44,7 +44,7 @@ est = pd.read_csv('../../../data/cleandata/Estacoes/lat_lng_estacoes.csv', sep =
 
 # # Funções
 
-# In[4]:
+# In[ ]:
 
 
 def Calculate_Dist(lat1, lon1, lat2, lon2):
@@ -99,14 +99,14 @@ def round_date(date_string):
 
 # # Pre-processamento
 
-# In[5]:
+# In[ ]:
 
 
 ord_serv = get_distances(est, df)
 ord_serv.loc[ord_serv['Distance'] > 4.5, 'Est. Prox'] = 'Null'
 
 
-# In[6]:
+# In[ ]:
 
 
 ord_serv = ord_serv[['lat','lng','Data', 'Hora', 'Est. Prox']]
@@ -121,13 +121,13 @@ le.fit(ord_serv['pos'])
 ord_serv['pos'] = le.transform(ord_serv['pos'])
 
 
-# In[7]:
+# In[ ]:
 
 
 ord_serv['Data_Hora'] = ord_serv['Data'] + ' ' + ord_serv['Hora']
 
 
-# In[8]:
+# In[ ]:
 
 
 #df_merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')
@@ -139,7 +139,7 @@ display(df_merged)
 display(df_repaired)
 
 
-# In[9]:
+# In[ ]:
 
 
 df_ord = ord_serv[['Est. Prox', 'Data_Hora']]
@@ -150,7 +150,7 @@ df_ord = df_ord.drop(columns = 'Data_Hora')
 df_ord
 
 
-# In[10]:
+# In[ ]:
 
 
 # my_map = dict(zip(ord_serv['pos'], ord_serv['Est. Prox']))
@@ -171,7 +171,7 @@ for index, row in df_ord.iterrows():
 df_est
 
 
-# In[11]:
+# In[ ]:
 
 
 df_merged_n = df_merged.drop(columns = [c for c in df_merged.columns.values if 'Sensacao' in c]).dropna().copy()
@@ -186,7 +186,7 @@ df = df.sort_values(by = 'Data_Hora')
 df
 
 
-# In[12]:
+# In[ ]:
 
 
 df = df[~df['index'].isna()]
@@ -195,7 +195,7 @@ df[[c for c in df_est.columns if 'Data' not in c]] = df[[c for c in df_est.colum
 
 # # Clusterização
 
-# In[13]:
+# In[ ]:
 
 
 from sklearn.cluster import KMeans
@@ -204,7 +204,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 
 
-# In[14]:
+# In[ ]:
 
 
 df_ungrouped = df.copy()
@@ -229,7 +229,7 @@ df_ungrouped = df_ungrouped.rename(columns = est_to_ord)
 df_ungrouped[[c for c in df_ungrouped.columns if 'Ordens' in c]] = df_ungrouped[[c for c in df_ungrouped.columns if 'Ordens' in c]].astype(int)
 
 
-# In[15]:
+# In[ ]:
 
 
 features = [
@@ -254,7 +254,7 @@ df_grouped = reverse_ohe(df_ungrouped, features, ignoredFeatures, 5, '_')
 df_grouped['Ordens'] = df_grouped['Ordens'].astype(int)
 
 
-# In[16]:
+# In[ ]:
 
 
 print(f"Precipitacao: {round(df_grouped[df_grouped['Precipitacao'] > 0].shape[0] / df_grouped.shape[0] * 100, 2)}%")
@@ -262,7 +262,7 @@ print(f"Ordens: {round(df_grouped[df_grouped['Ordens'] > 0].shape[0] / df_groupe
 df_grouped[df_grouped['Ordens'] > 0].shape[0]
 
 
-# In[31]:
+# In[ ]:
 
 
 df_prec = df_grouped.copy()
@@ -271,7 +271,7 @@ df_prec['Mes'] = df_prec['Data_Hora'].dt.month
 df_prec['Dia'] = df_prec['Data_Hora'].dt.day
 
 
-# In[32]:
+# In[ ]:
 
 
 # Agrupar por dia
@@ -284,7 +284,7 @@ df_prec = df_prec.drop(columns = ['Data_Hora'])
 #df_prec['Ordens'] = df_prec['Ordens'].astype(int)
 
 
-# In[33]:
+# In[ ]:
 
 
 sc = MinMaxScaler(feature_range=(0,1))
@@ -292,7 +292,7 @@ df_norm = sc.fit_transform(df_prec[['Precipitacao', 'Ordens']])
 df_norm
 
 
-# In[34]:
+# In[ ]:
 
 
 ks = range(1, 10)
@@ -314,14 +314,14 @@ plt.xticks(ks)
 plt.show()
 
 
-# In[35]:
+# In[ ]:
 
 
 cluster = KMeans(n_clusters=4, random_state=42).fit(df_norm)
 df_prec['Cluster'] = cluster.labels_
 
 
-# In[36]:
+# In[ ]:
 
 
 fig = px.bar(df_prec.groupby(['Cluster', 'Local'])[['Mes']].count().reset_index(),
@@ -329,25 +329,25 @@ fig = px.bar(df_prec.groupby(['Cluster', 'Local'])[['Mes']].count().reset_index(
 fig.show()
 
 
-# In[37]:
+# In[ ]:
 
 
 df_prec.groupby('Cluster').min()
 
 
-# In[38]:
+# In[ ]:
 
 
 df_prec.groupby('Cluster').mean()
 
 
-# In[39]:
+# In[ ]:
 
 
 df_prec.groupby('Cluster').sum()
 
 
-# In[40]:
+# In[ ]:
 
 
 print(f"Cluster 0: {round(df_prec.groupby('Cluster').count().iloc[0,0] / df_prec.groupby('Cluster').count()['Local'].sum() * 100, 2)}% (chuvas fracas/sem chuva)")
@@ -357,7 +357,7 @@ print(f"Cluster 3: {round(df_prec.groupby('Cluster').count().iloc[3,0] / df_prec
 df_prec.groupby('Cluster').count()
 
 
-# In[41]:
+# In[ ]:
 
 
 fig = px.bar(df_prec.groupby(['Cluster'])[['Precipitacao']].mean().reset_index(),
@@ -365,7 +365,7 @@ fig = px.bar(df_prec.groupby(['Cluster'])[['Precipitacao']].mean().reset_index()
 fig.show()
 
 
-# In[42]:
+# In[ ]:
 
 
 print('a')
@@ -376,13 +376,13 @@ print('e')
 print('f')
 
 
-# In[43]:
+# In[ ]:
 
 
 df_prec.corr()
 
 
-# In[44]:
+# In[ ]:
 
 
 df_m = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')

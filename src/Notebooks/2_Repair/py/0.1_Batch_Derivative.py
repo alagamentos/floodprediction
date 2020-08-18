@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import sys
@@ -13,7 +13,7 @@ imp.reload(utils)
 from utils import *
 
 
-# In[2]:
+# In[ ]:
 
 
 import matplotlib.pyplot as plt

@@ -107,14 +107,14 @@ for index, row in enchentes.iterrows():
                 enchentes.loc[index, 'lng'] = 'Error'
                 enchentes.loc[index, 'status'] = 3
                 
-back_up = enchentes.copy(deep = True)
+backup = enchentes.copy(deep = True)
 
 
 # In[ ]:
 
 
 for i in range(4):
-    len_ = len(back_up[back_up['status'] == i])
+    len_ = len(backup[backup['status'] == i])
     print(f'status {i}: {len_}')
 
 
@@ -123,8 +123,5 @@ for i in range(4):
 # In[ ]:
 
 
-back_up.to_csv(
-    r'../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.csv',
-    sep=';',
-    index=False)
+backup.to_csv(r'../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.csv', sep=';', index=False)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
@@ -14,7 +14,7 @@ with urlopen(path) as response:
 SA = [ i for i in counties['features'] if i['properties']['name'] == 'Santo André' ][0]
 
 
-# In[2]:
+# In[ ]:
 
 
 import pandas as pd
@@ -28,7 +28,7 @@ import plotly as py
 py.offline.init_notebook_mode()
 
 
-# In[3]:
+# In[ ]:
 
 
 df = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.csv',
@@ -37,7 +37,7 @@ df = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.c
 est = pd.read_csv('../../../data/cleandata/Estacoes/lat_lng_estacoes.csv', sep = ';')
 
 
-# In[4]:
+# In[ ]:
 
 
 def Calculate_Dist(lat1, lon1, lat2, lon2):
@@ -62,14 +62,14 @@ def get_distances(estacoes, ord_serv):
     return ord_serv
 
 
-# In[5]:
+# In[ ]:
 
 
 ord_serv = get_distances(est, df)
 ord_serv.loc[ord_serv['Distance'] > 4.5, 'Est. Prox'] = 'Null'
 
 
-# In[6]:
+# In[ ]:
 
 
 fig = go.Figure()
@@ -103,7 +103,7 @@ fig.add_trace(go.Scatter(x = est['lng'],
 fig.show()
 
 
-# In[7]:
+# In[ ]:
 
 
 ord_serv = ord_serv[['lat','lng','Data', 'Est. Prox']]
@@ -118,7 +118,7 @@ le.fit(ord_serv['pos'])
 ord_serv['pos'] = le.transform(ord_serv['pos'])
 
 
-# In[8]:
+# In[ ]:
 
 
 my_index = np.sort(ord_serv['pos'].unique())
@@ -128,7 +128,7 @@ df = pd.DataFrame(columns=list(my_cols), index = list(my_index))
 df.loc[:,:] = 0
 
 
-# In[9]:
+# In[ ]:
 
 
 from datetime import datetime
@@ -147,13 +147,13 @@ for d in df.columns:
     df.loc[df.index.isin(selected),d] = 1
 
 
-# In[10]:
+# In[ ]:
 
 
 df
 
 
-# In[11]:
+# In[ ]:
 
 
 from sklearn.cluster import KMeans
@@ -257,7 +257,7 @@ for n_clusters in range_n_clusters:
 plt.show()
 
 
-# In[12]:
+# In[ ]:
 
 
 plt.plot(range_n_clusters, inertias, '-o', color='black')
@@ -267,13 +267,13 @@ plt.xticks(range_n_clusters)
 plt.show()
 
 
-# In[16]:
+# In[ ]:
 
 
 ord_serv['cluster'] = ord_serv['pos'].map(dict(zip(df.index,cluster_labels)))
 
 
-# In[18]:
+# In[ ]:
 
 
 import plotly.express as px
@@ -288,7 +288,7 @@ fig.update_traces(selector={'name':'Europe'})
 fig.show()
 
 
-# In[19]:
+# In[ ]:
 
 
 fig = go.Figure()

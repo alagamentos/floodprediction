@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[ ]:
 
 
 # Python imports
@@ -23,13 +23,13 @@ ip = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged
 ip.head()
 
 
-# In[66]:
+# In[ ]:
 
 
 ip.shape
 
 
-# In[40]:
+# In[ ]:
 
 
 import plotly.graph_objects as go
@@ -39,7 +39,7 @@ import plotly as py
 py.offline.init_notebook_mode()
 
 
-# In[65]:
+# In[ ]:
 
 
 
@@ -108,7 +108,7 @@ fig.update_layout(
 fig.show()
 
 
-# In[57]:
+# In[ ]:
 
 
 ip.loc[ip['Ano'] == ano, ['RadiacaoSolar_0']]

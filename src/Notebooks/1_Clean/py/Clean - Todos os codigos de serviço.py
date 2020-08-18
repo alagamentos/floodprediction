@@ -3,13 +3,13 @@
 
 # ## Import data
 
-# In[1]:
+# In[ ]:
 
 
 import pandas as pd
 
 
-# In[3]:
+# In[ ]:
 
 
 # Create dir
@@ -26,7 +26,7 @@ if not path.exists(path_):
     mkdir(path_)
 
 
-# In[4]:
+# In[ ]:
 
 
 os_cod = pd.read_excel('../../../data/rawdata/Ordens de serviço/Todos os codigos de serviço - 01012010 a 30092019.xlsx')
@@ -34,7 +34,7 @@ os_cod = pd.read_excel('../../../data/rawdata/Ordens de serviço/Todos os codigo
 
 # ## Separate date from data
 
-# In[5]:
+# In[ ]:
 
 
 cod_null = os_cod.iloc[:,1:5].isnull().copy(deep = True) # Columns 1:5 are null if (tipo or data)
@@ -46,14 +46,14 @@ dados_cod = os_cod[~cod_null.all(axis='columns')].copy(deep=True)
 dados_cod.drop(index=[0], inplace=True)
 
 
-# In[6]:
+# In[ ]:
 
 
 tipo_cod = datas_cod[datas_cod['Unnamed: 0'].str.contains("-")]
 datas_cod = datas_cod[~datas_cod['Unnamed: 0'].str.contains("-")]
 
 
-# In[7]:
+# In[ ]:
 
 
 for i in range(len(tipo_cod.index)):
@@ -66,7 +66,7 @@ for i in range(len(tipo_cod.index)):
         dados_cod.loc[start:end,'Tipo'] = tipo_cod.iloc[i,0]
 
 
-# In[8]:
+# In[ ]:
 
 
 for i in range(len(datas_cod.index)):
@@ -79,7 +79,7 @@ for i in range(len(datas_cod.index)):
         dados_cod.loc[start:end,'datas'] = datas_cod.iloc[i,0]
 
 
-# In[9]:
+# In[ ]:
 
 
 dados_cod.columns = ['ID?','OS','Hora','Endereco1','Endereco2','?','Comentario1','Comentario2',
@@ -88,7 +88,7 @@ dados_cod.columns = ['ID?','OS','Hora','Endereco1','Endereco2','?','Comentario1'
 
 # # Codigos de Serviço
 
-# In[10]:
+# In[ ]:
 
 
 dados_cod.to_csv(

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import datetime
@@ -14,7 +14,6 @@ import matplotlib.dates as mdates
 import pandas as pd
 import seaborn as sns
 
-
 try:
     from jupyterthemes import jtplot
     jtplot.style()
@@ -22,7 +21,7 @@ except:
     pass
 
 
-# In[2]:
+# In[ ]:
 
 
 est0 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatenated Data/Camilopolis/Camilopolis.csv', sep=';')
@@ -34,14 +33,14 @@ est4 = pd.read_csv('../../../data/cleandata/Info pluviometricas/Concatenated Dat
 est = [est0, est1, est2, est3, est4]
 
 
-# In[3]:
+# In[ ]:
 
 
 ose = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes - 01012010 a 30092019.csv',
                  sep=';') # Ordem de serviço enchentes
 
 
-# In[4]:
+# In[ ]:
 
 
 min_ = []
@@ -52,19 +51,19 @@ for e in est:
 print(min(min_), max(max_))
 
 
-# In[5]:
+# In[ ]:
 
 
 merge1 = est0.merge(est1, on = 'Data_Hora', how = 'outer', suffixes = ('_0', '_1'))
 
 
-# In[6]:
+# In[ ]:
 
 
 merge2 = est2.merge(est3, on = 'Data_Hora', how = 'outer', suffixes = ('_2', '_3'))
 
 
-# In[7]:
+# In[ ]:
 
 
 new_cols = []
@@ -76,25 +75,25 @@ for col in est4.columns:
 est4.columns = new_cols
 
 
-# In[8]:
+# In[ ]:
 
 
 merge3 = merge1.merge(merge2, on = 'Data_Hora', how = 'outer')
 
 
-# In[9]:
+# In[ ]:
 
 
 final = merge3.merge(est4, on = 'Data_Hora', how = 'outer')
 
 
-# In[10]:
+# In[ ]:
 
 
 final.columns
 
 
-# In[12]:
+# In[ ]:
 
 
 plt.figure(figsize = (15,15))

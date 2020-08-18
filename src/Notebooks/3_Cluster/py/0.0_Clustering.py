@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[68]:
+# In[ ]:
 
 
 from sklearn.cluster import KMeans
@@ -19,7 +19,7 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 
 
-# In[69]:
+# In[ ]:
 
 
 def reverse_ohe(df, features, ignoredFeatures, featuresLength, prefix, suffix = ''):
@@ -35,7 +35,7 @@ def reverse_ohe(df, features, ignoredFeatures, featuresLength, prefix, suffix = 
     return df_pivot.sort_values(by='Data_Hora').copy()
 
 
-# In[70]:
+# In[ ]:
 
 
 merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv',
@@ -46,13 +46,13 @@ merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/me
 merged.head()
 
 
-# In[71]:
+# In[ ]:
 
 
 merged[['Precipitacao_0', 'Precipitacao_1', 'Precipitacao_2', 'Precipitacao_3', 'Precipitacao_4']].corr()
 
 
-# In[72]:
+# In[ ]:
 
 
 regions = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/error_regions.csv', sep=';')
@@ -60,7 +60,7 @@ regions = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/e
 regions.head()
 
 
-# In[73]:
+# In[ ]:
 
 
 df = merged.merge(regions, on = 'Data_Hora')
@@ -68,7 +68,7 @@ df = merged.merge(regions, on = 'Data_Hora')
 df.head()
 
 
-# In[74]:
+# In[ ]:
 
 
 orders = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.csv', sep=';')
@@ -76,31 +76,31 @@ orders = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes_LatLo
 orders.head()
 
 
-# In[75]:
+# In[ ]:
 
 
 orders[orders['Data'] == '07/01/2011']
 
 
-# In[76]:
+# In[ ]:
 
 
 df[df['Data'] == '07/01/11'][['Hora', 'Precipitacao_0']]
 
 
-# In[77]:
+# In[ ]:
 
 
 orders[orders['Data'] == '15/04/2018']
 
 
-# In[78]:
+# In[ ]:
 
 
 df[df['Data'] == '15/04/18'][['Hora', 'Precipitacao_0']]
 
 
-# In[79]:
+# In[ ]:
 
 
 features = [
@@ -122,7 +122,7 @@ ignoredFeatures = [
 ]
 
 
-# In[80]:
+# In[ ]:
 
 
 repaired = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/repaired.csv', sep=';')
@@ -130,7 +130,7 @@ repaired = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/
 repaired.head()
 
 
-# In[81]:
+# In[ ]:
 
 
 df_ungrouped = merged.copy()
@@ -142,44 +142,44 @@ for i in range(5):
 df_ungrouped.head()
 
 
-# In[82]:
+# In[ ]:
 
 
 df_grouped = reverse_ohe(df_ungrouped, features, ignoredFeatures, 5, '_')
 df_grouped.head()
 
 
-# In[83]:
+# In[ ]:
 
 
 df_grouped['Data_Hora'] = pd.to_datetime(df_grouped['Data_Hora'])
 
 
-# In[84]:
+# In[ ]:
 
 
 df_cluster = df_grouped[['Data_Hora', 'Local', 'Precipitacao', 'UmidadeRelativa', 'RadiacaoSolar']].copy()
 
 
-# In[85]:
+# In[ ]:
 
 
 df_cluster.isna().sum()
 
 
-# In[86]:
+# In[ ]:
 
 
 df_cluster.dropna(inplace=True)
 
 
-# In[87]:
+# In[ ]:
 
 
 df_cluster.isna().sum()
 
 
-# In[88]:
+# In[ ]:
 
 
 df_cluster['Ano'] = df_cluster['Data_Hora'].dt.year
@@ -187,19 +187,19 @@ df_cluster['Mes'] = df_cluster['Data_Hora'].dt.month
 df_cluster['Dia'] = df_cluster['Data_Hora'].dt.day
 
 
-# In[89]:
+# In[ ]:
 
 
 #df_cluster['Local'] = df_cluster['Local'].rank(method='dense', ascending=False).astype(int)
 
 
-# In[90]:
+# In[ ]:
 
 
 df_cluster = df_cluster.groupby(['Local', 'Ano', 'Mes', 'Dia']).sum().reset_index()
 
 
-# In[91]:
+# In[ ]:
 
 
 sc = MinMaxScaler(feature_range=(0,1))
@@ -207,13 +207,13 @@ df_norm = sc.fit_transform(df_cluster[['Precipitacao', 'UmidadeRelativa', 'Radia
 df_norm
 
 
-# In[93]:
+# In[ ]:
 
 
 cluster = KMeans(n_clusters=4, random_state=42).fit(df_norm)
 
 
-# In[94]:
+# In[ ]:
 
 
 ks = range(1, 10)
@@ -235,26 +235,26 @@ plt.xticks(ks)
 plt.show()
 
 
-# In[27]:
+# In[ ]:
 
 
 df_cluster['Cluster'] = cluster.labels_
 df_cluster
 
 
-# In[28]:
+# In[ ]:
 
 
 df_cluster.groupby(['Cluster', 'Local'])[['Cluster']].count()
 
 
-# In[29]:
+# In[ ]:
 
 
 df_cluster.groupby(['Cluster', 'Mes'])[['Cluster']].count()
 
 
-# In[30]:
+# In[ ]:
 
 
 fig = px.bar(df_cluster.groupby(['Cluster', 'Local'])[['Mes']].count().reset_index(),
@@ -262,7 +262,7 @@ fig = px.bar(df_cluster.groupby(['Cluster', 'Local'])[['Mes']].count().reset_ind
 fig.show()
 
 
-# In[31]:
+# In[ ]:
 
 
 fig = px.bar(df_cluster.groupby(['Cluster', 'Local'])[['Mes']].count().reset_index(),
@@ -270,21 +270,21 @@ fig = px.bar(df_cluster.groupby(['Cluster', 'Local'])[['Mes']].count().reset_ind
 fig.show()
 
 
-# In[32]:
+# In[ ]:
 
 
 cols = [c for c in merged.columns if 'UmidadeRelativa' in c]
 merged[cols].corr(method='spearman')
 
 
-# In[33]:
+# In[ ]:
 
 
 cols = [c for c in df_ungrouped.columns if 'UmidadeRelativa' in c]
 df_ungrouped[cols].corr(method='spearman')
 
 
-# In[34]:
+# In[ ]:
 
 
 regions[[c for c in regions.columns if 'Data_Hora' not in c]].sum() / regions.shape[0] * 100
@@ -292,7 +292,7 @@ regions[[c for c in regions.columns if 'Data_Hora' not in c]].sum() / regions.sh
 
 # # PCA + KMeans
 
-# In[37]:
+# In[ ]:
 
 
 df_pca = df_grouped.sample(n=100000).copy()
@@ -303,20 +303,20 @@ df_pca = df_pca.drop(columns = ['Data_Hora'])
 df_pca
 
 
-# In[38]:
+# In[ ]:
 
 
 X_std = StandardScaler().fit_transform(df_pca)
 
 
-# In[39]:
+# In[ ]:
 
 
 pca = PCA(n_components=11)
 principalComponents = pca.fit_transform(X_std)
 
 
-# In[40]:
+# In[ ]:
 
 
 features = range(pca.n_components_)
@@ -326,7 +326,7 @@ plt.ylabel('variance %')
 plt.xticks(features)
 
 
-# In[184]:
+# In[ ]:
 
 
 # Save components to a DataFrame
@@ -336,7 +336,7 @@ plt.xlabel('PCA 1')
 plt.ylabel('PCA 2')
 
 
-# In[42]:
+# In[ ]:
 
 
 ks = range(1, 10)
@@ -360,7 +360,7 @@ plt.show()
 
 # # PCA + KMeans (sem aplicar reverse_ohe)
 
-# In[62]:
+# In[ ]:
 
 
 df_pca = df_ungrouped.sample(n=100000).copy()
@@ -375,7 +375,7 @@ df_pca = df_pca.set_index('Data_Hora')
 df_pca
 
 
-# In[63]:
+# In[ ]:
 
 
 X_std = StandardScaler().fit_transform(df_pca)
@@ -383,7 +383,7 @@ pca = PCA(n_components=20)
 principalComponents = pca.fit_transform(X_std)
 
 
-# In[64]:
+# In[ ]:
 
 
 features = range(pca.n_components_)
@@ -393,7 +393,7 @@ plt.ylabel('variance %')
 plt.xticks(features)
 
 
-# In[183]:
+# In[ ]:
 
 
 # Save components to a DataFrame
@@ -403,7 +403,7 @@ plt.xlabel('PCA 1')
 plt.ylabel('PCA 2')
 
 
-# In[67]:
+# In[ ]:
 
 
 ks = range(1, 10)
@@ -430,7 +430,7 @@ plt.show()
 # 
 # Testando clusterizações com a precipitação e outras features, independente da feature selecionada, a precipitação não tem influência suficiente e a clusterização acaba sendo realizada em função das outras features, completamente ignorando a tendência da precipitação.
 
-# In[164]:
+# In[ ]:
 
 
 #df_prec = df_grouped[df_grouped['Precipitacao'] > 0]
@@ -447,7 +447,7 @@ df_prec['Local'] = df_prec['Local'].rank(method='dense', ascending=False).astype
 df_prec
 
 
-# In[165]:
+# In[ ]:
 
 
 sc = MinMaxScaler(feature_range=(0,1))
@@ -455,7 +455,7 @@ df_norm = sc.fit_transform(df_prec[['Precipitacao']])
 df_norm
 
 
-# In[166]:
+# In[ ]:
 
 
 ks = range(1, 10)
@@ -477,14 +477,14 @@ plt.xticks(ks)
 plt.show()
 
 
-# In[177]:
+# In[ ]:
 
 
 cluster = KMeans(n_clusters=4, random_state=42).fit(df_norm)
 df_prec['Cluster'] = cluster.labels_
 
 
-# In[178]:
+# In[ ]:
 
 
 fig = px.bar(df_prec.groupby(['Cluster', 'Local'])[['Mes']].count().reset_index(),
@@ -492,13 +492,13 @@ fig = px.bar(df_prec.groupby(['Cluster', 'Local'])[['Mes']].count().reset_index(
 fig.show()
 
 
-# In[182]:
+# In[ ]:
 
 
 df_prec.groupby('Cluster').min()
 
 
-# In[180]:
+# In[ ]:
 
 
 fig = px.bar(df_prec.groupby(['Cluster'])[['Precipitacao']].mean().reset_index(),
@@ -506,7 +506,7 @@ fig = px.bar(df_prec.groupby(['Cluster'])[['Precipitacao']].mean().reset_index()
 fig.show()
 
 
-# In[181]:
+# In[ ]:
 
 
 df_prec.groupby('Cluster').count()

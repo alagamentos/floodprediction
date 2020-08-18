@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import matplotlib.pyplot as plt
@@ -15,7 +15,7 @@ except:
     pass
 
 
-# In[2]:
+# In[ ]:
 
 
 ip = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv',
@@ -29,7 +29,7 @@ ip.head()
 
 # #### Umidade Relativa 
 
-# In[3]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'UmidadeRelativa' in i]
@@ -39,13 +39,13 @@ um.head()
 
 # #### Derivada
 
-# In[4]:
+# In[ ]:
 
 
 d_um0 = np.gradient(um[cols_um[0]])
 
 
-# In[5]:
+# In[ ]:
 
 
 start = 0
@@ -60,7 +60,7 @@ plt.show()
 
 # #### Derivada muito alta
 
-# In[6]:
+# In[ ]:
 
 
 threshold = 15
@@ -72,7 +72,7 @@ for i in range(len(d_um0)):
         high_d.append(False)
 
 
-# In[7]:
+# In[ ]:
 
 
 start = 0
@@ -98,7 +98,7 @@ plt.show()
 
 # ### Derivada zero
 
-# In[8]:
+# In[ ]:
 
 
 n_zeros = 5
@@ -110,7 +110,7 @@ for i in range(len(d_um0)):
     is_const.append(aux)
 
 
-# In[9]:
+# In[ ]:
 
 
 start = 1000
@@ -137,7 +137,7 @@ plt.show()
 
 # ### Dados com erro
 
-# In[10]:
+# In[ ]:
 
 
 is_error = [is_const[i] or high_d[i] for i in range(len(high_d))]
@@ -145,7 +145,7 @@ is_error = [is_const[i] or high_d[i] for i in range(len(high_d))]
 
 # ### Create regions
 
-# In[11]:
+# In[ ]:
 
 
 regions = []
@@ -162,13 +162,13 @@ for bool_ in is_error:
     i += 1
 
 
-# In[12]:
+# In[ ]:
 
 
 is_error
 
 
-# In[13]:
+# In[ ]:
 
 
 regions
@@ -176,7 +176,7 @@ regions
 
 # ### Increase Margins
 
-# In[14]:
+# In[ ]:
 
 
 margin = 2
@@ -187,7 +187,7 @@ for reg in regions:
 
 # ### Compare with and without margins
 
-# In[15]:
+# In[ ]:
 
 
 start = 0
@@ -209,7 +209,7 @@ ax2.plot(um[cols_um[0]].index[start:stop],um[cols_um[0]][start:stop])
 plt.show()
 
 
-# In[16]:
+# In[ ]:
 
 
 start = 0

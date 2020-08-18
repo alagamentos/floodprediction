@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ except:
 import scipy.signal as scs
 
 
-# In[2]:
+# In[ ]:
 
 
 ip = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv',
@@ -28,7 +28,7 @@ print(list(ip.columns))
 ip.head()
 
 
-# In[3]:
+# In[ ]:
 
 
 cols_um = [i for i in ip.columns if 'UmidadeRelativa' in i]
@@ -36,7 +36,7 @@ um = ip[cols_um]
 um.head()
 
 
-# In[4]:
+# In[ ]:
 
 
 fig01, ax01 = plt.subplots(2, 1, figsize=(15,10))
@@ -75,7 +75,7 @@ for col in cols_um[:-1]:
     axf.semilogx(freq_resp01[0], 20*np.log10(freq_resp01[2][:,-1]), lw=2, c='b')
 
 
-# In[5]:
+# In[ ]:
 
 
 from scipy.signal import butter, filtfilt
@@ -86,7 +86,7 @@ def butter_lowpass_filter(data, cutoff, fs, order):
     return filtfilt(b, a, data)
 
 
-# In[6]:
+# In[ ]:
 
 
 plottype = 'dB'
