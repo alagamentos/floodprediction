@@ -1,6 +1,7 @@
 # TCC - Sistema Inteligente de Previsão de Alagamentos
 
 ## Integrantes
+
 Nome | RA | GitHub
 ------------ | ------------- | -------------
 Felipe Ippolito | 12.01378-0 | [feippolito](https://github.com/feippolito)
@@ -57,9 +58,10 @@ make setup
 
 ---
 
-Deleta todas as pastas existentes em *data/cleandata/Info pluviometricas* e executa o arquivo `clean_infopluviometricas.py`. Dessa execução são geradas duas pastas em *cleandata*:
- - **Merged Data**: Contém um arquivo único com todos os dados das informações pluvimétricas.
- - **Concatenated**: Contém um arquivo para cada estação com todos os dados da mesma concatenados.
+Executa os arquivos *clean_infopluviometricas.py* e o *clean_owm_history_bulk.py* a fim de limpar e padronizar os dados a serem utilizados. Dessa execução são geradas três pastas em *cleandata*:
+ - **Info pluviometricas/Merged Data**: Contém um único arquivo com todos os dados de todas as estações concatenados, limpos e formatados.
+ - **Info pluviometricas/Concatenated**: Contém um arquivo para cada estação com todos os dados da mesma concatenados, limpos e formatados.
+ - **OpenWeather**: Contém um único arquivo com todos os dados do OpenWeatherMap limpos e formatados.
 
 ```bash
 make clean
