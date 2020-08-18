@@ -12,7 +12,7 @@ build:
 
 clean:
 	python ./src/Pipeline/clean_infopluviometricas.py
-	python ./src/Pipeline/clean_openweather_history.py
+	python ./src/Pipeline/clean_owm_history_bulk.py
 
 error_regions:
 	python ./src/Pipeline/error_regions.py
