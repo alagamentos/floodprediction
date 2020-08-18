@@ -90,9 +90,13 @@ def repair_regions(df, label, max_region_size=None, lookbackSize=None, extra_fea
   logging.info(f'Dados com erro:  {has_error.sum()/len(df_att)* 100}%')
 
   logging.info('Training Model')
-  xgb = xgboost.XGBRegressor(
-      objective='reg:squarederror', tree_method='gpu_hist')
-  xgb.fit(df_error.drop(columns=[label]), df_error[label])
+
+  try:
+    xgb = xgboost.XGBRegressor(objective='reg:squarederror', tree_method='gpu_hist')
+    xgb.fit(df_error.drop(columns=[label]), df_error[label]) # Ele tenta executar pela GPU apenas ao rodar o FIT
+  except:
+    xgb = xgboost.XGBRegressor(objective='reg:squarederror')
+    xgb.fit(df_error.drop(columns=[label]), df_error[label]) # Ele tenta executar pela GPU apenas ao rodar o FIT
 
   drop_cols = [i for i in df_att.columns if 'delay_error' in i] + \
       [label] + [label+'_error']
