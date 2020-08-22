@@ -376,8 +376,8 @@ df_prec.groupby('Cluster').sum()
 
 print(f"Cluster 0: {round(df_prec.groupby('Cluster').count().iloc[0,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas fracas/sem chuva)")
 print(f"Cluster 1: {round(df_prec.groupby('Cluster').count().iloc[1,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas perigosas)")
-print(f"Cluster 2: {round(df_prec.groupby('Cluster').count().iloc[2,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (???)")
-print(f"Cluster 3: {round(df_prec.groupby('Cluster').count().iloc[3,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas fortes?)")
+print(f"Cluster 2: {round(df_prec.groupby('Cluster').count().iloc[2,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas fortes?)")
+print(f"Cluster 3: {round(df_prec.groupby('Cluster').count().iloc[3,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (???)")
 df_prec.groupby('Cluster').count()
 
 
@@ -439,7 +439,7 @@ df_cluster
 # In[ ]:
 
 
-df_cluster.to_csv('../../../data/cleandata/Info pluviometricas/Merged Data/clustered.csv', sep = ';', index=False)
+df_cluster.to_csv('../../../data/cleandata/Info pluviometricas/Merged Data/clustered_data.csv', sep = ';', index=False)
 
 
 # In[ ]:
@@ -460,4 +460,19 @@ pandas_gbq.context.credentials = CREDENTIALS
 
 pandas_gbq.to_gbq(df_cluster, TABLE_clustered, project_id=PROJECT_ID, credentials=CREDENTIALS, if_exists='replace')
 print('clustered done!')
+
+
+# In[ ]:
+
+
+df_clustered_total = df_grouped.merge(df_prec[['Data', 'Cluster']], on='Data').drop(columns = 'Data')
+df_clustered_total['Ordens'] = df_clustered_total['Ordens'].shift(-1, fill_value = 0)
+df_clustered_total.loc[df_clustered_total['Ordens'] >= 1, 'Ordens'] = 1
+df_clustered_total
+
+
+# In[ ]:
+
+
+df_clustered_total.to_csv('../../../data/cleandata/Info pluviometricas/Merged Data/clustered.csv', sep = ';', index=False)
 
