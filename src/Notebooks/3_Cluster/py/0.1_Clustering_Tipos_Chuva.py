@@ -88,9 +88,9 @@ def round_date(date_string):
     if minute == '60':
         minute = '00'
         date_concat = left + minute + ':' + '00'
-        date_concat = datetime.strptime(date_concat, '%d/%m/%Y %H:%M:%S')
+        date_concat = datetime.strptime(date_concat, '%Y/%m/%d %H:%M:%S')
         date_concat = date_concat + timedelta(hours = 1)
-        date_concat = date_concat.strftime('%d/%m/%Y %H:%M:%S')
+        date_concat = date_concat.strftime('%Y/%m/%d %H:%M:%S')
     else:
         date_concat = left + minute + ':' + '00'
 
@@ -130,8 +130,8 @@ ord_serv['Data_Hora'] = ord_serv['Data'] + ' ' + ord_serv['Hora']
 # In[ ]:
 
 
-#df_merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')
-df_merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/old_merged.csv', sep = ';')
+df_merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')
+#df_merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/old_merged.csv', sep = ';')
 df_repaired = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/repaired.csv', sep = ';')
 df_merged['Data_Hora'] = pd.to_datetime(df_merged['Data_Hora'])
 df_repaired['Data_Hora'] = pd.to_datetime(df_repaired['Data_Hora'])
@@ -143,10 +143,11 @@ display(df_repaired)
 
 
 df_ord = ord_serv[['Est. Prox', 'Data_Hora']]
-df_ord['Data_Hora'] = pd.to_datetime(df_ord['Data_Hora']).dt.strftime('%d/%m/%Y %H:%M:%S').apply(round_date)
-df_ord['Data_Hora'] = pd.to_datetime(df_ord['Data_Hora'])
-df_ord['Data'] = df_ord['Data_Hora'].dt.strftime('%d/%m/%Y')
+df_ord['Data_Hora'] = pd.to_datetime(df_ord['Data_Hora'], yearfirst=True).dt.strftime('%Y/%m/%d %H:%M:%S').apply(round_date)
+df_ord['Data_Hora'] = pd.to_datetime(df_ord['Data_Hora'], yearfirst=True)
+df_ord['Data'] = df_ord['Data_Hora'].dt.strftime('%Y/%m/%d')
 df_ord = df_ord.drop(columns = 'Data_Hora')
+df_ord = df_ord[df_ord['Est. Prox'] != 'OpenWeather']
 df_ord
 
 
@@ -178,10 +179,10 @@ df_merged_n = df_merged.drop(columns = [c for c in df_merged.columns.values if '
 df_repaired_n = df_repaired.drop(columns = [c for c in df_repaired.columns.values if 'Sensacao' in c]).dropna().copy()
 
 df = df_merged_n.merge(df_repaired_n, on='Data_Hora')
-df['Data_Hora'] = pd.to_datetime(df['Data_Hora'], format='%d/%m/%Y %H:%M:%S')
-df['Data'] = df['Data_Hora'].dt.strftime('%d/%m/%Y')
+df['Data_Hora'] = pd.to_datetime(df['Data_Hora'], format='%Y/%m/%d %H:%M:%S')
+df['Data'] = df['Data_Hora'].dt.strftime('%Y/%m/%d')
 df = df.merge(df_est, on='Data', how = 'outer')
-df['Data_Hora'] = pd.to_datetime(df['Data_Hora'])
+df['Data_Hora'] = pd.to_datetime(df['Data_Hora'], yearfirst=True)
 df = df.sort_values(by = 'Data_Hora')
 df
 
@@ -208,7 +209,7 @@ import plotly.express as px
 
 
 df_ungrouped = df.copy()
-df_ungrouped = df_ungrouped.drop(columns = ['index', 'Data', 'Hora'] + [c for c in df.columns if 'interpol' in c])
+df_ungrouped = df_ungrouped.drop(columns = ['index', 'Data'] + [c for c in df.columns if 'interpol' in c])
 df_ungrouped['Vitoria'] = df_ungrouped['Vitoria'] + df_ungrouped['Null']
 cols = [c for c in df_ungrouped.columns if '_pred' not in c and '_repaired' not in c and c not in ['Vitoria', 'Erasmo',
        'Paraiso', 'Null', 'RM', 'Camilopolis'] and 'Local_' not in c and 'Data_Hora' not in c and 'Precipitacao' not in c]
@@ -269,6 +270,20 @@ df_prec = df_grouped.copy()
 df_prec['Ano'] = df_prec['Data_Hora'].dt.year
 df_prec['Mes'] = df_prec['Data_Hora'].dt.month
 df_prec['Dia'] = df_prec['Data_Hora'].dt.day
+df_prec['Data'] = df_prec['Data_Hora'].dt.strftime('%Y-%m-%d')
+
+
+# In[ ]:
+
+
+# # Agrupar por dia e local
+# df_prec = df_prec.drop(columns = ['Data_Hora'])
+# s_prec_p = df_prec.groupby(['Local', 'Ano', 'Mes', 'Dia']).sum().reset_index()['Precipitacao']
+# s_prec_o = df_prec.groupby(['Local', 'Ano', 'Mes', 'Dia']).max().reset_index()['Ordens']
+# df_prec = df_prec.groupby(['Local', 'Ano', 'Mes', 'Dia']).mean().reset_index()
+# df_prec['Precipitacao'] = s_prec_p
+# df_prec['Ordens'] = s_prec_o
+# df_prec['Ordens'] = df_prec['Ordens'].astype(int)
 
 
 # In[ ]:
@@ -276,12 +291,18 @@ df_prec['Dia'] = df_prec['Data_Hora'].dt.day
 
 # Agrupar por dia
 df_prec = df_prec.drop(columns = ['Data_Hora'])
-# s_prec_p = df_prec.groupby(['Local', 'Ano', 'Mes', 'Dia']).sum().reset_index()['Precipitacao']
-# s_prec_o = df_prec.groupby(['Local', 'Ano', 'Mes', 'Dia']).max().reset_index()['Ordens']
-# df_prec = df_prec.groupby(['Local', 'Ano', 'Mes', 'Dia']).mean().reset_index()
-# df_prec['Precipitacao'] = s_prec_p
-# df_prec['Ordens'] = s_prec_o
+s_prec_p = df_prec.groupby(['Data', 'Local']).sum().reset_index().groupby('Data').mean()['Precipitacao'].reset_index()
+s_prec_o = df_prec.groupby(['Data', 'Local']).max().reset_index().groupby('Data').max()['Ordens'].reset_index()
+df_prec = df_prec.groupby(['Data']).mean().reset_index()
+df_prec['Precipitacao'] = s_prec_p['Precipitacao']
+df_prec['Ordens'] = s_prec_o['Ordens']
 #df_prec['Ordens'] = df_prec['Ordens'].astype(int)
+
+
+# In[ ]:
+
+
+df_prec
 
 
 # In[ ]:
@@ -324,8 +345,11 @@ df_prec['Cluster'] = cluster.labels_
 # In[ ]:
 
 
-fig = px.bar(df_prec.groupby(['Cluster', 'Local'])[['Mes']].count().reset_index(),
-             x="Cluster", y="Mes", color="Local", barmode="group")
+# fig = px.bar(df_prec.groupby(['Cluster', 'Local'])[['Mes']].count().reset_index(),
+#              x="Cluster", y="Mes", color="Local", barmode="group")
+
+fig = px.bar(df_prec.groupby(['Cluster'])[['Mes']].count().reset_index(),
+             x="Cluster", y="Mes", barmode="group")
 fig.show()
 
 
@@ -350,10 +374,10 @@ df_prec.groupby('Cluster').sum()
 # In[ ]:
 
 
-print(f"Cluster 0: {round(df_prec.groupby('Cluster').count().iloc[0,0] / df_prec.groupby('Cluster').count()['Local'].sum() * 100, 2)}% (chuvas fracas/sem chuva)")
-print(f"Cluster 1: {round(df_prec.groupby('Cluster').count().iloc[1,0] / df_prec.groupby('Cluster').count()['Local'].sum() * 100, 2)}% (chuvas perigosas)")
-print(f"Cluster 2: {round(df_prec.groupby('Cluster').count().iloc[2,0] / df_prec.groupby('Cluster').count()['Local'].sum() * 100, 2)}% (???)")
-print(f"Cluster 3: {round(df_prec.groupby('Cluster').count().iloc[3,0] / df_prec.groupby('Cluster').count()['Local'].sum() * 100, 2)}% (chuvas fortes?)")
+print(f"Cluster 0: {round(df_prec.groupby('Cluster').count().iloc[0,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas fracas/sem chuva)")
+print(f"Cluster 1: {round(df_prec.groupby('Cluster').count().iloc[1,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas perigosas)")
+print(f"Cluster 2: {round(df_prec.groupby('Cluster').count().iloc[2,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (???)")
+print(f"Cluster 3: {round(df_prec.groupby('Cluster').count().iloc[3,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas fortes?)")
 df_prec.groupby('Cluster').count()
 
 
@@ -368,17 +392,6 @@ fig.show()
 # In[ ]:
 
 
-print('a')
-print('b')
-print('c')
-print('d')
-print('e')
-print('f')
-
-
-# In[ ]:
-
-
 df_prec.corr()
 
 
@@ -387,4 +400,64 @@ df_prec.corr()
 
 df_m = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')
 df_m['Data_Hora'].max()
+
+
+# # Preparatório para AutoML
+
+# In[ ]:
+
+
+# df_prec['Data'] = pd.to_datetime(df_prec['Ano'].map(str) + "-" + df_prec['Mes'].map(str) + "-" + df_prec['Dia'].map(str))
+# df_grouped['Data'] = pd.to_datetime(df_grouped['Data_Hora'].dt.strftime('%Y-%m-%d'))
+
+# df_cluster = df_grouped.merge(df_prec[['Data', 'Local', 'Cluster']], on=['Data', 'Local'])
+# df_cluster = df_cluster.drop(columns = 'Data')
+# df_cluster.head(20)
+
+
+# In[ ]:
+
+
+# df_cluster['Data'] = df_cluster['Data_Hora'].dt.strftime('%Y-%m-%d')
+# s_prec_p = df_cluster.groupby(['Data']).sum().reset_index()['Precipitacao']
+# s_prec_o = df_cluster.groupby(['Data']).sum().reset_index()['Ordens']
+# df_cluster_group = df_cluster.drop(columns='Local').groupby(['Data']).mean().reset_index()
+# df_cluster_group['Precipitacao'] = s_prec_p
+# df_cluster_group['Ordens'] = s_prec_o
+# df_cluster_group
+
+
+# In[ ]:
+
+
+df_cluster = df_prec.drop(columns = ['Data', 'Ano', 'Dia'])
+df_cluster['Ordens'] = df_cluster['Ordens'].shift(-1, fill_value = 0)
+df_cluster.loc[df_cluster['Ordens'] >= 1, 'Ordens'] = 1
+df_cluster
+
+
+# In[ ]:
+
+
+df_cluster.to_csv('../../../data/cleandata/Info pluviometricas/Merged Data/clustered.csv', sep = ';', index=False)
+
+
+# In[ ]:
+
+
+import pandas_gbq
+from google.oauth2 import service_account
+
+PROJECT_ID = 'temporal-285820'
+TABLE_clustered = 'info_pluviometrica.clustered_date'
+
+CREDENTIALS = service_account.Credentials.from_service_account_file('../../../key/temporal-285820-cde76c259484.json')
+pandas_gbq.context.credentials = CREDENTIALS
+
+
+# In[ ]:
+
+
+pandas_gbq.to_gbq(df_cluster, TABLE_clustered, project_id=PROJECT_ID, credentials=CREDENTIALS, if_exists='replace')
+print('clustered done!')
 
