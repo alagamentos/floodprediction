@@ -11,6 +11,12 @@ import numpy as np
 # In[ ]:
 
 
+get_ipython().system("ls '../../../data/cleandata/Info pluviometricas/Merged Data'")
+
+
+# In[ ]:
+
+
 merged = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')
 
 
@@ -38,6 +44,25 @@ days_hours_minutes(stop - start)
 # In[ ]:
 
 
+d,h,m = days_hours_minutes(stop - start) + #
+
+
+
+# In[ ]:
+
+
+total_days
+
+
+# In[ ]:
+
+
+1/24
+
+
+# In[ ]:
+
+
 from datetime import date, timedelta
 # Criar Vetor de data (15 em 15 minutos )
 
@@ -57,6 +82,12 @@ print('Amostras Faltantes:', len(missing),
 # In[ ]:
 
 
+date_vec[-1]
+
+
+# In[ ]:
+
+
 new_df = pd.DataFrame(date_vec, columns=['Data_Hora'])
 new_df['Data_Hora'] = pd.to_datetime(new_df['Data_Hora'], yearfirst=True)
 
@@ -64,7 +95,33 @@ new_df['Data_Hora'] = pd.to_datetime(new_df['Data_Hora'], yearfirst=True)
 # In[ ]:
 
 
+merged 
+dh /      0   1   2   3   4
+1:15     p0  p1 nan  p3 p4
+
+
+# In[ ]:
+
+
 merged = new_df.merge(merged, how = 'left', on = 'Data_Hora')
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
@@ -79,4 +136,28 @@ list(merged[merged['Local_0'].isna()].Data_Hora.unique())
 local_cols = [col for col in merged.columns if 'Local' in col]
 for col in local_cols:
     merged.loc[:,col] = merged[col].dropna().unique()
+
+
+# In[ ]:
+
+
+merged
+
+
+# In[ ]:
+
+
+merged
+
+
+# In[ ]:
+
+
+local_cols
+
+
+# In[ ]:
+
+
+
 
