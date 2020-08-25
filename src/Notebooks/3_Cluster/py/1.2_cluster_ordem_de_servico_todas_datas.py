@@ -5,26 +5,6 @@
 
 
 import pandas as pd
-pd.to_datetime(['01/08/2019','30/01/2019'], dayfirst = True)
-
-
-# In[ ]:
-
-
-path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
-
-from urllib.request import urlopen
-import json
-with urlopen(path) as response:
-    counties = json.load(response)
-    
-SA = [ i for i in counties['features'] if i['properties']['name'] == 'Santo André' ][0]
-
-
-# In[ ]:
-
-
-import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
@@ -42,24 +22,7 @@ df = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.c
                  sep = ';')
 
 est = pd.read_csv('../../../data/cleandata/Estacoes/lat_lng_estacoes.csv', sep = ';')
-
-
-# In[ ]:
-
-
-est
-
-
-# In[ ]:
-
-
-est = est.iloc[1:-1]
-
-
-# In[ ]:
-
-
-est
+est = est.iloc[:-1] # Remove OpenWeather
 
 
 # In[ ]:
@@ -146,10 +109,28 @@ ord_serv['pos'] = le.transform(ord_serv['pos'])
 # In[ ]:
 
 
+def days_hours_minutes(td):
+    return int(td.days), td.seconds//3600, (td.seconds//60)%60
+
+start, stop = ord_serv['Data'].iloc[0], ord_serv['Data'].iloc[-1]
+
+from datetime import date, timedelta
+# Criar Vetor de data (15 em 15 minutos )
+
+d,h,m = days_hours_minutes(stop - start)
+total_days = d + h/24 + m/24/60 + (1)
+
+date_vec= [start + timedelta(x) for x in 
+          np.arange(0, total_days, 1)]
+
+
+# In[ ]:
+
+
 my_index = np.sort(ord_serv['pos'].unique())
 my_cols = ord_serv.Data.dt.strftime('%Y-%m-%d').unique()
 
-df = pd.DataFrame(columns=list(my_cols), index = list(my_index))
+df = pd.DataFrame(columns=list(date_vec), index = list(my_index))
 df.loc[:,:] = 0
 
 
@@ -162,8 +143,8 @@ from datetime import timedelta
 day_delta = 4
 for d in df.columns:
 
-    lim_dates = [datetime.strptime(d, '%Y-%m-%d') + timedelta(days=-day_delta),
-                 datetime.strptime(d, '%Y-%m-%d') + timedelta(days=day_delta)]
+    lim_dates = [d + timedelta(days=-day_delta),
+                 d + timedelta(days=day_delta)]
 
     selected_dates = ord_serv[(ord_serv['Data'] > lim_dates[0]) &
                         (ord_serv['Data'] <= lim_dates[1])]
@@ -175,7 +156,17 @@ for d in df.columns:
 # In[ ]:
 
 
-df.max()
+import plotly.graph_objects as go
+
+fig = go.Figure()
+fig.add_trace(go.Heatmap(z=df.values,
+                         x=df.columns,
+                         colorscale = 'gray',
+                         reversescale=True,
+                         showscale=False)
+             )
+fig.update_layout()
+fig.show()
 
 
 # In[ ]:
