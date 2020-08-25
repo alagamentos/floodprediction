@@ -398,6 +398,12 @@ df_prec.corr()
 # In[ ]:
 
 
+df_prec[(df_prec['Cluster'] == 0) & (df_prec['Ordens'] >= 1)][['Precipitacao', 'Ordens']].boxplot()
+
+
+# In[ ]:
+
+
 df_m = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')
 df_m['Data_Hora'].max()
 
@@ -465,10 +471,17 @@ print('clustered done!')
 # In[ ]:
 
 
+df_grouped['Data'] = df_grouped['Data_Hora'].dt.strftime('%Y-%m-%d')
 df_clustered_total = df_grouped.merge(df_prec[['Data', 'Cluster']], on='Data').drop(columns = 'Data')
-df_clustered_total['Ordens'] = df_clustered_total['Ordens'].shift(-1, fill_value = 0)
+#df_clustered_total['Ordens'] = df_clustered_total['Ordens'].shift(-1, fill_value = 0)
 df_clustered_total.loc[df_clustered_total['Ordens'] >= 1, 'Ordens'] = 1
 df_clustered_total
+
+
+# In[ ]:
+
+
+df_clustered_total[df_clustered_total['Ordens'] == 1].head(40)
 
 
 # In[ ]:
