@@ -4,6 +4,13 @@
 # In[ ]:
 
 
+import pandas as pd
+pd.to_datetime(['01/08/2019','30/01/2019'], dayfirst = True)
+
+
+# In[ ]:
+
+
 path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
 
 from urllib.request import urlopen
@@ -35,6 +42,24 @@ df = pd.read_csv('../../../data/cleandata/Ordens de serviço/Enchentes_LatLong.c
                  sep = ';')
 
 est = pd.read_csv('../../../data/cleandata/Estacoes/lat_lng_estacoes.csv', sep = ';')
+
+
+# In[ ]:
+
+
+est
+
+
+# In[ ]:
+
+
+est = est.iloc[1:-1]
+
+
+# In[ ]:
+
+
+est
 
 
 # In[ ]:
@@ -150,7 +175,7 @@ for d in df.columns:
 # In[ ]:
 
 
-df
+df.max()
 
 
 # In[ ]:

@@ -38,6 +38,14 @@ ip.head()
 # In[ ]:
 
 
+ip['Data_Hora'] = pd.to_datetime(ip['Data_Hora'])
+ip = ip.sort_values(by = 'Data_Hora')
+ip.tail()
+
+
+# In[ ]:
+
+
 """
 UmidadeRelativa
 PressaoAtmosferica
@@ -64,7 +72,7 @@ Precipitacao
 
 cols_um = [i for i in ip.columns if 'UmidadeRelativa' in i]
 um = ip[cols_um].fillna(np.nan)
-start, stop = 0, 500
+start, stop = 87234, 87234 + 500
 for col in um.columns:
     peaks = derivative_threshold(um[col], 12, False, start, stop, lw = 2, figsize = (11, 15))
     zeros = derivative_zero(um[col], 3, False, False, start, stop, lw = 2, figsize = (11, 15))
@@ -73,7 +81,7 @@ for col in um.columns:
     error_reg = list_2_regions(error)
     error_reg = increase_margins(3, error_reg, len(peaks))
     error = regions_2_list(error_reg, len(peaks))
-    plot_regions(um[col], error_reg, start, stop, plt_type = 'lines', 
+    plot_regions(um[col].fillna(0), error_reg, start, stop, plt_type = 'lines', 
                  title = 'Umidade Relativa', figsize = (11, 8), lw = 3)
 
 
