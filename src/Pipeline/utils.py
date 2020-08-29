@@ -101,18 +101,14 @@ def derivative_zero(timeSeries, n_zeros, non_zero=False,
   const = []
 
   for i in range(len(d_ts)):
-    aux = True
+    start = i-(n_zeros//2)
+    stop = i+(n_zeros//2)
+    if start < 0:
+        start = 0
+    if stop > len(timeSeries):
+        stop = len(timeSeries)
+    const.append((d_ts[start:stop] == 0).all())
 
-    for n in range(-n_zeros//2, n_zeros//2):
-      if ((i + n >= len(d_ts)) or (i + n < 0)):
-        pass
-      else:
-        aux = aux and (d_ts[i + n] == 0)
-
-      if not aux:
-        break
-
-    const.append(aux)
 
   if non_zero:
     not_zeros = []
