@@ -404,8 +404,8 @@ df_prec[(df_prec['Cluster'] == 0) & (df_prec['Ordens'] >= 1)][['Precipitacao', '
 # In[ ]:
 
 
-df_m = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')
-df_m['Data_Hora'].max()
+# df_m = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv', sep = ';')
+# df_m['Data_Hora'].max()
 
 
 # # Preparatório para AutoML
@@ -437,7 +437,7 @@ df_m['Data_Hora'].max()
 
 
 df_cluster = df_prec.drop(columns = ['Data', 'Ano', 'Dia'])
-df_cluster['Ordens'] = df_cluster['Ordens'].shift(-1, fill_value = 0)
+#df_cluster['Ordens'] = df_cluster['Ordens'].shift(-1, fill_value = 0)
 df_cluster.loc[df_cluster['Ordens'] >= 1, 'Ordens'] = 1
 df_cluster
 
@@ -445,7 +445,7 @@ df_cluster
 # In[ ]:
 
 
-df_cluster.to_csv('../../../data/cleandata/Info pluviometricas/Merged Data/clustered_data.csv', sep = ';', index=False)
+# df_cluster.to_csv('../../../data/cleandata/Info pluviometricas/Merged Data/clustered_data.csv', sep = ';', index=False)
 
 
 # In[ ]:
@@ -464,15 +464,135 @@ pandas_gbq.context.credentials = CREDENTIALS
 # In[ ]:
 
 
-pandas_gbq.to_gbq(df_cluster, TABLE_clustered, project_id=PROJECT_ID, credentials=CREDENTIALS, if_exists='replace')
-print('clustered done!')
+# pandas_gbq.to_gbq(df_cluster, TABLE_clustered, project_id=PROJECT_ID, credentials=CREDENTIALS, if_exists='replace')
+# print('clustered done!')
+
+
+# In[ ]:
+
+
+# df_grouped['Data'] = df_grouped['Data_Hora'].dt.strftime('%Y-%m-%d')
+# #df_clustered_total = df_grouped.merge(df_prec[['Data', 'Cluster']], on='Data').drop(columns = 'Data')
+# df_clustered_total = df_grouped.merge(df_prec[['Data', 'OrdensServico', 'Cluster', 'LocalMax', 'Label']], on='Data').drop(columns = 'Data')
+# #df_clustered_total['Ordens'] = df_clustered_total['Ordens'].shift(-1, fill_value = 0)
+# df_clustered_total.loc[df_clustered_total['Ordens'] >= 1, 'Ordens'] = 1
+# df_clustered_total
+
+
+# In[ ]:
+
+
+# df_clustered_total.to_csv('../../../data/cleandata/Info pluviometricas/Merged Data/clustered.csv', sep = ';', index=False)
+
+
+# # Clusterizar por label nova
+
+# In[ ]:
+
+
+ords = pd.read_csv('../../../data/cleandata/Ordens de serviço/Ordens_Label.csv', sep = ';')
+
+
+# In[ ]:
+
+
+df_label = df_prec.merge(ords, on='Data')
+
+
+# In[ ]:
+
+
+sc = MinMaxScaler(feature_range=(0,1))
+df_norm = sc.fit_transform(df_label[['Precipitacao', 'Label']])
+df_norm
+
+
+# In[ ]:
+
+
+ks = range(1, 10)
+inertias = []
+for k in ks:
+    # Create a KMeans instance with k clusters: model
+    model = KMeans(n_clusters=k)
+    
+    # Fit model to samples
+    model.fit(df_norm)
+    
+    # Append the inertia to the list of inertias
+    inertias.append(model.inertia_)
+    
+plt.plot(ks, inertias, '-o', color='black')
+plt.xlabel('number of clusters, k')
+plt.ylabel('inertia')
+plt.xticks(ks)
+plt.show()
+
+
+# In[ ]:
+
+
+cluster = KMeans(n_clusters=2, random_state=42).fit(df_norm)
+df_label['Cluster'] = cluster.labels_
+
+
+# In[ ]:
+
+
+fig = px.bar(df_label.groupby(['Cluster'])[['Mes']].count().reset_index(),
+             x="Cluster", y="Mes", barmode="group")
+fig.show()
+
+
+# In[ ]:
+
+
+print(f"Cluster 0: {round(df_prec.groupby('Cluster').count().iloc[0,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas fracas/sem chuva)")
+print(f"Cluster 1: {round(df_prec.groupby('Cluster').count().iloc[1,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas perigosas)")
+print(f"Cluster 2: {round(df_prec.groupby('Cluster').count().iloc[2,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (chuvas fortes?)")
+print(f"Cluster 3: {round(df_prec.groupby('Cluster').count().iloc[3,0] / df_prec.groupby('Cluster').count()['Mes'].sum() * 100, 2)}% (???)")
+df_label.groupby('Cluster').count()
+
+
+# In[ ]:
+
+
+df_label.groupby('Cluster').min()
+
+
+# In[ ]:
+
+
+df_label.groupby('Cluster').mean()
+
+
+# In[ ]:
+
+
+df_label.groupby('Cluster').sum()
+
+
+# In[ ]:
+
+
+df_label[['Cluster', 'Label']].boxplot()
+
+
+# In[ ]:
+
+
+df_prec = df_label.copy()
+df_cluster = df_prec.drop(columns = ['Data', 'Ano', 'Dia'])
+df_cluster.loc[df_cluster['Ordens'] >= 1, 'Ordens'] = 1
+df_cluster
 
 
 # In[ ]:
 
 
 df_grouped['Data'] = df_grouped['Data_Hora'].dt.strftime('%Y-%m-%d')
-df_clustered_total = df_grouped.merge(df_prec[['Data', 'Cluster']], on='Data').drop(columns = 'Data')
+#df_clustered_total = df_grouped.merge(df_prec[['Data', 'Cluster']], on='Data').drop(columns = 'Data')
+df_clustered_total = df_grouped.merge(df_prec[['Data', 'OrdensServico', 'Cluster', 'LocalMax', 'Label']], on='Data').drop(columns = 'Data')
 #df_clustered_total['Ordens'] = df_clustered_total['Ordens'].shift(-1, fill_value = 0)
 df_clustered_total.loc[df_clustered_total['Ordens'] >= 1, 'Ordens'] = 1
 df_clustered_total
@@ -481,11 +601,6 @@ df_clustered_total
 # In[ ]:
 
 
-df_clustered_total[df_clustered_total['Ordens'] == 1].head(40)
-
-
-# In[ ]:
-
-
+df_cluster.to_csv('../../../data/cleandata/Info pluviometricas/Merged Data/clustered_data.csv', sep = ';', index=False)
 df_clustered_total.to_csv('../../../data/cleandata/Info pluviometricas/Merged Data/clustered.csv', sep = ';', index=False)
 
