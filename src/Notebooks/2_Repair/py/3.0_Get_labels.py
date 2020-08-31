@@ -14,7 +14,7 @@ from plotly import graph_objects as go
 
 py.offline.init_notebook_mode()
 
-ow = pd.read_csv('../../../data/cleandata/openweather/history_bulk.csv', sep = ';',
+ow = pd.read_csv('../../../data/cleandata/OpenWeather/history_bulk.csv', sep = ';',
                  parse_dates = ['Data_Hora'])
 
 ip = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv',
@@ -242,7 +242,7 @@ fig = make_subplots(4,1, shared_xaxes=True )
 
 precipitacao_cols = [c for c in ip.columns if 'Precipitacao'in c]
 
-ano = 2013
+ano = 2011
 
 df_ano = df_m[df_m['Data'].dt.year == ano]
 
@@ -290,4 +290,113 @@ df_m.groupby('LocalMax').mean()
 
 
 df_m.groupby('Label').mean()
+
+
+# In[ ]:
+
+
+df_m.head()
+
+
+# In[ ]:
+
+
+rain_threshold = 10
+
+df_m = df_m.rename(columns = {'Precipitacao_ow':'Precipitacao_5'})
+
+for i in range(6):
+    df_m.loc[:, f'LocalMax_{i}'] = df_m['LocalMax']
+    df_m.loc[df_m[f'Precipitacao_{i}'] < rain_threshold, f'LocalMax_{i}'] = 0
+
+
+# In[ ]:
+
+
+def Calculate_Dist(lat1, lon1, lat2, lon2):
+    r = 6371
+    phi1 = np.radians(lat1)
+    phi2 = np.radians(lat2)
+    delta_phi = np.radians(lat2 - lat1)
+    delta_lambda = np.radians(lon2 - lon1)
+    a = np.sin(delta_phi / 2)**2 + np.cos(phi1) *        np.cos(phi2) *   np.sin(delta_lambda / 2)**2
+    res = r * (2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)))
+    return np.round(res, 2)
+
+def get_distances(estacoes, ord_serv):
+    for index, row in ord_serv.iterrows():
+        dist = estacoes.apply(lambda x:
+                           Calculate_Dist(row['lat'], row['lng'],
+                                            x['lat'],   x['lng']),
+                           axis=1)
+        ord_serv.loc[index,'Distance'], arg = dist.min(), dist.argmin()
+        ord_serv.loc[index,'Estacao'] = estacoes.iloc[arg,0]
+
+    return ord_serv
+
+
+# In[ ]:
+
+
+est = pd.read_csv('../../../data/cleandata/Estacoes/lat_lng_estacoes.csv', sep = ';')
+est = est.iloc[:-1]
+
+
+# In[ ]:
+
+
+distance_threshold = 4.5
+ord_serv_region = get_distances(est, ords)
+ord_serv_region.loc[ord_serv_region['Distance'] > 4.5, 'Estacao'] = 'Null'
+
+
+# In[ ]:
+
+
+ord_serv_region['Data'] = pd.to_datetime(ord_serv_region['Data'], yearfirst=True)
+ords_gbr = ords.fillna(0).groupby(['Data', 'Estacao']).count().max(axis = 1).to_frame().reset_index()
+ords_gbr.columns = ['Data', 'Estacao', 'OrdensServico']
+
+
+# In[ ]:
+
+
+local_cols = [i for i in ip.columns if 'Local' in i]
+map_estacoes = dict(zip(ip.loc[0,local_cols].values, ip[local_cols].columns))
+map_estacoes['Null'] = 'Local_5'
+
+
+# In[ ]:
+
+
+ords_gbr = df_m[['Data']].merge(ords_gbr, on = 'Data', how = 'outer')
+ords_gbr = ords_gbr.dropna()
+ords_gbr['Estacao'] = ords_gbr['Estacao'].map(map_estacoes)
+
+
+# In[ ]:
+
+
+for i in range(6):
+    df_m.insert(len(df_m.columns), f'Local_{i}', 0)
+
+for d in ords_gbr['Data']:
+    aux = ords_gbr[ords_gbr['Data'] == d]
+    for local in aux.Estacao.dropna().unique():
+        df_m.loc[df_m['Data'] == d, local] = aux.loc[(aux['Estacao'] == local),                                                     'OrdensServico'].values[0]
+
+
+# In[ ]:
+
+
+df_m = df_m.rename(columns = {'LocalMax_5':'LocalMax_ow', 'Local_5':'Local_Null'})
+interest_cols =  [c for c in df_m.columns if 'Local' in c]
+df_m = df_m[['Data']  + interest_cols]
+df_m = df_m[df_m[interest_cols].sum(axis = 1) > 0]
+
+
+# In[ ]:
+
+
+df_m.head(10)
 
