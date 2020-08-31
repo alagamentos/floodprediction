@@ -332,7 +332,5 @@ fig.add_trace(go.Scatter(x=ord_serv['lng'],
                     mode='markers',
                     name='markers'))
 
-
-
 fig.show()
 

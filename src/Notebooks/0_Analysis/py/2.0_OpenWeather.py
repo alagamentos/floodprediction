@@ -5,7 +5,7 @@
 
 
 import pandas as pd
-ow = pd.read_csv('../../../data/cleandata/openweather/history_bulk.csv', sep = ';',
+ow = pd.read_csv('../../../data/cleandata/OpenWeather/history_bulk.csv', sep = ';',
                  parse_dates = ['Data_Hora'])
 ip = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged.csv',
                  sep = ';',

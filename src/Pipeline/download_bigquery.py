@@ -60,5 +60,5 @@ print('lat_lng_estacoes done!')
 
 df_openweather_history = pd.read_gbq(
     f'SELECT * FROM {PROJECT_ID}.{TABLE_owm_history_bulk}', credentials=CREDENTIALS, project_id=PROJECT_ID)
-df_openweather_history.to_csv('data/cleandata/openweather/history_bulk.csv',  decimal='.', sep=';', index=False)
+df_openweather_history.to_csv('data/cleandata/OpenWeather/history_bulk.csv',  decimal='.', sep=';', index=False)
 print('openweathermap history bulk done!')

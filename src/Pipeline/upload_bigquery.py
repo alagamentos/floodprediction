@@ -36,7 +36,7 @@ pandas_gbq.to_gbq(df_lat_lng_estacoes, TABLE_lat_lng_estacoes, project_id=PROJEC
 print('lat_lng_estacoes done!')
 
 
-# df_owm_history_bulk = pd.read_csv('data/cleandata/openweather/history_bulk.csv', sep=';')
+# df_owm_history_bulk = pd.read_csv('data/cleandata/OpenWeather/history_bulk.csv', sep=';')
 
 # pandas_gbq.to_gbq(df_owm_history_bulk, TABLE_openwehather_hisotry,
 #                   project_id=PROJECT_ID, credentials=CREDENTIALS, if_exists='replace')
