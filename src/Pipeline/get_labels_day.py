@@ -109,7 +109,13 @@ if __name__== '__main__':
 
       n_remove = len(df_m.loc[(df_m[f'Precipitacao_{i}'] >= rain_threshold) &
                               (df_m['LocalMax'] == 1), f'LocalMax_{i}'])
-      logging.info(f'Removing {n_remove} OrdensServico from Local_{i}')
+      logging.info(f'Removing {n_remove} OrdensServico from LocalMax_{i}')
+
+  # Remove from LocalMax when all other LocalMax_x columns are zero (<threshold in all stations)
+  lm_cols = [c for c in df_m.columns if 'LocalMax_' in c]
+  df_m.loc[(df_m[lm_cols].max(axis = 1) == 0) & (df_m['LocalMax'] == 1), 'LocalMax'] = 0
+  n_remove = len(df_m.loc[(df_m[lm_cols].max(axis = 1) == 0) & (df_m['LocalMax'] == 1), 'LocalMax'])
+  logging.info(f'Removing {n_remove} from LocalMax')
 
   # Separate OrdensServico for each station
   # Station over threshold distance is called "Null"

@@ -308,6 +308,10 @@ df_m = df_m.rename(columns = {'Precipitacao_ow':'Precipitacao_5'})
 for i in range(6):
     df_m.loc[:, f'LocalMax_{i}'] = df_m['LocalMax']
     df_m.loc[df_m[f'Precipitacao_{i}'] < rain_threshold, f'LocalMax_{i}'] = 0
+    
+lm_cols = [c for c in df_m.columns if 'LocalMax_' in c]
+df_m.loc[(df_m[lm_cols].max(axis = 1) == 0) & (df_m['LocalMax'] == 1), 'LocalMax'] = 0
+n_remove = len(df_m.loc[(df_m[lm_cols].max(axis = 1) == 0) & (df_m['LocalMax'] == 1), 'LocalMax'])
 
 
 # In[ ]:
