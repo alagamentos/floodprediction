@@ -3,7 +3,7 @@ import logging
 from utils import *
 
 logging.basicConfig(level=logging.INFO,
-                    format='## get_labels - %(levelname)s: %(message)s ')
+                    format='## get_labels_hour - %(levelname)s: %(message)s ')
 
 def Calculate_Dist(lat1, lon1, lat2, lon2):
     r = 6371
@@ -104,18 +104,18 @@ if __name__== '__main__':
   # Remove LocalMax when rain(mm/day) is less than rain_threshold
   df_m = df_m.rename(columns = {'Precipitacao_ow':'Precipitacao_5'})
   for i in range(6):
-      df_m.loc[:, f'LocalMax_{i}'] = df_m['LocalMax']
-      df_m.loc[df_m[f'Precipitacao_{i}'] < rain_threshold, f'LocalMax_{i}'] = 0
-
-      n_remove = len(df_m.loc[(df_m[f'Precipitacao_{i}'] >= rain_threshold) &
-                              (df_m['LocalMax'] == 1), f'LocalMax_{i}'])
-      logging.info(f'Removing {n_remove} OrdensServico from LocalMax_{i}')
+    df_m.loc[:, f'LocalMax_{i}'] = df_m['LocalMax']
+    n_remove = len(df_m.loc[(df_m[f'Precipitacao_{i}'] >= rain_threshold) &
+                            (df_m[f'LocalMax_{i}'] == 1), f'LocalMax_{i}'])
+    logging.info(f'Removing {n_remove} OrdensServico from LocalMax_{i}')
+    df_m.loc[(df_m[f'Precipitacao_{i}'] >= rain_threshold) &
+             (df_m[f'LocalMax_{i}'] == 1), f'LocalMax_{i}'] = 0
 
   # Remove from LocalMax when all other LocalMax_x columns are zero (<threshold in all stations)
   lm_cols = [c for c in df_m.columns if 'LocalMax_' in c]
-  df_m.loc[(df_m[lm_cols].max(axis = 1) == 0) & (df_m['LocalMax'] == 1), 'LocalMax'] = 0
   n_remove = len(df_m.loc[(df_m[lm_cols].max(axis = 1) == 0) & (df_m['LocalMax'] == 1), 'LocalMax'])
   logging.info(f'Removing {n_remove} from LocalMax')
+  df_m.loc[(df_m[lm_cols].max(axis = 1) == 0) & (df_m['LocalMax'] == 1), 'LocalMax'] = 0
 
   # Separate OrdensServico for each station
   # Station over threshold distance is called "Null"
@@ -157,6 +157,6 @@ if __name__== '__main__':
   df_m = df_m[df_m[interest_cols].sum(axis = 1) > 0]
 
   # Export CSV
-  saving_info = f'Saving labels_day.csv to path:\n\t\t\t |-{save_path}'
+  saving_info = f'Saving labels_day.csv to path:\n\t\t|- {save_path}'
   logging.info(saving_info)
   df_m.to_csv(save_path, sep = ';', index = False)
