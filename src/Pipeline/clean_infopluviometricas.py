@@ -80,7 +80,9 @@ def concatenate(df_list, name, concat_path, save=True):
     df = pd.concat(df_list, axis=0)
 
     if save:
-      save_concat(df, name, concat_path)
+      df_save = df.copy()
+      df_save['Data_Hora'] = pd.to_datetime(df_save['Data_Hora'], dayfirst = True)
+      save_concat(df_save.sort_values(by = 'Data_Hora', ascending = True), name, concat_path)
 
     return df
 
