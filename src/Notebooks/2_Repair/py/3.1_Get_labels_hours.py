@@ -35,6 +35,8 @@ ords = pd.read_csv('../../../data/cleandata/Ordens de serviço/labels_day.csv',
 
 
 ords['Data'] = pd.to_datetime(ords['Data'], yearfirst = True)
+for i in range(5):
+    ords[f'LocalMax_{i}'] =  ords[f'LocalMax']
 
 
 # #### Info Pluviométrica
@@ -61,6 +63,7 @@ df_p['Data'] = pd.to_datetime(df_p['Data'], yearfirst = True)
 ow['Data_Hora'] = pd.to_datetime(ow['Data_Hora'], yearfirst=True)
 ow.insert(0, 'Data', ow.loc[:,'Data_Hora'].dt.date)
 ow.insert(0, 'Hora', ow.loc[:,'Data_Hora'].dt.hour)
+ow = ow[~ow['Data_Hora'].duplicated(keep = 'first')]
 ow = ow[['Data','Hora','Precipitacao']]
 ow['Data'] = pd.to_datetime(ow['Data'], yearfirst = True)
 
@@ -155,7 +158,7 @@ fig = make_subplots(3,1, shared_xaxes=True)
 precipitacao_cols = [c for c in ip.columns if 'Precipitacao'in c]
 
 ano = 2019
-mes = 2
+mes = 1
 
 ip_ano   = df_m[(df_m['Data'].dt.year == ano) & (df_m['Data'].dt.month == mes)]
 ords_ano = ords[(ords['Data'].dt.year == ano) & (ords['Data'].dt.month == mes)]

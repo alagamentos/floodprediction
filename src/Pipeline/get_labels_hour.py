@@ -32,6 +32,8 @@ if __name__== '__main__':
 
   # OrdensServico
   ords['Data'] = pd.to_datetime(ords['Data'], yearfirst = True)
+  for i in range(5):
+      ords[f'LocalMax_{i}'] =  ords[f'LocalMax']
 
 
   # InfoPluviometrica
@@ -50,8 +52,9 @@ if __name__== '__main__':
   ow['Data_Hora'] = pd.to_datetime(ow['Data_Hora'], yearfirst=True)
   ow.insert(0, 'Data', ow.loc[:,'Data_Hora'].dt.date)
   ow.insert(0, 'Hora', ow.loc[:,'Data_Hora'].dt.hour)
+  ow = ow[~ow['Data_Hora'].duplicated(keep = 'first')]
   ow = ow[['Data','Hora','Precipitacao']]
-  ow['Data'] = pd.to_datetime(ow['Data'], yearfirst = True)
+  ow['Data'] = pd.to_datetime(ow['Data'], yearfirst = True
 
 
   # Merge

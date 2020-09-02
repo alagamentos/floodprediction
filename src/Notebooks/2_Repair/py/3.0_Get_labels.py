@@ -393,14 +393,48 @@ for d in ords_gbr['Data']:
 # In[ ]:
 
 
-df_m = df_m.rename(columns = {'LocalMax_5':'LocalMax_ow', 'Local_5':'Local_Null'})
-interest_cols =  [c for c in df_m.columns if 'Local' in c]
-df_m = df_m[['Data']  + interest_cols]
-df_m = df_m[df_m[interest_cols].sum(axis = 1) > 0]
+fig = make_subplots(3,1, shared_xaxes=True)
+import datetime
+
+precipitacao_cols = [c for c in df_m.columns if 'Precipitacao'in c]
+
+ano = 2019
+mes = 2
+
+ip_ano = df_m[(df_m['Data'].dt.year == ano) & (df_m['Data'].dt.month == mes)]
+
+for col in precipitacao_cols:
+    fig.add_trace(
+        go.Scatter(
+            x = ip_ano['Data'],
+            y = ip_ano[col],
+            name = col,
+            connectgaps=False),
+        row = 1, col = 1)
+
+for i in range(6):
+    fig.add_trace(
+        go.Bar(
+            x = ip_ano['Data'] + datetime.timedelta(hours = 12),
+            y = ip_ano[f'LocalMax_{i}'],
+            name = f'LocalMax_{i}',),
+        row = 2, col = 1)
+
+fig.add_trace(
+    go.Bar(
+        x = ip_ano['Data'] + datetime.timedelta(hours = 12),
+        y = ip_ano['LocalMax'],
+        name = 'Local Max',),
+    row = 3, col = 1)
+
+fig.show()
 
 
 # In[ ]:
 
 
-df_m.head(10)
+df_m = df_m.rename(columns = {'LocalMax_5':'LocalMax_ow', 'Local_5':'Local_Null'})
+interest_cols =  [c for c in df_m.columns if 'Local' in c]
+df_m = df_m[['Data']  + interest_cols]
+df_m = df_m[df_m[interest_cols].sum(axis = 1) > 0]
 
