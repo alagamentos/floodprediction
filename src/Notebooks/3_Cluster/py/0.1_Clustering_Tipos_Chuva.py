@@ -175,6 +175,12 @@ df_est
 # In[ ]:
 
 
+df_est.to_csv('../../../ordens.csv', index=False, sep=';')
+
+
+# In[ ]:
+
+
 df_merged_n = df_merged.drop(columns = [c for c in df_merged.columns.values if 'Sensacao' in c]).dropna().copy()
 df_repaired_n = df_repaired.drop(columns = [c for c in df_repaired.columns.values if 'Sensacao' in c]).dropna().copy()
 

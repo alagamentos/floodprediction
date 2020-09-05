@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# # 0 - Inicialização
+
 # In[ ]:
 
 
@@ -147,46 +149,58 @@ df_clustered_total.head(10)
 # In[ ]:
 
 
-df_clustered_total['Hora'] = pd.to_datetime(df_clustered_total['Data_Hora'], yearfirst=True).dt.hour
+# df_clustered_total['Hora'] = pd.to_datetime(df_clustered_total['Data_Hora'], yearfirst=True).dt.hour
 
-df_ohe = df_clustered_total.groupby(['Data', 'Local', 'Hora']).sum().reset_index()[['Data', 'Local', 'Hora', 'Precipitacao']]
-s_ohe = df_ohe['Hora']
-df_ohe = pd.get_dummies(df_ohe, columns = ['Hora'])
-df_ohe['Hora'] = s_ohe
+# df_ohe = df_clustered_total.groupby(['Data', 'Local', 'Hora']).sum().reset_index()[['Data', 'Local', 'Hora', 'Precipitacao']]
+# s_ohe = df_ohe['Hora']
+# df_ohe = pd.get_dummies(df_ohe, columns = ['Hora'])
+# df_ohe['Hora'] = s_ohe
 
-for i in range(24):
-    df_ohe.loc[df_ohe['Hora_' + str(i)] == 1, 'Hora_' + str(i)] = df_ohe.loc[df_ohe['Hora_' + str(i)] == 1, 'Precipitacao']
+# for i in range(24):
+#     df_ohe.loc[df_ohe['Hora_' + str(i)] == 1, 'Hora_' + str(i)] = df_ohe.loc[df_ohe['Hora_' + str(i)] == 1, 'Precipitacao']
 
-df_clustered_total = df_clustered_total.merge(df_ohe[['Data', 'Local'] + [c for c in df_ohe.columns if 'Hora' in c]], on=['Data', 'Local', 'Hora'])
-
-
-# In[ ]:
-
-
-df_clustered_total['Local'] = df_clustered_total['Local'].rank(method='dense', ascending=False).astype(int)
-df_clustered_total_a = df_clustered_total.copy()
-df_clustered_total = df_clustered_total.drop(columns = ['Data_Hora', 'Data', 'Hora'])
+# df_clustered_total = df_clustered_total.merge(df_ohe[['Data', 'Local'] + [c for c in df_ohe.columns if 'Hora' in c]], on=['Data', 'Local', 'Hora'])
 
 
 # In[ ]:
 
 
 # df_clustered_total['Local'] = df_clustered_total['Local'].rank(method='dense', ascending=False).astype(int)
+df_clustered_total_a = df_clustered_total.copy()
+# df_clustered_total = df_clustered_total.drop(columns = ['Data_Hora', 'Data', 'Hora'])
+
+
+# In[ ]:
+
+
+df_clustered_total['Hora'] = pd.to_datetime(df_clustered_total['Data_Hora'], yearfirst=True).dt.hour
+df_clustered_total['Local'] = df_clustered_total['Local'].replace({'Camilopolis': 1, 'Erasmo': 2, 'Paraiso': 3, 'RM': 4, 'Vitoria': 5})
+
+# df_hora = df_clustered_total.groupby(['Data', 'Local', 'Hora']).sum().reset_index()[['Data', 'Local', 'Hora', 'Precipitacao']]
+# # df_clustered_total = df_clustered_total.groupby(['Data', 'Local', 'Hora']).mean().reset_index()
+# # s_prec = df_clustered_total.groupby(['Data', 'Local', 'Hora']).sum()[['Precipitacao']]
+# # df_clustered_total['Precipitacao'] = s_prec
+
 # df_clustered_total['Minuto'] = pd.to_datetime(df_clustered_total['Data_Hora'], yearfirst=True).dt.minute
 # df_clustered_total = df_clustered_total[df_clustered_total['Minuto'] == 0]
 # df_clustered_total = df_clustered_total.drop(columns = ['Data_Hora', 'Minuto'])
+# # df_clustered_total = df_clustered_total.drop(columns = ['Data_Hora', 'Minuto', 'Precipitacao'])
+# # df_clustered_total = df_clustered_total.merge(df_hora, on=['Data', 'Local', 'Hora'])
 
 
 # In[ ]:
 
 
 #df_slice = df_clustered_total[(df_clustered_total['Ordens'] == 1) | (df_clustered_total['Cluster'].isin([1,2]))]
-#df_slice = df_clustered_total[(df_clustered_total['Ordens'] == 1) | (df_clustered_total['Precipitacao'] > 10)]
+#df_slice = df_clustered_total[(df_clustered_total['Ordens'] == 1) | (df_clustered_total['PrecSum'] > 10)]
 df_slice = df_clustered_total.copy()
 #df_slice = df_clustered_total[(df_clustered_total['Cluster'].isin([0]))]
 #df_slice.loc[df_slice['Cluster'] == 0, 'Ordens'] = 0
+
 df_slice.loc[(df_slice['Ordens'] == 1) & (df_slice['PrecSum'] <= 10), 'Ordens'] = 0
+
 #df_slice.loc[(df_slice['Ordens'] == 1) & ~((df_clustered_total[[c for c in df_clustered_total.columns if 'Hora_' in c]] <= 20).sum(axis = 1) < 24), 'Ordens'] = 0
+#df_slice = df_slice[df_slice['Local'] == 4]
 
 
 # In[ ]:
@@ -198,58 +212,72 @@ df_slice.groupby('Ordens').count()
 # In[ ]:
 
 
-# Testar prever cluster
+df_slice.shape
 
-xgb = xgboost.XGBClassifier()
 
-cols_rem = ['Ordens', 'Cluster'] + [c for c in df_slice.columns if 'Hora_' in c]
+# In[ ]:
 
-x = df_slice[[c for c in df_slice.columns if c not in cols_rem]]
-#x = x.drop(columns = 'Cluster')
-y = df_slice['Ordens']
 
-x_treino, x_teste, y_treino, y_teste = train_test_split(x, y, test_size=0.3, random_state = 378, stratify=y)
+for l in range(6):
+    if l != 0:
+        df_train = df_slice[df_slice['Local'] == l]
+    else:
+        df_train = df_slice.copy()
+        
+    print(f'----- LOCAL {l} -----')
 
-# concatenate our training data back together
-X = pd.concat([x_treino, y_treino], axis=1)
+    # Testar prever cluster
 
-# separate minority and majority classes
-not_ordem = X[X['Ordens']==0].copy()
-ordem = X[X['Ordens']==1].copy()
+    xgb = xgboost.XGBClassifier()
 
-# upsample minority
-ordem_upsampled = resample(ordem,
-                        replace=True, # sample with replacement
-                        n_samples=len(not_ordem), # match number in majority class
-                        random_state=378) # reproducible results
+    cols_rem = ['Ordens', 'Cluster', 'Data', 'Hora', 'Data_Hora'] + [c for c in df_train.columns if 'Hora_' in c]
 
-# combine majority and upsampled minority
-upsampled = pd.concat([not_ordem, ordem_upsampled])
+    x = df_train[[c for c in df_train.columns if c not in cols_rem]]
+    #x = x.drop(columns = 'Cluster')
+    y = df_train['Ordens']
 
-x_treino = upsampled[[c for c in df_slice.columns if c not in cols_rem]]
-y_treino = upsampled['Ordens']
+    x_treino, x_teste, y_treino, y_teste = train_test_split(x, y, test_size=0.3, random_state = 378, stratify=y)
 
-display(y_treino.value_counts())
+    # concatenate our training data back together
+    X = pd.concat([x_treino, y_treino], axis=1)
 
-#xgb.fit(x_treino, y_treino, eval_set = [(x_treino, y_treino), (x_teste, y_teste)], eval_metric=f1_score)
-param = {'max_depth':50, 'eta':1, 'objective':'binary:logistic', 'min_child_weight': 1, 'lambda': 1, 'alpha': 0, 'gamma': 0}
+    # separate minority and majority classes
+    not_ordem = X[X['Ordens']==0].copy()
+    ordem = X[X['Ordens']==1].copy()
 
-df_train = xgboost.DMatrix(data=x_treino, label=y_treino)
-df_test = xgboost.DMatrix(data=x_teste, label=y_teste)
+    # upsample minority
+    ordem_upsampled = resample(ordem,
+                            replace=True, # sample with replacement
+                            n_samples=len(not_ordem), # match number in majority class
+                            random_state=378) # reproducible results
 
-bst = xgboost.train(param, df_train, 2, feval=f1_score)
-y_teste_pred = bst.predict(xgboost.DMatrix(data=x_teste, label=y_teste))
-y_teste_pred = [1 if i>0.5 else 0 for i in y_teste_pred]
-y_treino_pred = bst.predict(xgboost.DMatrix(data=x_treino, label=y_treino))
-y_treino_pred = [1 if i>0.5 else 0 for i in y_treino_pred]
+    # combine majority and upsampled minority
+    upsampled = pd.concat([not_ordem, ordem_upsampled])
 
-print(f"Treino: {accuracy_score(y_treino, y_treino_pred)}")
-print(f"Teste: {accuracy_score(y_teste, y_teste_pred)}")
-print(f"Precisão: {precision_score(y_teste, y_teste_pred)}")
-print(f"Recall: {recall_score(y_teste, y_teste_pred)}")
-print(f"F1: {f1_score(y_teste, y_teste_pred)}")
-display(confusion_matrix(y_teste, y_teste_pred, normalize='true'))
-display(confusion_matrix(y_teste, y_teste_pred,))
+    x_treino = upsampled[[c for c in df_slice.columns if c not in cols_rem]]
+    y_treino = upsampled['Ordens']
+
+    display(y_treino.value_counts())
+
+    #xgb.fit(x_treino, y_treino, eval_set = [(x_treino, y_treino), (x_teste, y_teste)], eval_metric=f1_score)
+    param = {'max_depth':50, 'eta':1, 'objective':'binary:logistic', 'min_child_weight': 1, 'lambda': 1, 'alpha': 0, 'gamma': 0}
+
+    df_train = xgboost.DMatrix(data=x_treino, label=y_treino)
+    df_test = xgboost.DMatrix(data=x_teste, label=y_teste)
+
+    bst = xgboost.train(param, df_train, 2, feval=f1_score)
+    y_teste_pred = bst.predict(xgboost.DMatrix(data=x_teste, label=y_teste))
+    y_teste_pred = [1 if i>0.5 else 0 for i in y_teste_pred]
+    y_treino_pred = bst.predict(xgboost.DMatrix(data=x_treino, label=y_treino))
+    y_treino_pred = [1 if i>0.5 else 0 for i in y_treino_pred]
+
+    print(f"Treino: {accuracy_score(y_treino, y_treino_pred)}")
+    print(f"Teste: {accuracy_score(y_teste, y_teste_pred)}")
+    print(f"Precisão: {precision_score(y_teste, y_teste_pred)}")
+    print(f"Recall: {recall_score(y_teste, y_teste_pred)}")
+    print(f"F1: {f1_score(y_teste, y_teste_pred)}")
+    display(confusion_matrix(y_teste, y_teste_pred, normalize='true'))
+    display(confusion_matrix(y_teste, y_teste_pred,))
 
 
 # In[ ]:
@@ -269,7 +297,7 @@ confusion_matrix(y_treino, y_treino_pred, )
 # In[ ]:
 
 
-cols_rem = ['Cluster'] + [c for c in df_slice.columns if 'Hora_' in c]
+cols_rem = ['Cluster', 'Data', 'Hora', 'Data_Hora'] + [c for c in df_slice.columns if 'Hora_' in c]
 df_other = df_clustered_total.loc[(df_clustered_total['Ordens'] == 1) & (df_clustered_total['PrecSum'] <= 10), [c for c in df_slice.columns if c not in cols_rem]]
 x_other = df_other.drop(columns = 'Ordens')
 y_other = df_other['Ordens']
@@ -425,7 +453,7 @@ df_slice['Cluster'].value_counts()
 
 xgb = xgboost.XGBClassifier()
 
-cols_rem = ['Ordens', 'Cluster']
+cols_rem = ['Ordens', 'Cluster', 'Data', 'Hora', 'Data_Hora']
 
 x = df_slice[[c for c in df_slice.columns if c not in cols_rem]]
 #x = x.drop(columns = 'Cluster')
