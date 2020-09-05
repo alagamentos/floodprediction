@@ -76,11 +76,12 @@ make error_regions
 ```
 
 ---
-
-Interpola os dados das regiões de erro e depois aplica o regressor XGBoost nos mesmos. Um novo arquivo é criado em *data/cleandata/Merged Data/**repaired.csv***
+Executa os arquivos *repair_regions.py*, *get_labels_day.py* e *get_labels_hour.py* -- Correção dos dados de info pluviometricas e ordens de serviço.
+- **repair_regions.py**: Interpola os dados das regiões de erro e depois aplica o regressor XGBoost nos mesmos. Um novo arquivo é criado em *data/cleandata/Merged Data/**repaired.csv***.
+-  **get_labels_day.py** e **get_labels_hour.py**: Corrige as labels de ordens de serviço de acordo com o máximo local do número de ordens de serviço e filtrar de acordo com a precipitação.  Dois arquivos são criados em *data/cleandata/Ordens de serviço/**labels_day.csv*** e *data/cleandata/Ordens de serviço/**labels_hour.csv***.
 
 ```bash
-make repair_regions
+make repair_data
 ```
 
 ---

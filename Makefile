@@ -17,8 +17,10 @@ clean:
 error_regions:
 	python ./src/Pipeline/error_regions.py
 
-repair_regions:
+repair_data:
 	python ./src/Pipeline/repair_regions.py
+	python ./src/Pipeline/get_labels_day.py
+	python ./src/Pipeline/get_labels_hour.py
 
 upload_bq:
 	python ./src/Pipeline/upload_bigquery.py
