@@ -54,7 +54,7 @@ if __name__== '__main__':
   ow.insert(0, 'Hora', ow.loc[:,'Data_Hora'].dt.hour)
   ow = ow[~ow['Data_Hora'].duplicated(keep = 'first')]
   ow = ow[['Data','Hora','Precipitacao']]
-  ow['Data'] = pd.to_datetime(ow['Data'], yearfirst = True
+  ow['Data'] = pd.to_datetime(ow['Data'], yearfirst = True)
 
 
   # Merge
