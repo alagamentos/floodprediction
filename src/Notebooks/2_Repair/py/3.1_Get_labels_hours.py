@@ -85,7 +85,7 @@ display(df_m.tail(2))
 # Merge with OrdensServico
 df_m = df_m.merge(ords, on = 'Data', how = 'outer')
 df_m = df_m.fillna(0)
-df_m = df_m.rename(columns = {'Precipitacao':'Precipitacao_5'})
+df_m = df_m.rename(columns = {'Precipitacao':'Precipitacao_5', 'Local_Null':'Local_5'})
 df_m.insert(0,'Data_Hora', 0 )
 df_m['Data_Hora'] = pd.to_datetime(df_m['Data'].astype(str) + ' ' +
                                    df_m['Hora'].astype(str) + ':00:00', yearfirst=True)
@@ -158,7 +158,7 @@ fig = make_subplots(3,1, shared_xaxes=True)
 precipitacao_cols = [c for c in ip.columns if 'Precipitacao'in c]
 
 ano = 2019
-mes = 1
+mes = 2
 
 ip_ano   = df_m[(df_m['Data'].dt.year == ano) & (df_m['Data'].dt.month == mes)]
 ords_ano = ords[(ords['Data'].dt.year == ano) & (ords['Data'].dt.month == mes)]
@@ -193,7 +193,10 @@ fig.show()
 # In[ ]:
 
 
-interest_cols = [c for c in df_m.columns if 'Local' in c]
-df_m = df_m[['Data_Hora']  + interest_cols]
-df_m.head()
+df_show = df_m.copy()
+df_show = df_show.rename(columns = {'LocalMax_5':'LocalMax_ow', 'Local_5':'Local_Null'})
+interest_cols = [c for c in df_show.columns if 'Local' in c]
+df_show = df_show[['Data_Hora']  + interest_cols]
+df_show = df_show[df_show[interest_cols].sum(axis = 1) > 0]
+df_show.head()
 
