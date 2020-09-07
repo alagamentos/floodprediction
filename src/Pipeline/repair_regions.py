@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import xgboost
 import concurrent
 import time
-#pip install kaleido
+import yaml
 
 pd.options.plotting.backend = "plotly"
 
@@ -19,6 +19,11 @@ pd.options.plotting.backend = "plotly"
 logging.basicConfig(level=logging.INFO,
                     format='## Repair - %(asctime)s - %(levelname)s: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
+
+
+def read_yaml(path):
+  with open(path) as file:
+    return yaml.load(file, Loader=yaml.FullLoader)
 
 
 def interpolation(Series, error, max_interpolation_size=5, **kwargs):
@@ -99,7 +104,7 @@ def repair_regions(df, label, max_region_size=None, lookbackSize=None, extra_fea
     xgb.fit(df_error.drop(columns=[label]), df_error[label]) # Ele tenta executar pela GPU apenas ao rodar o FIT
 
   drop_cols = [i for i in df_att.columns if 'delay_error' in i] + \
-      [label] + [label+'_error']
+              [label] + [label+'_error']
 
   df_recurrent = df_att.drop(columns=drop_cols).copy(deep=True)
   df[label + '_pred'] = df[label]
@@ -157,6 +162,15 @@ def repair_regions(df, label, max_region_size=None, lookbackSize=None, extra_fea
 
   #df.loc[:,label] = prediction[label]
 
+
+def fill_mean(df, col, **kwargs):
+  select_cols = [col for col in df.columns if col.split('_')[0] in col]
+
+  repaired_cols = f'{col}_repaired'
+  error_cols    = f'{col}_error'
+  select_rows = df[(error_cols == 1) & (repaired_cols = 0)]
+
+
 if __name__ == '__main__':
   root = os.getcwd()
   data_path = pjoin(
@@ -166,6 +180,7 @@ if __name__ == '__main__':
       root, 'data/cleandata/Info pluviometricas/Merged Data/error_regions.csv')
 
   save_path = pjoin(root, 'data/cleandata/Info pluviometricas/Merged Data/repaired.csv')
+  config_path = 'src/Pipeline/config/repair_regions.yaml'
 
   data = pd.read_csv(data_path,
                    sep=';',
@@ -173,6 +188,8 @@ if __name__ == '__main__':
                           'Local_2': object, 'Local_3': object})
 
   regions = pd.read_csv(regions_path, sep =';')
+
+  config = read_yaml(os.path.join(root, config_path))
 
   df = data.merge(regions, on = 'Data_Hora')
 
@@ -184,68 +201,6 @@ if __name__ == '__main__':
   df['Ano'] = df['Ano'].astype(int)
   df['Mes'] = df['Mes'].astype(int)
   df['Dia'] = df['Dia'].astype(int)
-
-  config = {
-      'UmidadeRelativa':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 6,
-       'extra_features': ['Hora', 'Mes']},
-
-      'PressaoAtmosferica':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 6,
-       'extra_features': ['Hora','Mes']},
-
-      'TemperaturaDoAr':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 8,
-       'extra_features': ['Hora', 'Mes']},
-
-      'TemperaturaInterna':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 6,
-       'extra_features': ['Hora']},
-
-      'PontoDeOrvalho':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 6,
-       'extra_features': ['Hora']},
-
-      'SensacaoTermica':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 6,
-       'extra_features': ['Hora','Mes']},
-
-      'RadiacaoSolar':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 6,
-       'extra_features': ['Hora']},
-
-      'DirecaoDoVento':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 6,
-       'extra_features': []},
-
-      'VelocidadeDoVento':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 6,
-       'extra_features': ['Hora']},
-
-      'Precipitacao':
-      {'max_interpolation_size': 5,
-       'max_region_size':100,
-       'lookbackSize': 6,
-       'extra_features': ['Hora']},
-  }
 
   r = re.compile(".*error")
   cols = list(filter(r.match, df.columns.to_list()))
@@ -260,26 +215,47 @@ if __name__ == '__main__':
   df_cols = df_cols.sort_values(by='Valor').reset_index(drop=True)
   df_cols.iloc[:, 0] = df_cols.iloc[:, 0].str.replace("_error", "")
 
-  logging.info('## Interpolating Data')
-  for i in range(len(df_cols)):
-    label = df_cols.iloc[i, 0]
+  interpolation_cols = [col for col in df_cols.iloc[:,0] if 'interpolation' in config[col.split('_')[0]] ]
+  regression_cols    = [col for col in df_cols.iloc[:,0] if 'regression'    in config[col.split('_')[0]] ]
+  fill_mean_cols     = [col for col in df_cols.iloc[:,0] if 'fill_mean'     in config[col.split('_')[0]] ]
+
+  ## Interpolation -------------------
+  for i, col in enumerate(interpolation_cols):
+    logging.info(f'## Interpolating Data {col}')
+
+    label = col.split('_')[0]
 
     error = df[df_cols.iloc[i, 0] + '_error'].copy(deep=True)
-    Series = df[df_cols.iloc[i, 0]].copy(deep=True)
+    Series = df.loc[:,col].copy(deep=True)
 
+    kwargs = config[label]['interpolation']
     n_Series, n_error, error_interpol = interpolation(
-                                        Series, error, **config[label.split('_')[0]])
+                                        Series, error, **kwargs)
+
     df.loc[:, df_cols.iloc[i, 0] + '_error'] = n_error
     df.loc[:, df_cols.iloc[i, 0] + '_interpol'] = error_interpol
     df.loc[:, df_cols.iloc[i, 0]] = n_Series
 
-  logging.info(' ## XGB Regression')
-  for i in range(len(df_cols)):
-    label = df_cols.iloc[i, 0]
-    logging.info(f'({i}/{len(df_cols)}) Training for {label}')
-    repair_regions(df, label, **config[label.split('_')[0]])
+  ## Regression -------------------
+  logging.info('\n## XGB Regression')
+  for i, col in enumerate(regression_cols):
+    logging.info(f'({i}/{len(regression_cols)}) Training for {col}')
+
+    label = col.split('_')[0]
+    kwargs = config[label]['regression']
+    repair_regions(df, col, **kwargs)
+
     logging.info(f'({i}/{len(df_cols)}) Done training for {label}\n')
 
-  save_cols = ['Data_Hora'] + [i for i in df.columns if ('_interpol' in i) or ('_pred' in i) or ('_repaired' in i) ]
+  ## Fill Mean ----------------------
+  logging.info('\n## Fill With Mean')
+  for i, col in enumerate(fill_mean_cols):
+    logging.info(f'({i}/{len(fill_mean_cols)}) Training for {col}')
 
+    label = col.split('_')[0]
+    kwargs = config[label]['fill_mean']
+    fill_mean(df, col, **kwargs)
+
+
+  save_cols = ['Data_Hora'] + [i for i in df.columns if ('_interpol' in i) or ('_pred' in i) or ('_repaired' in i) ]
   df[save_cols].to_csv(save_path, decimal='.', sep=';', index=False)

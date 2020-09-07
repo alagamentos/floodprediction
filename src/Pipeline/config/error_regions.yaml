@@ -1,0 +1,48 @@
+UmidadeRelativa:
+    d_threshold: 12
+    z_threshold: 3
+    margins: 3
+
+PressaoAtmosferica:
+    d_threshold: 50
+    z_threshold: 7
+    margins: 5
+
+TemperaturaDoAr:
+    d_threshold: 6
+    z_threshold: 4
+    margins: 2
+
+TemperaturaInterna:
+    d_threshold: 6
+    z_threshold: 4
+    margins: 3
+
+PontoDeOrvalho:
+    d_threshold: 3.5
+    z_threshold: 4
+    margins: 5
+
+SensacaoTermica:
+    d_threshold: 4
+    z_threshold: 10
+    margins: 3
+
+RadiacaoSolar:
+    d_threshold: 850
+    z_threshold: 50
+    margins: 5
+    nz_threshold: 3
+
+DirecaoDoVento:
+    z_threshold: 3
+    margins: 3
+
+VelocidadeDoVento:
+    d_threshold: 8
+    z_threshold: 5
+    margins: 3
+
+Precipitacao:
+    z_threshold: 8
+    nz_threshold: 4320

@@ -1,0 +1,75 @@
+UmidadeRelativa:
+    interpolation:
+        max_interpolation_size: 5
+    regression:
+        max_region_size: 100
+        lookbackSize: 6
+        extra_features: ['Hora', 'Mes']
+
+PressaoAtmosferica:
+    interpolation:
+        max_interpolation_size:  5
+    regression:
+        max_region_size: 100
+        lookbackSize: 6
+        extra_features: ['Hora','Mes']
+
+TemperaturaDoAr:
+    interpolation:
+        max_interpolation_size: 5
+    regression:
+        max_region_size: 100
+        lookbackSize: 8
+        extra_features: ['Hora','Mes']
+
+TemperaturaInterna:
+    interpolation:
+        max_interpolation_size: 5
+    regression:
+        max_region_size: 100
+        lookbackSize: 6
+        extra_features: ['Hora']
+
+PontoDeOrvalho:
+    interpolation:
+        max_interpolation_size: 5
+    regression:
+        max_region_size: 100
+        lookbackSize: 6
+        extra_features: ['Hora']
+
+SensacaoTermica:
+    interpolation:
+        max_interpolation_size: 5
+    regression:
+        max_region_size: 100
+        lookbackSize: 6
+        extra_features: ['Hora','Mes']
+
+RadiacaoSolar:
+    interpolation:
+        max_interpolation_size: 5
+    regression:
+        max_region_size: 100
+        lookbackSize: 6
+        extra_features: ['Hora']
+
+DirecaoDoVento:
+    interpolation:
+        max_interpolation_size: 5
+    regression:
+        max_region_size: 100
+        lookbackSize: 6
+        extra_features: []
+
+VelocidadeDoVento:
+    interpolation:
+        max_interpolation_size: 5
+    regression:
+        max_region_size: 100
+        lookbackSize: 6
+        extra_features: ['Hora']
+
+Precipitacao:
+    fill_mean:
+##       fill_mean_args

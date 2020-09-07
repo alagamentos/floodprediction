@@ -6,6 +6,7 @@ import os
 from os.path import join as pjoin
 from pathlib import Path
 import logging
+import yaml
 
 logging.basicConfig(level=logging.INFO,
                     format='## find_regions - %(levelname)s: %(message)s ')
@@ -69,6 +70,9 @@ def get_error_regions(df,
 
   return error
 
+def read_yaml(path):
+  with open(path) as file:
+    return yaml.load(file, Loader=yaml.FullLoader)
 
 if __name__ == '__main__':
   root = Path(__file__).resolve().parents[2]  # resolve() -> absolute path
@@ -76,60 +80,14 @@ if __name__ == '__main__':
       root, 'data/cleandata/Info pluviometricas/Merged Data/merged.csv')
   save_path = pjoin(
       root, 'data/cleandata/Info pluviometricas/Merged Data/error_regions.csv')
+  config_path = 'src/Pipeline/config/error_regions.yaml'
 
   df = pd.read_csv(data_path,
                    sep=';',
                    dtype={'Local_0': object, 'Local_1': object,
                           'Local_2': object, 'Local_3': object})
 
-  config = {
-      'UmidadeRelativa':
-      {'d_threshold': 12,
-       'z_threshold': 3,
-       'margins': 3},
-
-      'PressaoAtmosferica':
-      {'d_threshold': 50,
-       'z_threshold': 7,
-       'margins': 5},
-
-      'TemperaturaDoAr':
-      {'d_threshold': 6,
-       'z_threshold': 4,
-       'margins': 2},
-
-      'TemperaturaInterna':
-      {'d_threshold': 6,
-       'z_threshold': 4,
-       'margins': 3},
-
-      'PontoDeOrvalho':
-      {'d_threshold': 3.5,
-       'z_threshold': 4,
-       'margins': 5},
-
-      'SensacaoTermica': {
-          'd_threshold': 4,
-          'z_threshold': 10,
-          'margins': 3},
-
-      'RadiacaoSolar': {
-          'd_threshold': 850,
-          'z_threshold': 50,
-          'margins': 5,
-          'nz_threshold': 3},
-
-      'DirecaoDoVento': {
-          'z_threshold': 3,
-          'margins': 3},
-
-      'VelocidadeDoVento': {
-          'd_threshold': 8,
-          'z_threshold': 5,
-          'margins': 3},
-
-      'Precipitacao': {}
-  }
+  config = read_yaml(os.path.join(root, config_path))
 
   i = 1
 
