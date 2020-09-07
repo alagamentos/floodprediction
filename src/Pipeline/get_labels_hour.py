@@ -92,7 +92,7 @@ if __name__== '__main__':
   # Clean up output
   interest_cols = [c for c in df_m.columns if 'Local' in c]
   df_m = df_m[['Data_Hora']  + interest_cols]
-  df_m.head()
+  df_m = df_m.rename(columns = {'LocalMax_5':'LocalMax_ow'})
 
   # Export CSV
   saving_info = f'Saving labels_day.csv to path:\n\t\t | - {save_path}'
