@@ -72,6 +72,7 @@ if __name__== '__main__':
   df_m['Data_Hora'] = pd.to_datetime(df_m['Data'].astype(str) + ' ' +
                                     df_m['Hora'].astype(str) + ':00:00', yearfirst=True)
   df_m = df_m.rename(columns = {'LocalMax_ow':'LocalMax_5'})
+  df_m['LocalMax_5'] = df_m['LocalMax']
 
   # Remove OrdemServico when rain is under threshold
   for i in range(6):

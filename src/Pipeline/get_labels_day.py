@@ -105,10 +105,10 @@ if __name__== '__main__':
   df_m = df_m.rename(columns = {'Precipitacao_ow':'Precipitacao_5'})
   for i in range(6):
     df_m.loc[:, f'LocalMax_{i}'] = df_m['LocalMax']
-    n_remove = len(df_m.loc[(df_m[f'Precipitacao_{i}'] >= rain_threshold) &
+    n_remove = len(df_m.loc[(df_m[f'Precipitacao_{i}'] < rain_threshold) &
                             (df_m[f'LocalMax_{i}'] == 1), f'LocalMax_{i}'])
     logging.info(f'Removing {n_remove} OrdensServico from LocalMax_{i}')
-    df_m.loc[(df_m[f'Precipitacao_{i}'] >= rain_threshold) &
+    df_m.loc[(df_m[f'Precipitacao_{i}'] < rain_threshold) &
              (df_m[f'LocalMax_{i}'] == 1), f'LocalMax_{i}'] = 0
 
   # Remove from LocalMax when all other LocalMax_x columns are zero (<threshold in all stations)
