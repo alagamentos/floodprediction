@@ -89,12 +89,15 @@ if __name__== '__main__':
   df_m.loc[(df_m[lm_cols].max(axis = 1) == 0) &
                           (df_m['LocalMax'] == 1), 'LocalMax'] = 0
 
-  # Clean up output
-  interest_cols = [c for c in df_m.columns if 'Local' in c]
-  df_m = df_m[['Data_Hora']  + interest_cols]
+  # Rename columns
   df_m = df_m.rename(columns = {'LocalMax_5':'LocalMax_ow'})
 
+  # Select columns of interest different than zero
+  interest_cols = [c for c in df_m.columns if 'Local' in c]
+  df_m = df_m[['Data_Hora']  + interest_cols]
+  df_m = df_m[df_m[interest_cols].sum(axis = 1) > 0]
+
   # Export CSV
-  saving_info = f'Saving labels_day.csv to path:\n\t\t | - {save_path}'
+  saving_info = f'Saving labels_hour.csv to path:\n\t\t | - {save_path}'
   logging.info(saving_info)
   df_m.to_csv(save_path, sep = ';', index = False)
