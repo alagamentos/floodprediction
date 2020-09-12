@@ -9,6 +9,7 @@ build:
 	make clean
 	make error_regions
 	make repair_regions
+	make prep_data
 
 clean:
 	python ./src/Pipeline/clean_infopluviometricas.py
@@ -21,6 +22,9 @@ repair_data:
 	python ./src/Pipeline/repair_regions.py
 	python ./src/Pipeline/get_labels_day.py
 	python ./src/Pipeline/get_labels_hour.py
+
+prep_data:
+	python ./src/Pipeline/prep_data.py
 
 upload_bq:
 	python ./src/Pipeline/upload_bigquery.py
