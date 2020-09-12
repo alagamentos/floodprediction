@@ -44,5 +44,6 @@ VelocidadeDoVento:
     margins: 3
 
 Precipitacao:
+    d_threshold: 30
     z_threshold: 8
     nz_threshold: 4320
