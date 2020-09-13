@@ -165,7 +165,7 @@ def list_2_regions(bool_list):
   i = 0
   status = False
 
-  for bool_ in bool_list:
+  for i, bool_ in  enumerate(bool_list):
     if bool_ and not status:
       start = i
       status = True
@@ -173,8 +173,10 @@ def list_2_regions(bool_list):
       end = i
       status = False
       regions.append([start, end])
-
-    i += 1
+    elif status and (i == len(bool_list) - 1):
+      end = i
+      status = False
+      regions.append([start, end])
 
   return regions
 

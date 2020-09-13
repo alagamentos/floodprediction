@@ -33,7 +33,7 @@ ip.head(2)
 precipitacao_cols =  [c for c in ip.columns if 'Precipitacao' in c ]
 local_cols =  [c for c in ip.columns if 'Local' in c ]
 df_p = ip[ ['Data_Hora'] + local_cols + precipitacao_cols]
-df_p.loc[:, 'Data_Hora'] = pd.to_datetime(df_p.loc[:,'Data_Hora'], yearfirst=True)
+df_p.loc[:, 'Data_Hora'] = pd.to_datetime(df_p.loc[:,'Data_Hora'], yearfirst=True).copy()
 
 
 # In[ ]:
@@ -223,19 +223,35 @@ df_p.loc[:, 'Data_Hora'] = pd.to_datetime(df_p.loc[:,'Data_Hora'], yearfirst=Tru
 # In[ ]:
 
 
-start= 1707 - 200
-stop = 1707 + 500
+start= 280512
+stop = 306720
 
-n_days = 45
+n_days = 15
 for col in precipitacao_cols:
-    peaks = derivative_threshold(ip[col], 30, False, start, stop, lw = 2, figsize = (11, 15))
-    zeros = derivative_zero(ip[col].fillna(0), n_days*24*4, False,
+    
+    # Derivative
+    peaks = derivative_threshold(df_p[col], 30, False, start, stop, lw = 2, figsize = (11, 15))
+    # Consecutive Zeros
+    zeros = derivative_zero(df_p[col].fillna(0), n_days*24*4, False,
                              plot = False, plt_start = start, plt_stop = stop)
-    const_not_null = derivative_zero(ip[col].fillna(0), 8, True,
+    # Consecutive Constant
+    const_not_null = derivative_zero(df_p[col].fillna(0), 8, True,
                              plot = False, plt_start = start, plt_stop = stop)
-    is_nan = ip[col].isna()
-    df_p[col+'_error'] = [zeros[i] or const_not_null[i] or is_nan[i] or peaks[i]
+    # Nans
+    is_nan = df_p[col].isna()
+    
+    error = [zeros[i] or const_not_null[i] or is_nan[i] or peaks[i]
                           for i in range(len(df_p)) ]
+
+    error_reg = list_2_regions(error)
+    error_reg = increase_margins(1, error_reg, len(peaks))
+    error = regions_2_list(error_reg, len(peaks))
+    
+    try:
+        df_p.insert(df_p.shape[1], col+'_error', error.copy())
+    except:
+        df_p.drop(columns = [col+'_error'], inplace = True)
+        df_p.insert(df_p.shape[1], col+'_error', error.copy())
 
 
 # In[ ]:
@@ -248,8 +264,7 @@ from plotly.subplots import make_subplots
 py.offline.init_notebook_mode()
 fig = make_subplots(5,1, shared_xaxes=True, shared_yaxes=True )
 
-ano = 2011
-threshold = 50
+ano = 2019
 
 ip_ano = df_p[df_p['Data_Hora'].dt.year == ano].fillna(0)
 color = ['#c62828', '#283593', '#00685b', '#f9a825', '#009688']
@@ -372,7 +387,15 @@ def interpolate_rain( row , num , distances):
 
 
 for i in range(5):
-    df_p.loc[df_p[f'Precipitacao_{i}_error'], f'Precipitacao_{i}'] =              df_p[df_p[f'Precipitacao_{i}_error']].apply(interpolate_rain, args = (0, distances), axis = 1 )
+    print(i+1,'/5',)
+    df_p.loc[df_p[f'Precipitacao_{i}_error'], f'Precipitacao_{i}'] =              df_p[df_p[f'Precipitacao_{i}_error']].apply(interpolate_rain,
+                                                         args = (i, distances), axis = 1 ).copy()
+
+
+# In[ ]:
+
+
+df_p.isna().sum()
 
 
 # In[ ]:
@@ -382,9 +405,8 @@ py.offline.init_notebook_mode()
 fig = make_subplots(5,1, shared_xaxes=True, shared_yaxes=True )
 
 ano = 2019
-threshold = 50
 
-ip_ano = df_p[df_p['Data_Hora'].dt.year == ano].fillna(0)
+ip_ano = df_p[df_p['Data_Hora'].dt.year == ano]
 color = ['#c62828', '#283593', '#00685b', '#f9a825', '#009688']
 
 for i, col in enumerate(precipitacao_cols):
@@ -417,5 +439,96 @@ fig.show()
 # In[ ]:
 
 
+for i in range(5):
+    df_p.insert(df_p.shape[1], f'Precipitacao_b4_ow_{i}', df_p[f'Precipitacao_{i}'].copy())
+
+
+# In[ ]:
+
+
+from datetime import timedelta
+
+def fill_ow( row , num , df_ow):
+   
+    rounded_hour = row['Data_Hora'].round('H')
+    mask = pd.to_datetime(df_ow['Data_Hora']) == rounded_hour
+    try:
+        return df_ow.loc[mask,'Precipitacao'].item()
+    except:
+        mask = pd.to_datetime(df_ow['Data_Hora']) == rounded_hour + timedelta(hours=1)
+        return df_ow.loc[mask,'Precipitacao'].item()
+
+
+# In[ ]:
+
+
+df_ow = pd.read_csv('../../../data/cleandata/OpenWeather/history_bulk.csv', sep = ';' )
+df_ow['Data_Hora'] = pd.to_datetime(df_ow['Data_Hora'], yearfirst = True)
+df_ow = df_ow.drop_duplicates(subset = 'Data_Hora' )
+
+
+# In[ ]:
+
+
+for i in range(5):
+    print(i+1,'/5',)
+    df_p.loc[df_p[f'Precipitacao_{i}'].isna(), f'Precipitacao_{i}'] =              df_p[df_p[f'Precipitacao_{i}'].isna()].apply(fill_ow, args = (i, df_ow), axis = 1 )
+
+
+# In[ ]:
+
+
 df_p.isna().sum()
+
+
+# In[ ]:
+
+
+py.offline.init_notebook_mode()
+fig = make_subplots(5,1, shared_xaxes=True, shared_yaxes=True )
+
+ano = 2019
+
+ip_ano = df_p[df_p['Data_Hora'].dt.year == ano]
+color = ['#c62828', '#283593', '#00685b', '#f9a825', '#009688']
+
+for i, col in enumerate(precipitacao_cols):
+    fig.add_trace(go.Scatter(
+        x = ip_ano['Data_Hora'],
+        y = ip_ano[col].fillna(0),
+        showlegend = False,
+        legendgroup=col,
+        line = dict(color='#616161'),
+        connectgaps=False
+                            ),
+                  row = i + 1, col = 1
+                 )
+
+    fig.add_trace(go.Scatter(
+        x = ip_ano['Data_Hora'],
+        y = ip_ano[col].fillna(0).where(ip_ano[col+'_error'] &
+                                        ~ip_ano[f'Precipitacao_b4_ow_{i}'].isna()),
+        name = col,
+        legendgroup=col,
+        showlegend = False,
+        line = dict(color='#c62828', width = 4),
+        connectgaps=False
+                            ),
+                  row = i + 1, col = 1
+                 )
+    
+    fig.add_trace(go.Scatter(
+            x = ip_ano['Data_Hora'],
+            y = ip_ano[col].where(ip_ano[f'Precipitacao_b4_ow_{i}'].isna()),
+            name = col,
+            legendgroup=col,
+            showlegend = False,
+            line = dict(color='#0398fc', width = 4),
+            connectgaps=False
+                                ),
+                      row = i + 1, col = 1
+                     )
+    
+fig.update_layout(height=1200, width=800)
+fig.show()
 
