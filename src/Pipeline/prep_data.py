@@ -115,6 +115,7 @@ if __name__ == "__main__":
   df_labels_simple = df_labels_grouped[['Data_Hora', 'Local', 'Precipitacao', 'LocalMax_d_All']].copy()
   df_labels_simple.columns = ['Data_Hora', 'Local', 'Precipitacao', 'Label']
   df_labels_simple['Mes'] = df_labels_simple['Data_Hora'].dt.month
+  df_labels_simple['Dia'] = df_labels_simple['Data_Hora'].dt.day
 
 
   # Substituir Local
@@ -139,7 +140,7 @@ if __name__ == "__main__":
 
 
   # Reordenar colunas
-  df_labels_simple = df_labels_simple[['Data_Hora', 'Mes', 'Local', 'Precipitacao', 'PrecSum', 'Label']].copy()
+  df_labels_simple = df_labels_simple[['Data_Hora', 'Mes', 'Dia', 'Local', 'Precipitacao', 'PrecSum', 'Label']].copy()
 
   # Salvar datasets
   logging.info(f'Salvando datasets')
