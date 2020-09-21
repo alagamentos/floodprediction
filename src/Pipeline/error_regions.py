@@ -52,7 +52,7 @@ def get_error_regions(df,
 
   # Error Union
   nans = df.isna()
-  error = [zeros[i] or peaks[i] or non_zeros[i] for i in range(len(peaks))]
+  error = [zeros[i] or peaks[i] or non_zeros[i] or nans[i] for i in range(len(peaks))]
   error_reg = list_2_regions(error)
 
   # Expand margins
@@ -103,7 +103,6 @@ if __name__ == '__main__':
       df[new_col] = get_error_regions(df[col], **config[key])
 
     i += 1
-
 
   save_cols = ['Data_Hora'] + [i for i in df.columns if '_error' in i]
 

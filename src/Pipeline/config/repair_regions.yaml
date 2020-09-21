@@ -1,75 +1,102 @@
+## --------------
+## Possible keys
+##
+## interpolation
+##   max_interpolation_size: int
+## regression
+##   max_region_size: int
+##   lookbackSize: int
+##   extra_features: list of strings (features)
+## idw: bool
+## fill_ow: bool
+## ---------------
+
 UmidadeRelativa:
     interpolation:
         max_interpolation_size: 5
     regression:
-        max_region_size: 100
+        max_region_size: 50
         lookbackSize: 6
         extra_features: ['Hora', 'Mes']
+    idw: true
+    fill_ow: true
 
-PressaoAtmosferica:
-    interpolation:
-        max_interpolation_size:  5
-    regression:
-        max_region_size: 100
-        lookbackSize: 6
-        extra_features: ['Hora','Mes']
+# PressaoAtmosferica:
+#     interpolation:
+#         max_interpolation_size:  5
+#     regression:
+#         max_region_size: 20
+#         lookbackSize: 6
+#         extra_features: ['Hora','Mes']
+#     idw: true
+#     fill_ow: true
 
-TemperaturaDoAr:
-    interpolation:
-        max_interpolation_size: 5
-    regression:
-        max_region_size: 100
-        lookbackSize: 8
-        extra_features: ['Hora','Mes']
+# TemperaturaDoAr:
+#     interpolation:
+#         max_interpolation_size: 5
+#     regression:
+#         max_region_size: 50
+#         lookbackSize: 8
+#         extra_features: ['Hora','Mes']
+#     idw: true
+#     fill_ow: true
 
-TemperaturaInterna:
-    interpolation:
-        max_interpolation_size: 5
-    regression:
-        max_region_size: 100
-        lookbackSize: 6
-        extra_features: ['Hora']
+# # TemperaturaInterna:
+# #     interpolation:
+# #         max_interpolation_size: 5
+# #     regression:
+# #         max_region_size: 100
+# #         lookbackSize: 6
+# #         extra_features: ['Hora']
 
-PontoDeOrvalho:
-    interpolation:
-        max_interpolation_size: 5
-    regression:
-        max_region_size: 100
-        lookbackSize: 6
-        extra_features: ['Hora']
+# PontoDeOrvalho:
+#     interpolation:
+#         max_interpolation_size: 5
+#     regression:
+#         max_region_size: 100
+#         lookbackSize: 6
+#         extra_features: ['Hora']
+#     idw: true
 
-SensacaoTermica:
-    interpolation:
-        max_interpolation_size: 5
-    regression:
-        max_region_size: 100
-        lookbackSize: 6
-        extra_features: ['Hora','Mes']
+# SensacaoTermica:
+#     interpolation:
+#         max_interpolation_size: 5
+#     regression:
+#         max_region_size: 100
+#         lookbackSize: 6
+#         extra_features: ['Hora','Mes']
+#     idw: true
+#     fill_ow: true
 
-RadiacaoSolar:
-    interpolation:
-        max_interpolation_size: 5
-    regression:
-        max_region_size: 100
-        lookbackSize: 6
-        extra_features: ['Hora']
+# RadiacaoSolar:
+#     interpolation:
+#         max_interpolation_size: 5
+#     regression:
+#         max_region_size: 100
+#         lookbackSize: 6
+#         extra_features: ['Hora']
+#     idw: true
 
-DirecaoDoVento:
-    interpolation:
-        max_interpolation_size: 5
-    regression:
-        max_region_size: 100
-        lookbackSize: 6
-        extra_features: []
+# DirecaoDoVento:
+#     interpolation:
+#         max_interpolation_size: 5
+#     regression:
+#         max_region_size: 50
+#         lookbackSize: 6
+#         extra_features: []
+#     idw: true
+#     fill_ow: true
 
-VelocidadeDoVento:
-    interpolation:
-        max_interpolation_size: 5
-    regression:
-        max_region_size: 100
-        lookbackSize: 6
-        extra_features: ['Hora']
+# VelocidadeDoVento:
+#     interpolation:
+#         max_interpolation_size: 5
+#     regression:
+#         max_region_size: 50
+#         lookbackSize: 6
+#         extra_features: ['Hora']
+#     idw: true
+#     fill_ow: true
 
-Precipitacao:
-    fill_mean:
-##       fill_mean_args
+# Precipitacao:
+#     idw: true
+#     fill_ow: true

@@ -208,11 +208,16 @@ if __name__ == '__main__':
   estacao3['Data_Hora'] = estacao3['Data_Hora'].apply(round_date)
   estacao4['Data_Hora'] = estacao4['Data_Hora'].apply(round_date)
 
-  estacao0 = estacao0.sort_values(by = ['Data_Hora', 'UmidadeRelativa'], ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
-  estacao1 = estacao1.sort_values(by = ['Data_Hora', 'UmidadeRelativa'], ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
-  estacao2 = estacao2.sort_values(by = ['Data_Hora', 'UmidadeRelativa'], ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
-  estacao3 = estacao3.sort_values(by = ['Data_Hora', 'UmidadeRelativa'], ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
-  estacao4 = estacao4.sort_values(by = ['Data_Hora', 'UmidadeRelativa'], ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
+  estacao0 = estacao0.sort_values(by = ['Data_Hora', 'UmidadeRelativa'],
+                                  ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
+  estacao1 = estacao1.sort_values(by = ['Data_Hora', 'UmidadeRelativa'],
+                                  ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
+  estacao2 = estacao2.sort_values(by = ['Data_Hora', 'UmidadeRelativa'],
+                                  ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
+  estacao3 = estacao3.sort_values(by = ['Data_Hora', 'UmidadeRelativa'],
+                                  ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
+  estacao4 = estacao4.sort_values(by = ['Data_Hora', 'UmidadeRelativa'],
+                                  ascending = True).drop_duplicates(subset=['Data_Hora'], keep='last')
 
   merge1 = estacao0.merge(estacao1, on='Data_Hora',
                           how='outer', suffixes=('_0', '_1'))

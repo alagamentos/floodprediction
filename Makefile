@@ -8,8 +8,8 @@ setup:
 build:
 	make clean
 	make error_regions
-	make repair_regions
-	make prep_data
+	make repair_data
+	# make prep_data
 
 clean:
 	python ./src/Pipeline/clean_infopluviometricas.py
