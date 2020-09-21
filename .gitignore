@@ -23,3 +23,7 @@ images/
 # Other folders
 __pycache__/
 .vscode/
+
+# PyCaret related items
+**/catboost_info
+**/mlruns
