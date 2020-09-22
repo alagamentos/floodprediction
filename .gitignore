@@ -17,8 +17,9 @@ venv/
 # BigQuery key folder
 key/
 
-# Data validation images folder
+# Data validation folders
 images/
+assets/
 
 # Other folders
 __pycache__/
