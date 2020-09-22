@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# # Carregar dados de previsão
+
 # In[ ]:
 
 
@@ -32,12 +34,16 @@ df.shape
 df[df['rain'] != df['accumulated']]
 
 
+# # Carregar dados das estações
+
 # In[ ]:
 
 
 df_p = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/prepped_data.csv', sep=';')
 df_p['Data_Hora'] = pd.to_datetime(df_p['Data_Hora'], yearfirst=True)
 
+
+# # Filtrar por data de previsão e slice
 
 # In[ ]:
 
@@ -50,20 +56,20 @@ df['rain'] = df['rain'].fillna(0)
 # In[ ]:
 
 
-df['Data_Hora'].min()
-
-
-# In[ ]:
-
-
 df_owm = df[(df['Data_Slice'] - df['Data_Forecast']).astype('timedelta64[h]') <= 3]
 
+
+# # Juntar dados
 
 # In[ ]:
 
 
 df_m = df_p.merge(df_owm[['Data_Hora', 'rain']], on='Data_Hora', how='left')
 
+
+# # Análises
+
+# ## RMSE e R2
 
 # In[ ]:
 
@@ -83,6 +89,8 @@ df_slice = df_m[(~df_m['rain'].isna()) & (df_m['Local'] == 4)]
 print(sqrt(mean_squared_error(df_slice['Precipitacao'], df_slice['rain'])))
 print(r2_score(df_slice['Precipitacao'], df_slice['rain']))
 
+
+# ## Comparar precipitação das estações com previsão
 
 # In[ ]:
 
@@ -118,6 +126,8 @@ fig.add_trace(go.Scatter(x=df_slice.loc[df_slice['Local'] == 5, "Data_Hora"], y=
 fig.show()
 
 
+# ## Comparar precipitação do dia
+
 # In[ ]:
 
 
@@ -131,12 +141,6 @@ df_slice['Data'] = df_slice['Data_Hora'].dt.strftime('%Y-%m-%d')
 df_prec_sum = df_slice.groupby(['Data', 'Local']).sum().reset_index()[['Data', 'Local', 'rain']]
 df_prec_sum.columns = ['Data', 'Local', 'rain_sum']
 df_slice = df_slice.merge(df_prec_sum, on=['Data', 'Local'])
-
-
-# In[ ]:
-
-
-df_owm = 
 
 
 # In[ ]:
@@ -185,7 +189,9 @@ fig.show()
 df.columns
 
 
-# # ...
+# # Testar modelo prepped com dados de previsão
+
+# ## Inicialização
 
 # In[ ]:
 
@@ -208,6 +214,8 @@ from sklearn.metrics import plot_confusion_matrix, accuracy_score, f1_score, con
 
 from sklearn.utils import resample
 
+
+# ## Funções
 
 # In[ ]:
 
@@ -286,6 +294,8 @@ def trainXGB(df, cols_rem, label, verbose=True):
     return bst, results, y_treino_pred, y_teste_pred
 
 
+# ## Carregar dados
+
 # In[ ]:
 
 
@@ -299,6 +309,8 @@ df_p.groupby('Label').count()
 df_p = df_p.sort_values(['Data_Hora', 'Local'])
 #df_p['Label'] = df_p['Label'].shift(-5*6, fill_value = 0)
 
+
+# ## Treinar modelo
 
 # In[ ]:
 
@@ -326,6 +338,8 @@ for l in range(6):
     }
 
 
+# ## Juntar previsão com dados
+
 # In[ ]:
 
 
@@ -346,6 +360,8 @@ df_p['Data'] = df_p['Data_Hora'].dt.strftime('%Y-%m-%d')
 df = df_p.merge(df_owm_grouped, on='Data').rename(columns={'PrecSum': 'PrecSumOld', 'rain': 'PrecSum'})
 
 
+# ## Prever labels em cima da previsão de precipitação
+
 # In[ ]:
 
 
@@ -364,6 +380,8 @@ df['Label_pred'] = [1 if i>0.5 else 0 for i in label_pred]
 
 df.columns
 
+
+# ## Resultados
 
 # In[ ]:
 
