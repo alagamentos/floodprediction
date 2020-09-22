@@ -5,10 +5,12 @@
 
 
 import pandas as pd 
+pd.set_option('display.max_columns', 500)
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from plotly.offline import init_notebook_mode
+from datetime import datetime
 init_notebook_mode()
 
 
@@ -26,40 +28,21 @@ regions['Data_Hora'] = pd.to_datetime(regions['Data_Hora'], yearfirst = True)
 merged['Data_Hora'] = pd.to_datetime(merged['Data_Hora'], yearfirst = True)
 
 
-# ## Validate Regions
+# In[ ]:
+
+
+print(*[c.split('_')[0] for c in repaired.columns if '0_pred' in c])
+
 
 # In[ ]:
 
 
+label = 'UmidadeRelativa'
 
-# ano = 2018
-# df = merged#[merged['Data_Hora'].dt.year == ano]
-# dfr = regions#[regions['Data_Hora'].dt.year == ano]
-
-
-# fig = make_subplots(5,1, shared_xaxes=True)
-
-# for i in range(5):
-#     fig.add_trace(go.Scatter(
-#                     x=df['Data_Hora'],
-#                     y=df[f'RadiacaoSolar_{i}'],
-#                     line = dict(color='#616161'),
-#                     ), 
-#                   col= 1 ,
-#                   row= i + 1)
-
-#     fig.add_trace(go.Scatter(
-#                     x=df['Data_Hora'],
-#                     y=df[f'RadiacaoSolar_{i}'].where(dfr[f'RadiacaoSolar_{i}_error']),
-#                     line = dict(color='red'),
-#                     ), 
-#                   col= 1 ,
-#                   row= i + 1)
+today = datetime.now()
 
 
-
-# fig.write_html('radiacao_solar.html')
-
+# ## Validate Regions
 
 # In[ ]:
 
@@ -70,12 +53,13 @@ df = merged#[merged['Data_Hora'].dt.year == ano]
 dfr = regions#[regions['Data_Hora'].dt.year == ano]
 
 
+
 fig = make_subplots(5,1, shared_xaxes=True)
 
 for i in range(5):
     fig.add_trace(go.Scatter(
                     x=df['Data_Hora'],
-                    y=df[f'UmidadeRelativa_{i}'],
+                    y=df[f'{label}_{i}'],
                     line = dict(color='#616161'),
                     ), 
                   col= 1 ,
@@ -83,7 +67,7 @@ for i in range(5):
 
     fig.add_trace(go.Scatter(
                     x=df['Data_Hora'],
-                    y=df[f'UmidadeRelativa_{i}'].where(dfr[f'UmidadeRelativa_{i}_error']),
+                    y=df[f'{label}_{i}'].where(dfr[f'{label}_{i}_error']),
                     line = dict(color='red'),
                     ), 
                   col= 1 ,
@@ -91,143 +75,119 @@ for i in range(5):
 
 
 
-fig.write_html('../../../images/UmidadeRelative_Regions.html')
+fig.write_html(f'../../../images/{label}_Regions_{str(today)}.html')
 
 
-# In[ ]:
-
-
-# df = repaired#[repaired['Data_Hora'].dt.year == 2015]
-
-# fig = make_subplots(5,1, shared_xaxes=True)
-
-# for i in range(5):
-#     fig.add_trace(go.Scatter(
-#                     x=df['Data_Hora'],
-#                     y=df[f'RadiacaoSolar_{i}_pred'],
-#                     line = dict(color='#616161'),
-#                     legendgroup="value"
-#                     ), 
-#                       col= 1 ,
-#                       row= i + 1)
- 
-#     fig.add_trace(go.Scatter(
-#                     x=df['Data_Hora'],
-#                     y=df[f'RadiacaoSolar_{i}_pred'].where(df[f'RadiacaoSolar_{i}_interpol']),
-#                     line = dict(color='yellow'),
-#                     legendgroup="Interpolation",
-#                     name="Interpolation"
-#                     ), 
-#                       col= 1 ,
-#                       row= i + 1)
-
-#     fig.add_trace(go.Scatter(
-#                     x=df['Data_Hora'],
-#                     y=df[f'RadiacaoSolar_{i}_pred'].where(df[f'RadiacaoSolar_{i}_regression']),
-#                     line = dict(color='green'),
-#                     legendgroup="Regression",
-#                     name="Regression"
-#                     ), 
-#                       col= 1 ,
-#                       row= i + 1)
-
-#     fig.add_trace(go.Scatter(
-#                     x=df['Data_Hora'],
-#                     y=df[f'RadiacaoSolar_{i}_pred'].where(df[f'RadiacaoSolar_{i}_idw']),
-#                     line = dict(color='blue'),
-#                     legendgroup="IDW Interpolation",
-#                     name="IDW Interpolation"
-#                     ), 
-#                       col= 1 ,
-#                       row= i + 1)
-
-#     fig.add_trace(go.Scatter(
-#                     x=df['Data_Hora'],
-#                     y=df[f'RadiacaoSolar_{i}_pred'].fillna(0).where(df[f'RadiacaoSolar_{i}_error']),
-#                     line = dict(color='red'),
-#                     legendgroup="Error",
-#                     name="Error"
-#                     ), 
-#                       col= 1 ,
-#                       row= i + 1)
-
-
-# fig.write_html('../../../images/radiacao_solar_repaired.html')
-
+# ## Validate repair_regions
 
 # In[ ]:
 
 
-df = repaired#[repaired['Data_Hora'].dt.year == 2015]
+df = repaired[repaired['Data_Hora'].dt.year == 2015]
 
 fig = make_subplots(5,1, shared_xaxes=True)
 
 for i in range(5):
     fig.add_trace(go.Scatter(
                     x=df['Data_Hora'],
-                    y=df[f'UmidadeRelativa_{i}_pred'],
+                    y=df[f'{label}_{i}_pred'],
                     line = dict(color='#616161'),
                     legendgroup="value"
                     ), 
                       col= 1 ,
                       row= i + 1)
- 
-    fig.add_trace(go.Scatter(
-                    x=df['Data_Hora'],
-                    y=df[f'UmidadeRelativa_{i}_pred'].where(df[f'UmidadeRelativa_{i}_interpol']),
-                    line = dict(color='yellow'),
-                    legendgroup="Interpolation",
-                    name="Interpolation"
-                    ), 
-                      col= 1 ,
-                      row= i + 1)
-
-    fig.add_trace(go.Scatter(
-                    x=df['Data_Hora'],
-                    y=df[f'UmidadeRelativa_{i}_pred'].where(df[f'UmidadeRelativa_{i}_regression']),
-                    line = dict(color='green'),
-                    legendgroup="Regression",
-                    name="Regression"
-                    ), 
-                      col= 1 ,
-                      row= i + 1)
-
-    fig.add_trace(go.Scatter(
-                    x=df['Data_Hora'],
-                    y=df[f'UmidadeRelativa_{i}_pred'].where(df[f'UmidadeRelativa_{i}_idw']),
-                    line = dict(color='blue'),
-                    legendgroup="IDW Interpolation",
-                    name="IDW Interpolation"
-                    ), 
-                      col= 1 ,
-                      row= i + 1)
-
-    fig.add_trace(go.Scatter(
-                    x=df['Data_Hora'],
-                    y=df[f'UmidadeRelativa_{i}_pred'].fillna(0).where(df[f'UmidadeRelativa_{i}_fill_ow']),
-                    line = dict(color='orange'),
-                    legendgroup="OpenWeather",
-                    name="OpenWeather"
-                    ), 
-                      col= 1 ,
-                      row= i + 1)
-
-    fig.add_trace(go.Scatter(
-                    x=df['Data_Hora'],
-                    y=df[f'UmidadeRelativa_{i}_pred'].fillna(0).where(df[f'UmidadeRelativa_{i}_error']),
-                    line = dict(color='red'),
-                    legendgroup="Error",
-                    name="Error"
-                    ), 
-                      col= 1 ,
-                      row= i + 1)
+    try:
+        fig.add_trace(go.Scatter(
+                        x=df['Data_Hora'],
+                        y=df[f'{label}_{i}_pred'].where(df[f'{label}_{i}_interpol']),
+                        line = dict(color='yellow'),
+                        legendgroup="Interpolation",
+                        name="Interpolation"
+                        ), 
+                          col= 1 ,
+                          row= i + 1)
+    except:
+        pass
     
-fig.write_html('../../../images/UmidadeRelativa_repaired.html')
+    try:
+        fig.add_trace(go.Scatter(
+                        x=df['Data_Hora'],
+                        y=df[f'{label}_{i}_pred'].where(df[f'{label}_{i}_regression']),
+                        line = dict(color='green'),
+                        legendgroup="Regression",
+                        name="Regression"
+                        ), 
+                          col= 1 ,
+                          row= i + 1)
+    except:
+        pass
+    
+    try:
+        fig.add_trace(go.Scatter(
+                        x=df['Data_Hora'],
+                        y=df[f'{label}_{i}_pred'].where(df[f'{label}_{i}_idw']),
+                        line = dict(color='blue'),
+                        legendgroup="IDW Interpolation",
+                        name="IDW Interpolation"
+                        ), 
+                          col= 1 ,
+                          row= i + 1)
+    except:
+        pass
+    
+    try:
+        fig.add_trace(go.Scatter(
+                        x=df['Data_Hora'],
+                        y=df[f'{label}_{i}_pred'].fillna(0).where(df[f'{label}_{i}_fill_ow']),
+                        line = dict(color='orange'),
+                        legendgroup="OpenWeather",
+                        name="OpenWeather"
+                        ), 
+                          col= 1 ,
+                          row= i + 1)
+    except:
+        pass
+    try:
+        fig.add_trace(go.Scatter(
+                        x=df['Data_Hora'],
+                        y=df[f'{label}_{i}_pred'].fillna(0).where(df[f'{label}_{i}_error']),
+                        line = dict(color='red'),
+                        legendgroup="Error",
+                        name="Error"
+                        ), 
+                          col= 1 ,
+                          row= i + 1)
+    except:
+        pass
+fig.write_html(f'../../../images/{label}_repaired_{str(today)}.html')
 
 
 # In[ ]:
 
 
-for i in range(5):
-    print(df[f'UmidadeRelativa_{i}_interpol'].sum())
+
+
+
+# In[ ]:
+
+
+ow = pd.read_csv('../../../data/cleandata/OpenWeather/history_bulk.csv', sep = ';')
+ow['Data_Hora'] = pd.to_datetime(ow['Data_Hora'])
+
+
+# In[ ]:
+
+
+ow.columns
+
+
+# In[ ]:
+
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x = ow['Data_Hora'],
+                         y = ow['UmidadeRelativa']))
+
+fig.show()
 

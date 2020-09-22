@@ -12,27 +12,50 @@ import time
 import yaml
 from datetime import timedelta
 
-pd.options.plotting.backend = "plotly"
-
-#fig = df.plot()
-#fig.write_image()
-
 logging.basicConfig(level=logging.INFO,
                     format='## Repair - %(asctime)s - %(levelname)s: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def read_yaml(path):
+  """
+
+  Read .yaml file
+
+  :param path: Path to file
+  :type path: ``str``
+
+  :return: Contents from file
+  :rtype: ``dict``
+
+  """
   with open(path) as file:
     return yaml.load(file, Loader=yaml.FullLoader)
 
 
 def interpolation(Series, error, max_interpolation_size=5, **kwargs):
+  """
+
+  Linear interpolation for a given Series
+
+  :param Series: Series with the data to interpolate
+  :type Series: ``Series``
+
+  :param error: List containing the regions in which to interpolate
+  :type error: ``list`` of ``bool``
+
+  :param max_interpolation_size: Maximum number of samples to interpolate, defaults to 5
+  :type max_interpolation_size: ``int``
+
+  """
   error_reg = list_2_regions(error)
   reg_size = [i[1] - i[0] for i in error_reg]
 
   interpol_reg = [error_reg[i] for i in range(len(reg_size))
                                if reg_size[i] <= max_interpolation_size]
+
+  logging.info(f'Regions to interpolate {len(interpol_reg)} - {Series.name}')
+
   error_interpol = regions_2_list(interpol_reg, len(Series))
 
   error.loc[error_interpol] = False
@@ -47,25 +70,65 @@ def interpolation(Series, error, max_interpolation_size=5, **kwargs):
 
 
 def predict_region(xgb, df_recurrent, label, dcols, p, lookbackSize):
-    df_recurrent = df_recurrent.copy(deep=True)
-    start, stop = p[0], p[1]
-    y_predict = []
-    for j in range(start, stop):
-      pred_ = xgb.predict(df_recurrent.loc[[j]])
-      y_predict.append(pred_)
-      matrix = df_recurrent.loc[j+1:j+1+lookbackSize, dcols].values
-      np.fill_diagonal(matrix, pred_)
-      df_recurrent.loc[j+1:j+1+lookbackSize, dcols] = matrix
-    return y_predict
+  """
+
+  Predict on a given region
+
+  :param xgb: XGBoost Classifier
+  :type xgb: ``xgboost.XGBClassfier``
+
+  :param df_recurrent: DataFrame with features for the xgb model
+  :type df_recurrent: ``DataFrame``
+
+  :param label: Column with data to repair
+  :type label: ``str``
+
+  :param dcols: Delay columns
+  :type dcols: ``list`` of ``str``
+
+  :param p: Region to predict - list containing starting and ending index of the regions.
+  :type p: ``list`` of ``int``
+
+  :param lookbackSize: Lookback size when fitting the model
+  :type lookbackSize: ``int``, defaults to None
+
+  :return: Prediction for the given region
+  :rtype: ``List`` of ``float``
+
+  """
+  df_recurrent = df_recurrent.copy(deep=True)
+  start, stop = p[0], p[1]
+  y_predict = []
+  for j in range(start, stop):
+    pred_ = xgb.predict(df_recurrent.loc[[j]])
+    y_predict.append(pred_)
+    matrix = df_recurrent.loc[j+1:j+1+lookbackSize, dcols].values
+    np.fill_diagonal(matrix, pred_)
+    df_recurrent.loc[j+1:j+1+lookbackSize, dcols] = matrix
+  return y_predict
 
 
 def repair_regions(df, label, max_region_size=None, lookbackSize=None, extra_features=None, **kwargs):
   '''
-  df
-  label
-  max_interpolation_size
-  lookbackSize
-  extra_features - list
+
+  Creates regression for regions with error, the regression uses the past from the data and the data from others statios.
+  Modiefies the given DataFrame, does not return a new one.
+
+  :param df: DataFrame with data to repair and same data from other stations
+  :type df: DataFrame
+
+  :param label: Column with data to repair
+  :type label: string
+
+  :param max_interpolation_size: Max number of samples to interpolate, defaults to None
+  :type max_interpolation_size: int, defaults to None
+
+  :param lookbackSize: Lookback size when fitting the model
+  :type lookbackSize: int, defaults to None
+
+  :param extra_features: Extra features to introduce on the model, feature must be found in df
+  :type extra_features: ``list`` of ``str``, defaults to ``None``
+
   '''
 
   attribute = label.split('_')[0]
@@ -92,7 +155,7 @@ def repair_regions(df, label, max_region_size=None, lookbackSize=None, extra_fea
 
   df_error = df_att[~has_error].drop(columns=error_cols)
 
-  logging.info(f'Dados com erro:  {has_error.sum()/len(df_att)* 100}%')
+  logging.info(f'Data with error:  {has_error.sum()/len(df_att)* 100}%')
 
   logging.info('Training Model')
 
@@ -164,52 +227,120 @@ def repair_regions(df, label, max_region_size=None, lookbackSize=None, extra_fea
 
 
 def Calculate_Dist(lat1, lon1, lat2, lon2):
-    r = 6371
-    phi1 = np.radians(lat1)
-    phi2 = np.radians(lat2)
-    delta_phi = np.radians(lat2 - lat1)
-    delta_lambda = np.radians(lon2 - lon1)
-    a = np.sin(delta_phi / 2)**2 + np.cos(phi1) *\
-        np.cos(phi2) * np.sin(delta_lambda / 2)**2
-    res = r * (2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)))
-    return np.round(res, 2)
+  """
+
+  Calculate the distance in km between to given points (pairs of latitude and longitude)
+
+  :param lat1: Latitude value (Degrees) for the point 1
+  :type lat1: ``float``
+
+  :param lon1: Longitude value (Degrees) for the point 1
+  :type lon1: ``float``
+
+  :param lat2: Latitude value (Degrees) for the point 2
+  :type lat2: ``float``
+
+  :param lon1: Longitude value (Degrees) for the point 2
+  :type lon1: ``float``
+
+  :return: Distance in km
+  :rtype: ``float``
+
+  """
+  r = 6371
+  phi1 = np.radians(lat1)
+  phi2 = np.radians(lat2)
+  delta_phi = np.radians(lat2 - lat1)
+  delta_lambda = np.radians(lon2 - lon1)
+  a = np.sin(delta_phi / 2)**2 + np.cos(phi1) *\
+      np.cos(phi2) * np.sin(delta_lambda / 2)**2
+  res = r * (2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)))
+  return np.round(res, 2)
 
 
 def idw_interpolate( row , num, label, distances):
+  """
 
-    rest = [i for i in range(5) if i != num]
-    row = row.fillna(0)
+  Inverse distance weighting interpolation for a given DataFrame row
 
-    aux_num, aux_den = 0, 0
-    for r in rest:
+  :param row: DataFrame row
+  :type row: ``Series``
 
-        p = row[f'{label}_{r}']
-        local_a = row[f'Local_{num}']
-        local_b = row[f'Local_{r}']
+  :param num: Station number to repair
+  :type num: ``int``
 
-        d = distances[local_a][local_b]
+  :param label: Feature label to repair
+  :type label: ``str``
 
-        aux_num += p/d * (not row[f'{label}_{r}_error'])
-        aux_den += 1/d * (not row[f'{label}_{r}_error'])
+  :param distances: Dictonary containing distances between stations
+  :type distances: ``dict``
 
-    if aux_den == 0:
-        return np.nan
+  :return: Interpolated value
+  :rtype: ``float``
 
-    return aux_num/aux_den
+  """
+
+  rest = [i for i in range(5) if i != num]
+  row = row.fillna(0)
+
+  aux_num, aux_den = 0, 0
+  for r in rest:
+
+    p = row[f'{label}_{r}']
+    local_a = row[f'Local_{num}']
+    local_b = row[f'Local_{r}']
+
+    d = distances[local_a][local_b]
+
+    aux_num += p/d * (not row[f'{label}_{r}_error'])
+    aux_den += 1/d * (not row[f'{label}_{r}_error'])
+
+  if aux_den == 0:
+    return np.nan
+
+  return aux_num/aux_den
 
 
-def fill_ow( row , num , label, df_ow):
+def fill_ow( row , label, df_ow):
+  """
 
-    rounded_hour = row['Data_Hora'].round('H')
-    mask = pd.to_datetime(df_ow['Data_Hora']) == rounded_hour
-    try:
-        return df_ow.loc[mask,label].item()
-    except ValueError:
-        mask = pd.to_datetime(df_ow['Data_Hora']) == rounded_hour + timedelta(hours=1)
-        return df_ow.loc[mask,label].item()
+  Completes faulty data with OpenWeather values, rounds faulty data to the hour.
+
+  :param row: DataFrame row
+  :type row: ``Series``
+
+  :param label: Feature label to repair
+  :type label: ``str``
+
+  :param df_ow: OpenWeather DataFrame
+  :type df_ow: ``DataFrame``
+
+  :return: OpenWeather value
+  :rtype: ``DataFrame``
+  """
+
+  rounded_hour = row['Data_Hora'].round('H')
+  mask = pd.to_datetime(df_ow['Data_Hora']) == rounded_hour
+  try:
+    return df_ow.loc[mask,label].item()
+  except ValueError:
+    mask = pd.to_datetime(df_ow['Data_Hora']) == rounded_hour + timedelta(hours=1)
+    return df_ow.loc[mask,label].item()
 
 
 def get_estacaoes_dist(est):
+  """
+
+  Calculates distances between every given station
+
+  :param est: DataFrame containing latitude and longitude for every station
+  :type est: ``DataFrame``
+
+  :return: Dictonary were keys are station names and value is distance between stations
+  :rtype: ``dict``
+
+  """
+
   estacoes = list(est.index)
 
   distances = {k: {} for k in estacoes}
@@ -232,8 +363,8 @@ if __name__ == '__main__':
 
   save_path = pjoin(root, 'data/cleandata/Info pluviometricas/Merged Data/repaired.csv')
 
-  config_path = 'src/Pipeline/config/repair_regions.yaml'
-  ow_path = 'data/cleandata/OpenWeather/history_bulk.csv'
+  config_path = pjoin(root,'src/Pipeline/config/repair_regions.yaml')
+  ow_path = pjoin(root,'data/cleandata/OpenWeather/history_bulk.csv')
 
   data = pd.read_csv(data_path, sep=';',
                      dtype={'Local_0': object, 'Local_1': object,
@@ -282,6 +413,9 @@ if __name__ == '__main__':
 
   idw_cols     = [col for col in idw_cols     if config[col.split('_')[0]]['idw']]     # Check if True
   fill_ow_cols = [col for col in fill_ow_cols if config[col.split('_')[0]]['fill_ow']] # Check if True
+
+  # Modified Labels
+  modified_labels = {c.split('_')[0] for c in (interpolation_cols + regression_cols + idw_cols + fill_ow_cols)}
 
   # Start Operations
   # =========================
@@ -375,34 +509,46 @@ if __name__ == '__main__':
 
     try:
       # If _repaired does not exists creates a copy of _label
-      df.insert(df.shape[1], f'{label}_{i}_pred', df[f'{label}_{i}'].copy())
+      df.insert(df.shape[1], f'{col}_pred', df[f'{col}'].copy())
     except ValueError:
       # Column already exists
       pass
 
-    df.loc[df[f'{label}_{i}_error'], f'{label}_{i}_pred'] = \
-           df[df[f'Precipitacao_{i}_error']].apply(fill_ow, args = (i, label ,df_ow),
+    df.loc[df[f'{col}_error'], f'{col}_pred'] = \
+           df[df[f'{col}_error']].apply(fill_ow, args = (label ,df_ow),
                                                    axis = 1 ).copy()
 
-    df.insert(df.shape[1], f'{label}_{i}_fill_ow', False)
-    df.loc[df[f'{label}_{i}_error'], f'{label}_{i}_fill_ow'] = True
-    df[f'{label}_{i}_error'] = False
+    df.insert(df.shape[1], f'{col}_fill_ow', False)
+    df.loc[df[f'{col}_error'], f'{col}_fill_ow'] = True
+    df[f'{col}_error'] = False
 
     # Update Data
     df.loc[:, col] = df.loc[:, col+'_pred'].copy()
 
   # Save Data
   # ===========
-  save_cols = ['Data_Hora'] + [i for i in df.columns if (('_interpol' in i) or
-                               ('_pred' in i) or ('_regression' in i) or
-                               ('_idw' in i) or ('_fill_ow' in i) or ('_error' in i))]
-
   if os.path.exists(save_path):
+
+    modified_columns = set()
+    for label in modified_labels:
+      modified_columns = modified_columns | {i for i in df.columns if (('_interpol' in i) or
+                                              ('_pred' in i) or ('_regression' in i) or
+                                              ('_idw' in i) or ('_fill_ow' in i) or ('_error' in i)) and (label in i)}
+
     df_repaired = pd.read_csv(save_path, sep = ';')
-    for col in save_cols:
+
+    for col in modified_columns:
       df_repaired[col] = df[col]
 
+    keep_cols = {'Data_Hora'} | {i for i in df_repaired.columns if ('_interpol' in i) or
+                                 ('_pred' in i) or ('_regression' in i) or
+                                 ('_idw' in i) or ('_fill_ow' in i) or ('_error' in i)}
+    save_cols = modified_columns | keep_cols
     df_repaired[save_cols].to_csv(save_path, decimal='.', sep=';', index=False)
 
   else:
+    save_cols = {'Data_Hora'} | {i for i in df.columns if ('_interpol' in i) or
+                              ('_pred' in i) or ('_regression' in i) or
+                              ('_idw' in i) or ('_fill_ow' in i) or ('_error' in i)}
+
     df[save_cols].to_csv(save_path, decimal='.', sep=';', index=False)
