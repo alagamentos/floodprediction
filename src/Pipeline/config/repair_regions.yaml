@@ -3,44 +3,62 @@
 ##
 ## interpolation
 ##   max_interpolation_size: int
+##
 ## regression
 ##   max_region_size: int
 ##   lookbackSize: int
 ##   extra_features: list of strings (features)
+##   interpolate_kwargs: dict - pd.interpolate kwargs -
+##                              cannot include `limit` already defined by max_region_size
 ## idw: bool
 ## fill_ow: bool
 ## ---------------
 
 UmidadeRelativa:
-    interpolation:
-        max_interpolation_size: 5
-    regression:
-        max_region_size: 50
-        lookbackSize: 6
-        extra_features: ['Hora', 'Mes']
     idw: true
     fill_ow: true
 
-# PressaoAtmosferica:
-#     interpolation:
-#         max_interpolation_size:  5
-#     regression:
-#         max_region_size: 20
-#         lookbackSize: 6
-#         extra_features: ['Hora','Mes']
-#     idw: true
-#     fill_ow: true
+TemperaturaDoAr:
+    idw: true
+    fill_ow: true
 
-# TemperaturaDoAr:
-#     interpolation:
-#         max_interpolation_size: 5
-#     regression:
-#         max_region_size: 50
-#         lookbackSize: 8
-#         extra_features: ['Hora','Mes']
-#     idw: true
-#     fill_ow: true
+DirecaoDoVento:
+    idw: true
+    fill_ow: true
 
+VelocidadeDoVento:
+    idw: true
+    fill_ow: true
+
+Precipitacao:
+    idw: true
+    fill_ow: true
+
+PressaoAtmosferica:
+    idw: true
+    interpolation:
+        max_interpolation_size: 500
+    regression:
+        max_region_size: 1000
+        lookbackSize: 8
+        extra_features: ['Hora','Mes','TemperaturaDoAr_0']
+
+RadiacaoSolar:
+    idw: true
+    regression:
+        max_region_size: 1000
+        lookbackSize: 8
+        extra_features: ['Hora', 'TemperaturaDoAr_0', 'Precipitacao_0', 'UmidadeRelativa_0']
+
+PontoDeOrvalho:
+    idw: true
+    regression:
+        max_region_size: 500
+        lookbackSize: 6
+        extra_features: ['Hora', 'TemperaturaDoAr_0', 'UmidadeRelativa_0']
+
+
+## ========== Not Used ==========
 # # TemperaturaInterna:
 # #     interpolation:
 # #         max_interpolation_size: 5
@@ -49,54 +67,12 @@ UmidadeRelativa:
 # #         lookbackSize: 6
 # #         extra_features: ['Hora']
 
-# PontoDeOrvalho:
-#     interpolation:
-#         max_interpolation_size: 5
-#     regression:
-#         max_region_size: 100
-#         lookbackSize: 6
-#         extra_features: ['Hora']
-#     idw: true
-
-# SensacaoTermica:
-#     interpolation:
-#         max_interpolation_size: 5
-#     regression:
-#         max_region_size: 100
-#         lookbackSize: 6
-#         extra_features: ['Hora','Mes']
-#     idw: true
-#     fill_ow: true
-
-# RadiacaoSolar:
-#     interpolation:
-#         max_interpolation_size: 5
-#     regression:
-#         max_region_size: 100
-#         lookbackSize: 6
-#         extra_features: ['Hora']
-#     idw: true
-
-# DirecaoDoVento:
-#     interpolation:
-#         max_interpolation_size: 5
-#     regression:
-#         max_region_size: 50
-#         lookbackSize: 6
-#         extra_features: []
-#     idw: true
-#     fill_ow: true
-
-# VelocidadeDoVento:
-#     interpolation:
-#         max_interpolation_size: 5
-#     regression:
-#         max_region_size: 50
-#         lookbackSize: 6
-#         extra_features: ['Hora']
-#     idw: true
-#     fill_ow: true
-
-# Precipitacao:
-#     idw: true
-#     fill_ow: true
+# # SensacaoTermica:
+# #     interpolation:
+# #         max_interpolation_size: 5
+# #     regression:
+# #         max_region_size: 100
+# #         lookbackSize: 6
+# #         extra_features: ['Hora','Mes']
+# #     idw: true
+# #     fill_ow: true
