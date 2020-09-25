@@ -17,6 +17,8 @@ def get_error_regions(df,
                 z_threshold=None,
                 nz_threshold=None,
                 margins=None,
+                min_value=None,
+                max_value=None,
                 plot_derivative=False, derivative_kwargs={},
                 plot_zeros=False, zeros_kwargs={},
                 plot_final=False, final_kwargs={}):
@@ -50,9 +52,20 @@ def get_error_regions(df,
   else:
     non_zeros = [False] * len(df)
 
+  if min_value is not None:
+    min_error = df < min_value
+  else:
+    min_error = [False] * len(df)
+
+  if max_value is not None:
+    max_error = df > max_value
+  else:
+    max_error = [False] * len(df)
+
   # Error Union
   nans = df.isna()
-  error = [zeros[i] or peaks[i] or non_zeros[i] or nans[i] for i in range(len(peaks))]
+  error = [zeros[i] or peaks[i] or non_zeros[i] or nans[i] or min_error[i] or
+           max_error[i] for i in range(len(peaks))]
   error_reg = list_2_regions(error)
 
   # Expand margins

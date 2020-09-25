@@ -6,12 +6,16 @@ UmidadeRelativa:
 PressaoAtmosferica:
     d_threshold: 50
     z_threshold: 7
-    margins: 5
+    margins: 10
+    min_value: 905
+    max_value: 950
 
 TemperaturaDoAr:
     d_threshold: 6
     z_threshold: 4
     margins: 2
+    min_value: 5
+    max_value: 45
 
 TemperaturaInterna:
     d_threshold: 6
@@ -33,10 +37,13 @@ RadiacaoSolar:
     z_threshold: 50
     margins: 5
     nz_threshold: 3
+    min_value: 0
 
 DirecaoDoVento:
     z_threshold: 3
     margins: 3
+    min_value: 0
+    max_value: 360
 
 VelocidadeDoVento:
     d_threshold: 8
@@ -48,3 +55,4 @@ Precipitacao:
     z_threshold: 1440
     nz_threshold: 8
     margins: 1
+    min_value: 0
