@@ -42,19 +42,9 @@ if __name__ == "__main__":
   df_merged['Data_Hora'] = pd.to_datetime(df_merged['Data_Hora'], yearfirst=True)
   df_repaired['Data_Hora'] = pd.to_datetime(df_repaired['Data_Hora'], yearfirst=True)
 
-  df = df_merged.merge(df_repaired, on='Data_Hora')
-  # TODO: sensação térmica?
-  df = df.drop(columns = ['index'] + [c for c in df.columns if 'interpol' in c] + [c for c in df.columns if 'Sensacao' in c])
-
-  logging.info(f'Corrigindo medições')
-  # TODO: adicionar precipitação assim que tivermos corrigida
-  cols = [c for c in df.columns if '_pred' not in c and '_repaired' not in c and 'Local_' not in c and 'Data_Hora' not in c and 'Precipitacao' not in c]
-
-  df = repair_data(df, cols)
-
+  df = df_repaired[df_merged.columns.drop('index')].copy()
+  df = df.drop(columns = [c for c in df.columns if 'Sensacao' in c or 'Interna' in c])
   df['Data'] = df['Data_Hora'].dt.strftime('%Y-%m-%d')
-  # TODO: temporario ~> remover NAs
-  df = df.dropna()
 
   logging.info(f'Carregando labels')
   # Carregar labels e juntar ao dataframe
@@ -84,7 +74,6 @@ if __name__ == "__main__":
       'UmidadeRelativa',
       'PressaoAtmosferica',
       'TemperaturaDoAr',
-      'TemperaturaInterna',
       'PontoDeOrvalho',
       'RadiacaoSolar',
       'DirecaoDoVento',
