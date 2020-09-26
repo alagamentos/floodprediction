@@ -64,11 +64,11 @@ if __name__ == "__main__":
     logging.info('='*30 + '\n')
 
   drop_cols = [c for c in df.columns if 'Local' in c]
-  drop_cols += ['Hora', 'Min', 'Seg', 'Ano', 'Mes', 'Dia']
+  drop_cols += ['Hora', 'Min', 'Seg', 'Ano', 'Mes', 'Dia', 'Time', 'Date']
 
   for c in drop_cols:
     try:
-      df.drop(columns = [c])
+      df = df.drop(columns = [c])
     except:
       pass
 
