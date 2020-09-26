@@ -11,6 +11,7 @@ import imp
 import utils
 imp.reload(utils)
 from utils import *
+from datetime import timedelta
 
 
 # In[ ]:
@@ -27,14 +28,18 @@ ip = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/merged
 ip.head(2)
 
 
+# ### Select Precipitacao Columns
+
 # In[ ]:
 
 
 precipitacao_cols =  [c for c in ip.columns if 'Precipitacao' in c ]
 local_cols =  [c for c in ip.columns if 'Local' in c ]
-df_p = ip[ ['Data_Hora'] + local_cols + precipitacao_cols]
-df_p.loc[:, 'Data_Hora'] = pd.to_datetime(df_p.loc[:,'Data_Hora'], yearfirst=True).copy()
+df_p = ip[ ['Data_Hora'] + local_cols + precipitacao_cols].copy()
+df_p.loc[:, 'Data_Hora'] = pd.to_datetime(df_p.loc[:,'Data_Hora'], yearfirst=True)
 
+
+# ### Trying different mothods to find error regions
 
 # In[ ]:
 
@@ -220,6 +225,8 @@ df_p.loc[:, 'Data_Hora'] = pd.to_datetime(df_p.loc[:,'Data_Hora'], yearfirst=Tru
 # fig.show()
 
 
+# ### Using Utils derivative to get error regions
+
 # In[ ]:
 
 
@@ -230,7 +237,8 @@ n_days = 15
 for col in precipitacao_cols:
     
     # Derivative
-    peaks = derivative_threshold(df_p[col], 30, False, start, stop, lw = 2, figsize = (11, 15))
+    peaks = derivative_threshold(df_p[col], 30, False, start, stop, lw = 2,
+                                 figsize = (11, 15))
     # Consecutive Zeros
     zeros = derivative_zero(df_p[col].fillna(0), n_days*24*4, False,
                              plot = False, plt_start = start, plt_stop = stop)
@@ -253,6 +261,8 @@ for col in precipitacao_cols:
         df_p.drop(columns = [col+'_error'], inplace = True)
         df_p.insert(df_p.shape[1], col+'_error', error.copy())
 
+
+# ### Plot error regions
 
 # In[ ]:
 
@@ -304,22 +314,20 @@ fig.show()
 # 
 # $$\lambda_i = \frac{d_{i0}^{-p}}{\sum_{i=1}^{N} d_{i0}^{-p'}}, \sum_{i=1}^{N} \lambda_i = 1$$
 
+# ### Read Estacao Lat and Lng
+
 # In[ ]:
 
 
 est = pd.read_csv('../../../data/cleandata/Estacoes/lat_lng_estacoes.csv', sep = ';')
 est = est.iloc[:-1, :]
-
-
-# In[ ]:
-
-
 est = est.set_index('Estacao')
 
 
 # In[ ]:
 
 
+# Calculate distance between 2 points in km
 def Calculate_Dist(lat1, lon1, lat2, lon2):
     r = 6371
     phi1 = np.radians(lat1)
@@ -330,37 +338,8 @@ def Calculate_Dist(lat1, lon1, lat2, lon2):
     res = r * (2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)))
     return np.round(res, 2)
 
-def get_distances(estacoes, ord_serv):
-    for index, row in ord_serv.iterrows():
-        dist = estacoes.apply(lambda x: 
-                           Calculate_Dist(row['lat'], row['lng'],
-                                            x['lat'],   x['lng']),
-                           axis=1)
-        ord_serv.loc[index,'Distance'], arg = dist.min(), dist.argmin()
-        ord_serv.loc[index,'Est. Prox'] = estacoes.iloc[arg,0]
-
-    return ord_serv
-
-
-# In[ ]:
-
-
-estacoes = list(est.index)
-
-distances = {k: {} for k in estacoes}  
-
-for estacao in estacoes:
-    
-    rest = [c for c in est.index if c != estacao]
-    
-    for r in rest:
-        distances[estacao][r] = Calculate_Dist(*est.loc[estacao,:].to_list(),                                               *est.loc[r,:].to_list())
-
-
-# In[ ]:
-
-
-def interpolate_rain( row , num , distances):
+# Interpolate based on distance
+def interpolate_rain( row ,num ,distances):
    
     rest = [i for i in range(5) if i != num]
     row = row.fillna(0)
@@ -383,20 +362,42 @@ def interpolate_rain( row , num , distances):
     return aux_num/aux_den
 
 
+# ### Calculate distance between every station
+
+# In[ ]:
+
+
+estacoes = list(est.index)
+
+distances = {k: {} for k in estacoes}  
+
+for estacao in estacoes:
+    
+    rest = [c for c in est.index if c != estacao]
+    for r in rest:
+        distances[estacao][r] = Calculate_Dist(*est.loc[estacao,:].to_list(),                                               *est.loc[r,:].to_list())
+
+
+# ### Apply Interpolate distance - Inverse Distance Weighting
+
 # In[ ]:
 
 
 for i in range(5):
-    print(i+1,'/5',)
+    print(i+1,'/5 - ',df_p[f'Precipitacao_{i}_error'].sum())
     df_p.loc[df_p[f'Precipitacao_{i}_error'], f'Precipitacao_{i}'] =              df_p[df_p[f'Precipitacao_{i}_error']].apply(interpolate_rain,
                                                          args = (i, distances), axis = 1 ).copy()
 
+
+# ### See how many left
 
 # In[ ]:
 
 
 df_p.isna().sum()
 
+
+# ### Plot Interpolated rain
 
 # In[ ]:
 
@@ -436,17 +437,21 @@ fig.update_layout(height=1200, width=800)
 fig.show()
 
 
+# ### Copy rain column to see results after
+# 
+
 # In[ ]:
 
 
 for i in range(5):
-    df_p.insert(df_p.shape[1], f'Precipitacao_b4_ow_{i}', df_p[f'Precipitacao_{i}'].copy())
+    df_p.insert(df_p.shape[1], f'Precipitacao_b4_ow_{i}',
+                df_p[f'Precipitacao_{i}'].copy())
 
+
+# ### Fill remaining based on OpenWeather data
 
 # In[ ]:
 
-
-from datetime import timedelta
 
 def fill_ow( row , num , df_ow):
    
@@ -459,6 +464,8 @@ def fill_ow( row , num , df_ow):
         return df_ow.loc[mask,'Precipitacao'].item()
 
 
+# ### Import OpenWeather data
+
 # In[ ]:
 
 
@@ -466,6 +473,9 @@ df_ow = pd.read_csv('../../../data/cleandata/OpenWeather/history_bulk.csv', sep 
 df_ow['Data_Hora'] = pd.to_datetime(df_ow['Data_Hora'], yearfirst = True)
 df_ow = df_ow.drop_duplicates(subset = 'Data_Hora' )
 
+
+# ### Apply fill_ow
+# 
 
 # In[ ]:
 
@@ -475,11 +485,15 @@ for i in range(5):
     df_p.loc[df_p[f'Precipitacao_{i}'].isna(), f'Precipitacao_{i}'] =              df_p[df_p[f'Precipitacao_{i}'].isna()].apply(fill_ow, args = (i, df_ow), axis = 1 )
 
 
+# ### Check remaining
+
 # In[ ]:
 
 
 df_p.isna().sum()
 
+
+# ### Plots Results
 
 # In[ ]:
 
@@ -527,6 +541,189 @@ for i, col in enumerate(precipitacao_cols):
             connectgaps=False
                                 ),
                       row = i + 1, col = 1
+                     )
+    
+fig.update_layout(height=1200, width=800)
+fig.show()
+
+
+# ## Compare with script
+
+# In[ ]:
+
+
+repaired = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/repaired.csv',
+                       sep = ';')
+
+regions = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/error_regions.csv',
+                       sep = ';')
+
+
+# In[ ]:
+
+
+prep_cols = ['Data_Hora'] + [c for c in regions.columns if  'Precipitacao' in c]
+regions = regions.loc[:, prep_cols]
+regions['Data_Hora'] = pd.to_datetime(regions['Data_Hora'], yearfirst = True)
+regions.head(2)
+
+
+# In[ ]:
+
+
+prep_cols = ['Data_Hora'] + [c for c in repaired.columns if  'Precipitacao' in c]
+repaired = repaired.loc[:, prep_cols]
+repaired['Data_Hora'] = pd.to_datetime(repaired['Data_Hora'], yearfirst = True)
+repaired.head(2)
+
+
+# ## Error Regions
+
+# In[ ]:
+
+
+py.offline.init_notebook_mode()
+fig = make_subplots(5,2, shared_xaxes=True, shared_yaxes=True )
+
+ano = 2013
+
+ip_ano = df_p[df_p['Data_Hora'].dt.year == ano]
+rip_ano = regions[regions['Data_Hora'].dt.year == ano]
+color = ['#c62828', '#283593', '#00685b', '#f9a825', '#009688']
+
+for i, col in enumerate(precipitacao_cols):
+    fig.add_trace(go.Scatter(
+        x = ip_ano['Data_Hora'],
+        y = ip_ano[col].fillna(0),
+        showlegend = False,
+        legendgroup=col,
+        line = dict(color='#616161'),
+        connectgaps=False
+                            ),
+                  row = i + 1, col = 1
+                 )
+    fig.add_trace(go.Scatter(
+        x = ip_ano['Data_Hora'],
+        y = ip_ano[col].fillna(0),
+        showlegend = False,
+        legendgroup=col,
+        line = dict(color='#616161'),
+        connectgaps=False
+                            ),
+                  row = i + 1, col = 2
+                 )
+
+    
+    fig.add_trace(go.Scatter(
+        x = ip_ano['Data_Hora'],
+        y = ip_ano[col].fillna(0).where(ip_ano[col+'_error']),
+        name = col,
+        legendgroup=col,
+        showlegend = False,
+        line = dict(color='#c62828', width = 4),
+        connectgaps=False
+                            ),
+                  row = i + 1, col = 1
+                 )
+    fig.add_trace(go.Scatter(
+        x = rip_ano['Data_Hora'],
+        y = ip_ano[col].fillna(0).where(rip_ano[col+'_error']),
+        name = col,
+        legendgroup=col,
+        showlegend = False,
+        line = dict(color='#c62828', width = 4),
+        connectgaps = False
+                            ),
+                  row = i + 1, col = 2
+                 )
+    
+fig.update_layout(height=1200, width=800)
+fig.show()
+
+
+# ## Repaired Data
+
+# In[ ]:
+
+
+py.offline.init_notebook_mode()
+fig = make_subplots(5,2, shared_xaxes=True, shared_yaxes=True )
+
+ano = 2013
+
+ip_ano = df_p[df_p['Data_Hora'].dt.year == ano]
+rip_ano = repaired[repaired['Data_Hora'].dt.year == ano]
+color = ['#c62828', '#283593', '#00685b', '#f9a825', '#009688']
+
+for i, col in enumerate(precipitacao_cols):
+    fig.add_trace(go.Scatter(
+        x = ip_ano['Data_Hora'],
+        y = ip_ano[col].fillna(0),
+        showlegend = False,
+        legendgroup=col,
+        line = dict(color='#616161'),
+        connectgaps=False
+                            ),
+                  row = i + 1, col = 1
+                 )
+    fig.add_trace(go.Scatter(
+        x = rip_ano['Data_Hora'],
+        y = rip_ano[col].fillna(0),
+        showlegend = False,
+        legendgroup=col,
+        line = dict(color='#616161'),
+        connectgaps=False
+                            ),
+                  row = i + 1, col = 2
+                 )
+
+    
+    fig.add_trace(go.Scatter(
+        x = ip_ano['Data_Hora'],
+        y = ip_ano[col].fillna(0).where(ip_ano[col+'_error'] &
+                                        ~ip_ano[f'Precipitacao_b4_ow_{i}'].isna()),
+        name = col,
+        legendgroup=col,
+        showlegend = False,
+        line = dict(color='#c62828', width = 4),
+        connectgaps=False
+                            ),
+                  row = i + 1, col = 1
+                 )
+    fig.add_trace(go.Scatter(
+        x = rip_ano['Data_Hora'],
+        y = rip_ano[col].fillna(0).where(rip_ano[col+'_idw']),
+        name = col,
+        legendgroup=col,
+        showlegend = False,
+        line = dict(color='#c62828', width = 4),
+        connectgaps = False
+                            ),
+                  row = i + 1, col = 2
+                 )
+    
+    
+    fig.add_trace(go.Scatter(
+            x = ip_ano['Data_Hora'],
+            y = ip_ano[col].where(ip_ano[f'Precipitacao_b4_ow_{i}'].isna()),
+            name = col,
+            legendgroup=col,
+            showlegend = False,
+            line = dict(color='#0398fc', width = 4),
+            connectgaps=False
+                                ),
+                      row = i + 1, col = 1
+                     )
+    fig.add_trace(go.Scatter(
+            x = rip_ano['Data_Hora'],
+            y = rip_ano[col].where(rip_ano[col + '_fill_ow']),
+            name = col,
+            legendgroup=col,
+            showlegend = False,
+            line = dict(color='#0398fc', width = 4),
+            connectgaps=False
+                                ),
+                      row = i + 1, col = 2
                      )
     
 fig.update_layout(height=1200, width=800)
