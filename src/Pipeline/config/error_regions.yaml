@@ -4,9 +4,9 @@ UmidadeRelativa:
     margins: 3
 
 PressaoAtmosferica:
-    d_threshold: 50
+    d_threshold: 0.5
     z_threshold: 7
-    margins: 10
+    margins: 5
     min_value: 905
     max_value: 950
 

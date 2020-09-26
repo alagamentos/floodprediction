@@ -38,10 +38,6 @@ PressaoAtmosferica:
     idw: true
     interpolation:
         max_interpolation_size: 500
-    regression:
-        max_region_size: 1000
-        lookbackSize: 8
-        extra_features: ['Hora','Mes','TemperaturaDoAr_0']
 
 RadiacaoSolar:
     idw: true

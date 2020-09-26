@@ -35,7 +35,6 @@ if __name__ == "__main__":
   df = regions.merge(merged, on = 'Data_Hora')
   include_datetime_features(df)
 
-  # Transform datetime features
 
   try:
     df = df.drop(columns = ['index'])
