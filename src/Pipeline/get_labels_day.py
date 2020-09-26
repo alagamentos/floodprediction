@@ -33,7 +33,7 @@ if __name__== '__main__':
   distance_threshold = 4.5 # km - Max for each station
 
   open_weather_path = 'data/cleandata/OpenWeather/history_bulk.csv'
-  ip_path = 'data/cleandata/Info pluviometricas/Merged Data/merged.csv'
+  ip_path = 'data/cleandata/Info pluviometricas/Merged Data/repaired.csv'
   ords_path = 'data/cleandata/Ordens de serviço/Enchentes_LatLong.csv'
   est_path = 'data/cleandata/Estacoes/lat_lng_estacoes.csv'
 
@@ -42,23 +42,13 @@ if __name__== '__main__':
   ow = pd.read_csv(open_weather_path, sep = ';',
                   parse_dates = ['Data_Hora'])
 
-  ip = pd.read_csv(ip_path,
-                  sep = ';',
-                  dtype = {'Local_0': object, 'Local_1':object,
-                            'Local_2':object,  'Local_3':object},
-                  parse_dates = ['Data_Hora'])
+  ip = pd.read_csv(ip_path, sep = ';', parse_dates = ['Data_Hora'])
 
   ords = pd.read_csv(ords_path,
                   sep = ';')
 
   est = pd.read_csv( est_path, sep = ';')
   est = est.iloc[:-1]
-
-
-  ## TO DO:
-  ## Merge (merged.csv) With repaired data (repaired.csv)
-  ## - Use correct data for removing OrdensServico
-  ## =======================
 
   # Group OrdensServico by Date - Count()
   ords['Data'] = pd.to_datetime(ords['Data'], yearfirst=True)

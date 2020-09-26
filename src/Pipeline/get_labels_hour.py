@@ -9,26 +9,17 @@ if __name__== '__main__':
   rain_threshold = 2 # mm/h
 
   open_weather_path = 'data/cleandata/OpenWeather/history_bulk.csv'
-  ip_path = 'data/cleandata/Info pluviometricas/Merged Data/merged.csv'
+  ip_path = 'data/cleandata/Info pluviometricas/Merged Data/repaired.csv'
   ords_path = 'data/cleandata/Ordens de serviço/labels_day.csv'
 
   save_path = 'data/cleandata/Ordens de serviço/labels_hour.csv'
 
   ow = pd.read_csv(open_weather_path, sep = ';')
 
-  ip = pd.read_csv(ip_path,
-                  sep = ';',
-                  dtype = {'Local_0': object, 'Local_1':object,
-                            'Local_2':object,  'Local_3':object})
+  ip = pd.read_csv(ip_path, sep = ';',)
 
   ords = pd.read_csv(ords_path,
                      sep = ';')
-
-
-  ## TO DO:
-  ## Merge (merged.csv) With repaired data (repaired.csv)
-  ## - Use correct data for removing OrdensServico
-  ## =======================
 
   # OrdensServico
   ords['Data'] = pd.to_datetime(ords['Data'], yearfirst = True)
