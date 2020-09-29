@@ -31,7 +31,8 @@ interest_cols.remove('SensacaoTermica')
 
 
 for c in interest_cols:
-    original_df[c] = (original_df[c+'_0'] + original_df[c+'_1'] + original_df[c+'_2'] + original_df[c+'_3'] + original_df[c+'_4'])/5 
+    original_df[c] = (original_df[c+'_0'] + original_df[c+'_1'] +
+                      original_df[c+'_2'] + original_df[c+'_3'] + original_df[c+'_4'])/5 
 
 
 # ## Plot data
@@ -140,7 +141,6 @@ for selected_hour in hours:
     selected_df.columns = [f'{c}_{selected_hour}H' for c in selected_df.columns]
     df_date = pd.concat([df_date, selected_df], axis = 1)
 
-
 df_date = df_date.dropna(axis = 0)
 
 
@@ -155,6 +155,46 @@ df_date['Rain_Today'] = df_date['Rain_Today'].astype(int)
 
 
 df_date.head()
+
+
+# ## Seasonal Metrics
+
+# In[ ]:
+
+
+from datetime import datetime
+
+def get_season(Row):
+    
+    doy = Row.name.timetuple().tm_yday
+    
+    fall_start = datetime.strptime('2020-03-20', '%Y-%m-%d' ).timetuple().tm_yday
+    summer_start = datetime.strptime('2020-06-20', '%Y-%m-%d' ).timetuple().tm_yday
+    spring_start = datetime.strptime('2020-09-22', '%Y-%m-%d' ).timetuple().tm_yday
+    spring_end = datetime.strptime('2020-12-21', '%Y-%m-%d' ).timetuple().tm_yday
+    
+    fall = range(fall_start, summer_start)
+    summer = range(summer_start, spring_start)
+    spring = range(spring_start, spring_end)
+    
+    if doy in fall:
+        season = 1#'fall'
+    elif doy in summer:
+        season = 2#'winter'
+    elif doy in spring:
+        season = 3#'spring'
+    else:
+        season = 0#'summer' 
+    
+    return season
+
+df_date['season'] =  df_date.apply(get_season, axis = 1)
+
+
+# In[ ]:
+
+
+df_date.groupby('season').mean()['Precipitacao_sum']
 
 
 # # Reference Model
@@ -186,7 +226,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random
 # In[ ]:
 
 
-clf = xgb.XGBClassifier()#tree_method = 'gpu_hist')
+clf = xgb.XGBClassifier(tree_method = 'gpu_hist')
 
 eval_set = [(X_train, y_train), (X_test, y_test)]
 
@@ -219,6 +259,12 @@ plot_confusion_matrix(y_pred, y_test, ['0', '1'])
 # In[ ]:
 
 
+df_date.Rain_Next_Day.value_counts()/df_date.shape[0]
+
+
+# In[ ]:
+
+
 f1_score(y_pred, y_test)
 
 
@@ -232,4 +278,70 @@ features_imp = {k: v for k, v in sorted(features_imp.items(), key=lambda item: i
 
 plt.barh(list(features_imp.keys()), features_imp.values())
 plt.show()
+
+
+# In[ ]:
+
+
+plt.imshow(X_train.corr())
+plt.colorbar()
+plt.show()
+
+
+# In[ ]:
+
+
+import matplotlib.pyplot as plt
+
+colorscale=[[0.0, "rgb(240, 0, 0)"],
+            [0.3, "rgb(240, 240, 239)"],
+            [1.0, 'rgb(240, 240, 240)']]
+
+fig = go.Figure()
+
+fig.add_trace(go.Heatmap( z = X_train.corr(),
+                         x = X_train.columns,
+                         y = X_train.columns, 
+                         colorscale = colorscale))
+fig.update_layout(width = 200)
+fig.show()
+
+
+# In[ ]:
+
+
+X_train['PressaoAtmosferica_sum'].describe()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+clf = xgb.XGBClassifier(tree_method = 'gpu_hist')
+
+X = pd.concat([X_train.reset_index(drop = True), pd.Series(y_train, name = 'label')], axis = 1)
+X_train_up, y_train_up = upsampleData(X, 'label')
+
+eval_set = [(X_train_up, y_train_up), (X_test, y_test)]
+
+clf.fit(X_train_up, y_train_up,  eval_metric=["logloss","error", "auc", "map"],
+        eval_set=eval_set, verbose=False);
+
+keys = clf.evals_result()['validation_0'].keys()
+
+fig, ax = plt.subplots( 1, len(keys) ,figsize = (7*len(keys),7))
+ax = ax.ravel()
+for i, key in enumerate(keys):
+    ax[i].set_title(key)
+    ax[i].plot(clf.evals_result()['validation_0'][key], lw = 3)
+    ax[i].plot(clf.evals_result()['validation_1'][key], lw = 3)
+plt.show()
+
+y_pred = clf.predict(X_test)
+plot_confusion_matrix(y_pred, y_test, ['0', '1'])
 
