@@ -65,7 +65,7 @@ def _subplot_cm(cm,
           color="white" if cm[i, j] > thresh else "black")
   fig.tight_layout()
 
-def plot_confusion_matrix(y_pred, y_true, labels, suptitle = 'Confusion Matrix'):
+def plot_confusion_matrix(y_true, y_pred, labels, suptitle = 'Confusion Matrix'):
   """
   _subplot_cm wapper - Plot normalized and not
   normilized confusion matrix
