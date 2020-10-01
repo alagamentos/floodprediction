@@ -8,6 +8,26 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+import xgboost as xgb
+import catboost as cb
+import lightgbm as lgb
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, f1_score, precision_score,                            recall_score, fbeta_score, precision_recall_curve
+
+from hyperopt import hp
+import hyperopt.pyll
+from hyperopt.pyll import scope
+from hyperopt import STATUS_OK
+from hyperopt import fmin, tpe, Trials
+
+from datetime import datetime
+
+import sys
+sys.path.append('../../Pipeline')
+
+from ml_utils import *
+
 
 # In[ ]:
 
@@ -114,6 +134,9 @@ sum_date.columns = [c + '_sum' for c in sum_date.columns]
 median_date = df[interest_cols + ['Date']].groupby('Date').median()
 median_date.columns = [c + '_median' for c in median_date.columns]
 
+mean_date = df[interest_cols + ['Date']].groupby('Date').mean()
+mean_date.columns = [c + '_mean' for c in mean_date.columns]
+
 min_date = df[interest_cols + ['Date']].groupby('Date').min()
 min_date.columns = [c + '_min' for c in min_date.columns]
 
@@ -124,7 +147,7 @@ max_date.columns = [c + '_max' for c in max_date.columns]
 # In[ ]:
 
 
-df_date = pd.concat([df_date, sum_date, median_date, min_date, max_date], axis = 1)
+df_date = pd.concat([df_date, sum_date, mean_date, median_date, min_date, max_date], axis = 1)
 df_date.head(2)
 
 
@@ -162,7 +185,6 @@ df_date.head()
 # In[ ]:
 
 
-from datetime import datetime
 
 def get_season(Row):
     
@@ -194,26 +216,22 @@ df_date['season'] =  df_date.apply(get_season, axis = 1)
 # In[ ]:
 
 
-df_date.groupby('season').mean()['Precipitacao_sum']
+seasonal_means = ['Precipitacao_mean']#, 'RadiacaoSolar_mean', 'TemperaturaDoAr_mean']
 
+for s in seasonal_means:
+    map_ = dict(df_date.groupby('season').mean()['Precipitacao_mean'])
+    df_date[f'seasonalMean_{s}'] =  df_date['season'].map(map_)
 
-# # Reference Model
+df_date = df_date.drop(columns = ['season'])
+
 
 # In[ ]:
 
 
-import xgboost as xgb
-import catboost as cb
-import lightgbm as lgb
+df_date
 
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score
 
-import sys
-sys.path.append('../../Pipeline')
-
-from ml_utils import *
-
+# # Reference Model
 
 # In[ ]:
 
@@ -222,11 +240,13 @@ X, y = df_date.drop(columns = ['Rain_Next_Day']), df_date.Rain_Next_Day.values
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
+X_test.shape, X_train.shape
+
 
 # In[ ]:
 
 
-clf = xgb.XGBClassifier(tree_method = 'gpu_hist')
+clf = xgb.XGBClassifier()#tree_method = 'gpu_hist')
 
 eval_set = [(X_train, y_train), (X_test, y_test)]
 
@@ -241,16 +261,6 @@ for i, key in enumerate(keys):
     ax[i].plot(clf.evals_result()['validation_0'][key], lw = 3)
     ax[i].plot(clf.evals_result()['validation_1'][key], lw = 3)
 plt.show()
-
-
-# In[ ]:
-
-
-X_test.shape, X_train.shape
-
-
-# In[ ]:
-
 
 y_pred = clf.predict(X_test)
 plot_confusion_matrix(y_pred, y_test, ['0', '1'])
@@ -268,10 +278,12 @@ df_date.Rain_Next_Day.value_counts()/df_date.shape[0]
 f1_score(y_pred, y_test)
 
 
+# # Feature Selection
+
 # In[ ]:
 
 
-plt.figure(figsize = (15,30))
+plt.figure(figsize = (8,14))
 
 features_imp = dict(zip(X_train.columns, clf.feature_importances_))
 features_imp = {k: v for k, v in sorted(features_imp.items(), key=lambda item: item[1])}
@@ -283,15 +295,10 @@ plt.show()
 # In[ ]:
 
 
+
 plt.imshow(X_train.corr())
 plt.colorbar()
 plt.show()
-
-
-# In[ ]:
-
-
-import matplotlib.pyplot as plt
 
 colorscale=[[0.0, "rgb(240, 0, 0)"],
             [0.3, "rgb(240, 240, 239)"],
@@ -303,34 +310,67 @@ fig.add_trace(go.Heatmap( z = X_train.corr(),
                          x = X_train.columns,
                          y = X_train.columns, 
                          colorscale = colorscale))
-fig.update_layout(width = 200)
+fig.update_layout(width = 700, height = 700)
 fig.show()
 
 
 # In[ ]:
 
 
-X_train['PressaoAtmosferica_sum'].describe()
+def remove_high_correlation(df, threshold):
+    
+    dataset = df.copy()
+    
+    remove_columns = []
+    
+    col_corr = set() # Set of all the names of deleted columns
+    corr_matrix = dataset.corr()
+    for i in range(len(corr_matrix.columns)):
+        for j in range(i):
+            if (np.abs(corr_matrix.iloc[i, j]) >= threshold) and (corr_matrix.columns[j] not in col_corr):
+                colname = corr_matrix.columns[i] # getting the name of column
+                col_corr.add(colname)
+                if colname in dataset.columns:
+                    remove_columns.append(colname) # deleting the column from the dataset
+                    
+                    
+    return remove_columns
 
 
 # In[ ]:
 
 
-
+remove_columns = remove_high_correlation(X_train, 0.7)
+remove_columns += ['Precipitacao_min']
 
 
 # In[ ]:
 
 
-clf = xgb.XGBClassifier(tree_method = 'gpu_hist')
+X_test_sel = X_test.drop(columns = remove_columns)
+X_train_sel = X_train.drop(columns = remove_columns)
 
-X = pd.concat([X_train.reset_index(drop = True), pd.Series(y_train, name = 'label')], axis = 1)
-X_train_up, y_train_up = upsampleData(X, 'label')
 
-eval_set = [(X_train_up, y_train_up), (X_test, y_test)]
+# In[ ]:
 
-clf.fit(X_train_up, y_train_up,  eval_metric=["logloss","error", "auc", "map"],
-        eval_set=eval_set, verbose=False);
+
+fig = go.Figure()
+fig.add_trace(go.Heatmap( z = X_train_sel.corr(),
+                         x = X_train_sel.columns,
+                         y = X_train_sel.columns) )
+fig.update_layout(width = 700, height = 700)
+fig.show()
+
+
+# In[ ]:
+
+
+clf = xgb.XGBClassifier()#tree_method = 'gpu_hist')
+
+eval_set = [(X_train_sel, y_train), (X_test_sel, y_test)]
+
+clf.fit(X_train_sel, y_train,  eval_metric=["logloss","error", "auc", "map"],
+        eval_set=eval_set, verbose=False, early_stopping_rounds=10,);
 
 keys = clf.evals_result()['validation_0'].keys()
 
@@ -342,6 +382,117 @@ for i, key in enumerate(keys):
     ax[i].plot(clf.evals_result()['validation_1'][key], lw = 3)
 plt.show()
 
-y_pred = clf.predict(X_test)
+y_pred = clf.predict(X_test_sel)
 plot_confusion_matrix(y_pred, y_test, ['0', '1'])
+
+
+# In[ ]:
+
+
+plt.figure(figsize = (12,9))
+
+features_imp = dict(zip(X_train_sel.columns, clf.feature_importances_))
+features_imp = {k: v for k, v in sorted(features_imp.items(), key=lambda item: item[1])}
+
+plt.barh(list(features_imp.keys()), features_imp.values())
+plt.show()
+
+
+# # Model Optimization
+
+# In[ ]:
+
+
+
+param_hyperopt = {
+    'max_depth':scope.int(hp.quniform('max_depth', 5, 30, 1)),
+    'n_estimators':scope.int(hp.quniform('n_estimators', 5, 1000, 1)),
+    'min_child_weight':  scope.int(hp.quniform('min_child_weight', 1, 8, 1)),
+    'reg_lambda':hp.uniform('reg_lambda', 0.01, 500.0),
+    'reg_alpha':hp.uniform('reg_alpha', 0.01, 500.0),
+    'colsample_bytree':hp.uniform('colsample_bytree', 0.3, 1.0),
+    'early_stopping_rounds':  scope.int(hp.quniform('early_stopping_rounds', 1, 20, 1)),
+                 }
+
+def cost_function(params):
+    
+    fit_parameters = {}
+    fit_parameters['early_stopping_rounds'] = params.pop('early_stopping_rounds')
+
+    clf = xgb.XGBClassifier(**params,
+                            objective="binary:logistic",
+                            random_state=42)
+
+    clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"], verbose = False,**fit_parameters)
+    y_pred = clf.predict(X_test_sel)
+
+    return {'loss':-fbeta_score(y_pred, y_test, beta=2),'status': STATUS_OK}
+
+num_eval = 250
+eval_set = [(X_train_sel, y_train), (X_test_sel, y_test)]
+
+trials = Trials()
+best_param = fmin(cost_function,
+                     param_hyperopt,
+                     algo=tpe.suggest,
+                     max_evals=num_eval,
+                     trials=trials,
+                     rstate=np.random.RandomState(1))
+
+
+# In[ ]:
+
+
+best_param['min_child_weight'] = int(best_param['min_child_weight'])
+best_param['n_estimators'] = int(best_param['n_estimators'])
+best_param['max_depth'] = int(best_param['max_depth'])
+best_param['early_stopping_rounds'] = int(best_param['early_stopping_rounds'])
+best_param
+
+
+# In[ ]:
+
+
+params = best_param.copy()
+
+fit_parameters = {}
+fit_parameters['early_stopping_rounds'] = params.pop('early_stopping_rounds')
+
+clf = xgb.XGBClassifier(**params,
+                        objective="binary:logistic",
+                        random_state=42)
+
+clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"],
+        verbose = False,**fit_parameters)
+y_pred = clf.predict(X_test_sel)
+y_pred_prob = clf.predict_proba(X_test_sel)
+
+plot_confusion_matrix(y_pred, y_test, ['0','1'])
+evaluate = (y_test, y_pred)
+print('f1_score: ', f1_score(*evaluate))
+print('Accuracy: ', accuracy_score(*evaluate))
+print('Precision: ', precision_score(*evaluate))
+print('Recall: ', recall_score(*evaluate))
+
+
+# In[ ]:
+
+
+plot_precision_recall(y_test, y_pred_prob[:,1])
+
+
+# In[ ]:
+
+
+desired_recall = 0.8
+
+precision, recall, threshold = precision_recall_curve(y_test, y_pred_prob[:,1])
+y_pred_threshold = (y_pred_prob[:,1] > threshold[arg_nearest(recall, desired_recall)]).astype(int)
+
+plot_confusion_matrix(y_pred_threshold, y_test, ['0','1'])
+evaluate = (y_test, y_pred_threshold)
+print('f1_score: ', f1_score(*evaluate))
+print('Accuracy: ', accuracy_score(*evaluate))
+print('Precision: ', precision_score(*evaluate))
+print('Recall: ', recall_score(*evaluate))
 

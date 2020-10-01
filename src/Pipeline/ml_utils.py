@@ -1,6 +1,10 @@
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, precision_recall_curve
+from sklearn.utils import resample
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 def _subplot_cm(cm,
         classes,
@@ -77,10 +81,98 @@ def plot_confusion_matrix(y_pred, y_true, labels, suptitle = 'Confusion Matrix')
 
   """
 
-  cm = confusion_matrix(y_pred, y_true)
+  cm = confusion_matrix(y_true, y_pred)
 
   fig, ax = plt.subplots(1,2, sharey=True)
   fig.suptitle(suptitle)
   _subplot_cm(cm, labels ,fig, ax[0], normalize=False)
   _subplot_cm(cm, labels ,fig, ax[1], normalize=True)
   plt.show()
+
+def upsampleData(X, label):
+
+    # Separar verdadeiro e falso
+    false_label = X[X[label]==0].copy()
+    true_label = X[X[label]==1].copy()
+
+    # Realizar upsample para os valores verdadeiros
+    label_upsampled = resample(true_label,
+                            replace=True, # sample with replacement
+                            n_samples=len(false_label), # match number in majority class
+                            random_state=378) # reproducible results
+    upsampled = pd.concat([false_label, label_upsampled])
+
+    # Separar x e y
+    x = upsampled[[c for c in X.columns if label not in c]]
+    y = upsampled[label]
+
+    return x, y
+
+def plot_precision_recall(y_true, preds_proba):
+  """
+  Plot precision recall curves
+
+  :type y_true: array
+  :param y_true: ground truth values
+
+  :type preds_proba: array
+  :param preds_proba: probability for positive predicted class
+  """
+
+  # calculate model precision-recall curve
+  precision, recall, threshold = precision_recall_curve(y_true, preds_proba)
+  # plot the model precision-recall curve
+
+  fig = make_subplots(1,2, subplot_titles=("Recall x Precision", "Recall and Precision Curves"))
+
+  fig.add_trace(go.Scatter(
+      x=recall,
+      y=precision,
+      name = 'Recall x Precision',
+                          ),
+                row = 1,
+                col = 1
+              )
+
+  fig.add_trace(go.Scatter(
+      x=threshold,
+      y=precision[:-1],
+      name= 'Precision',
+                          ),
+                row = 1,
+                col = 2
+              )
+
+  fig.add_trace(go.Scatter(
+      x=threshold,
+      y=recall[:-1],
+      name = 'Recall',
+                          ),
+                row = 1,
+                col = 2
+              )
+
+  for trace in fig['data']:
+      if(trace['name'] == 'Precision x Recall'): trace['showlegend'] = False
+  fig.update_yaxes(title_text="Precision", row=1, col=1)
+  fig.update_xaxes(title_text="Recall", row=1, col=1)
+  fig.update_xaxes(title_text="Threshold", row=1, col=2)
+
+  return fig
+
+def arg_nearest(array, value):
+  """
+  Find index of nearest value for a given number
+
+  :type array: array
+  :param array: numpy array
+
+  :type value: float
+  :param value: desired value
+
+  :return: index
+  :rtype: int
+  """
+  array = np.asarray(array)
+  idx = (np.abs(array - value)).argmin()
+  return idx
