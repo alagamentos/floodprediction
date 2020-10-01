@@ -271,7 +271,7 @@ print(np.asarray((unique, counts)).T)
 
 
 
-encoding_dim = 20
+encoding_dim = 25
 
 input_data = Input(shape=(X.shape[1],))
 
@@ -344,7 +344,8 @@ params= {'colsample_bytree': 0.8937399605148961,
          'min_child_weight': 5,
          'n_estimators': 729,
          'reg_alpha': 19.86313897722475,
-         'reg_lambda': 188.1727458353706}
+         'reg_lambda': 188.1727458353706
+        }
 
 fit_params={}
 fit_params['early_stopping_rounds'] = params.pop('early_stopping_rounds')
@@ -379,6 +380,17 @@ plot_confusion_matrix(y_test, y_pred, ['0', '1'])
 # In[ ]:
 
 
-unique, counts = np.unique(y_test, return_counts=True)
-print(np.asarray((unique, counts)).T)
+evaluate = (y_test, y_pred)
+print('f1_score: ', f1_score(*evaluate))
+print('Accuracy: ', accuracy_score(*evaluate))
+print('Precision: ', precision_score(*evaluate))
+print('Recall: ', recall_score(*evaluate))
+
+
+# In[ ]:
+
+
+
+y_pred_prob = clf.predict_proba(encoded_data_test)
+plot_precision_recall(y_test, y_pred_prob[:,1])
 

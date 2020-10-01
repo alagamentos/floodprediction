@@ -263,7 +263,7 @@ for i, key in enumerate(keys):
 plt.show()
 
 y_pred = clf.predict(X_test)
-plot_confusion_matrix(y_pred, y_test, ['0', '1'])
+plot_confusion_matrix(y_test, y_pred, ['0', '1'])
 
 
 # In[ ]:
@@ -383,7 +383,7 @@ for i, key in enumerate(keys):
 plt.show()
 
 y_pred = clf.predict(X_test_sel)
-plot_confusion_matrix(y_pred, y_test, ['0', '1'])
+plot_confusion_matrix(y_test, y_pred, ['0', '1'])
 
 
 # In[ ]:
@@ -426,7 +426,7 @@ def cost_function(params):
     clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"], verbose = False,**fit_parameters)
     y_pred = clf.predict(X_test_sel)
 
-    return {'loss':-fbeta_score(y_pred, y_test, beta=2),'status': STATUS_OK}
+    return {'loss':-fbeta_score(y_test, y_pred, beta=2),'status': STATUS_OK}
 
 num_eval = 250
 eval_set = [(X_train_sel, y_train), (X_test_sel, y_test)]
@@ -467,7 +467,7 @@ clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"],
 y_pred = clf.predict(X_test_sel)
 y_pred_prob = clf.predict_proba(X_test_sel)
 
-plot_confusion_matrix(y_pred, y_test, ['0','1'])
+plot_confusion_matrix(y_test, y_pred, ['0','1'])
 evaluate = (y_test, y_pred)
 print('f1_score: ', f1_score(*evaluate))
 print('Accuracy: ', accuracy_score(*evaluate))
@@ -489,7 +489,7 @@ desired_recall = 0.8
 precision, recall, threshold = precision_recall_curve(y_test, y_pred_prob[:,1])
 y_pred_threshold = (y_pred_prob[:,1] > threshold[arg_nearest(recall, desired_recall)]).astype(int)
 
-plot_confusion_matrix(y_pred_threshold, y_test, ['0','1'])
+plot_confusion_matrix(y_test, y_pred_threshold, ['0','1'])
 evaluate = (y_test, y_pred_threshold)
 print('f1_score: ', f1_score(*evaluate))
 print('Accuracy: ', accuracy_score(*evaluate))
