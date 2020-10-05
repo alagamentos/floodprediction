@@ -23,7 +23,6 @@ TemperaturaDoAr:
     fill_ow: true
 
 DirecaoDoVento:
-    idw: true
     fill_ow: true
 
 VelocidadeDoVento:

@@ -35,7 +35,7 @@ import sys
 sys.path.append('../../Pipeline')
 
 from ml_utils import *
-from utils import moving_average, reverse_mod
+from utils import *
 
 
 # In[ ]:
@@ -92,6 +92,96 @@ interest_cols += ['Diff_Temp_POrvalho']
 original_df['Diff_Temp_POrvalho'] = original_df['TemperaturaDoAr'] -  original_df['PontoDeOrvalho']
 
 
+# # Vento
+
+# http://snowfence.umn.edu/Components/winddirectionanddegrees.htm
+
+# In[ ]:
+
+
+errors = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/error_regions.csv', sep = ';')
+errors[[c for c in errors.columns if 'Direcao' in c]].sum()
+
+
+# In[ ]:
+
+
+selected_wind = 2
+
+
+# In[ ]:
+
+
+rv_ = reverse_mod(original_df[f'DirecaoDoVento_{selected_wind}'].values)
+v_ = moving_average(rv_, window = 15)
+v_ = np.mod(v_, 360)
+
+
+# In[ ]:
+
+
+fig = go.Figure(layout=dict(template = 'plotly_dark'))
+
+fig.add_trace(go.Scatter(
+x= list(range(len(rv_))),
+y = rv_))
+
+fig.show()
+
+
+# In[ ]:
+
+
+fig = go.Figure(layout=dict(template = 'plotly_dark'))
+
+fig.add_trace(go.Scatter(
+    x = original_df['Data_Hora'],
+    y = original_df[f'DirecaoDoVento_{selected_wind}'],
+    name = f'DirecaoDoVento_{selected_wind}',
+    line = dict(color = 'gray')),
+             )
+
+fig.add_trace(go.Scatter(
+    x = original_df['Data_Hora'],
+    y = v_,
+    name = 'Avg'),
+             )
+    
+fig.show()
+
+
+# In[ ]:
+
+
+wind_direction = np.empty(v_.shape, dtype = np.object)
+wind_direction[(v_ > 315 ) | (v_ <=  45 )] = 0 # North
+wind_direction[(v_ >  45 ) & (v_ <= 135 )] = 1 # East
+wind_direction[(v_ > 135 ) & (v_ <= 225 )] = 2 # South
+wind_direction[(v_ > 225 ) & (v_ <= 315 )] = 3 # West
+
+
+# In[ ]:
+
+
+name = {0:'North', 1:'East', 2:'South', 3:'West'}
+fig = go.Figure(layout=dict(template = 'plotly_dark'))
+
+for i in range(4):
+    fig.add_trace(go.Scatter(
+        x = original_df['Data_Hora'],
+        y = pd.Series(v_).where(wind_direction == i),
+        name = name[i]),
+                 )
+    
+fig.show()
+
+
+# In[ ]:
+
+
+original_df['DirecaoDoVento'] = wind_direction
+
+
 # ## Has Rain
 
 # In[ ]:
@@ -137,11 +227,17 @@ df_date = df_date.set_index('Date')
 
 
 
+
+
+# In[ ]:
+
+
+
 sum_date = df[interest_cols + ['Date']].groupby('Date').sum()
 sum_date.columns = [c + '_sum' for c in sum_date.columns]
 
-median_date = df[interest_cols + ['Date']].groupby('Date').median()
-median_date.columns = [c + '_median' for c in median_date.columns]
+# median_date = df[interest_cols + ['Date']].groupby('Date').median()
+# median_date.columns = [c + '_median' for c in median_date.columns]
 
 mean_date = df[interest_cols + ['Date']].groupby('Date').mean()
 mean_date.columns = [c + '_mean' for c in mean_date.columns]
@@ -149,14 +245,17 @@ mean_date.columns = [c + '_mean' for c in mean_date.columns]
 min_date = df[interest_cols + ['Date']].groupby('Date').min()
 min_date.columns = [c + '_min' for c in min_date.columns]
 
-max_date = df[interest_cols + ['Date']].groupby('Date').max()
-max_date.columns = [c + '_max' for c in max_date.columns]
+# max_date = df[interest_cols + ['Date']].groupby('Date').max()
+# max_date.columns = [c + '_max' for c in max_date.columns]
+
+wind_direction_mode = df[['DirecaoDoVento','Date']].groupby('Date')                        .apply(pd.DataFrame.mode).set_index('Date', drop = True)
 
 
 # In[ ]:
 
 
-df_date = pd.concat([df_date, sum_date, mean_date, median_date, min_date, max_date], axis = 1)
+df_date = pd.concat([df_date, min_date, sum_date, mean_date, wind_direction_mode], axis = 1)
+# df_date = pd.concat([df_date, sum_date, mean_date, median_date, min_date, max_date], axis = 1)
 df_date.head(2)
 
 
@@ -187,6 +286,98 @@ df_date['Rain_Today'] = df_date['Rain_Today'].astype(int)
 
 
 df_date.head()
+
+
+# ### Make dynamic
+
+# In[ ]:
+
+
+h_cols = {'_'.join(c.split('_')[:-1]) for c in df_date.columns if '15H' in c}
+
+for c in h_cols:
+    df_date[f'{c}_diff_15h9'] =  df_date[f'{c}_15H'] - df_date[f'{c}_9H']
+    df_date[f'{c}_diff_21h3'] =  df_date[f'{c}_21H'] - df_date[f'{c}_3H']
+
+
+# In[ ]:
+
+
+for h in hours:
+    drop_cols = [c for c in df_date.columns if f'{h}H' in c]
+df_date = df_date.drop(columns =  drop_cols)
+
+
+# In[ ]:
+
+
+df_date.columns
+
+
+# In[ ]:
+
+
+# Select Columns
+
+
+# In[ ]:
+
+
+seected_cols = [
+                'Rain_Today',
+                'Rain_Next_Day',
+                'TemperaturaDoAr_min',
+                'UmidadeRelativa_min',
+                'PressaoAtmosferica_min',
+                'PontoDeOrvalho_min',
+                'RadiacaoSolar_min',
+                'Precipitacao_min',
+                'VelocidadeDoVento_min',
+                'DirecaoDoVento_min',
+                'Diff_Temp_POrvalho_min',
+                'TemperaturaDoAr_sum',
+                'UmidadeRelativa_sum',
+                'PressaoAtmosferica_sum',
+                'PontoDeOrvalho_sum',
+                'RadiacaoSolar_sum', 
+                'Precipitacao_sum', 
+                'VelocidadeDoVento_sum',
+                'DirecaoDoVento_sum', 
+                'Diff_Temp_POrvalho_sum', 
+                'TemperaturaDoAr_mean',
+                'UmidadeRelativa_mean', 
+                'PressaoAtmosferica_mean',
+                'PontoDeOrvalho_mean', 
+                'RadiacaoSolar_mean', 
+                'Precipitacao_mean',
+                'VelocidadeDoVento_mean', 
+                'DirecaoDoVento_mean',
+                'Diff_Temp_POrvalho_mean', 
+                'TemperaturaDoAr_diff_15h9',
+                'TemperaturaDoAr_diff_21h3', 
+                'UmidadeRelativa_diff_15h9',
+                'UmidadeRelativa_diff_21h3', 
+                'PressaoAtmosferica_diff_15h9',
+                'PressaoAtmosferica_diff_21h3', 
+                'PontoDeOrvalho_diff_15h9',
+                'PontoDeOrvalho_diff_21h3', 
+                'RadiacaoSolar_diff_15h9',
+                'RadiacaoSolar_diff_21h3', 
+                'Diff_Temp_POrvalho_diff_15h9',
+                'Diff_Temp_POrvalho_diff_21h3', 
+                'Precipitacao_diff_15h9',
+                'Precipitacao_diff_21h3', 
+#                 'VelocidadeDoVento_diff_15h9',
+#                 'VelocidadeDoVento_diff_21h3', 
+#                 'DirecaoDoVento_diff_15h9',
+#                 'DirecaoDoVento_diff_21h3'
+                ]
+
+
+# In[ ]:
+
+
+df_date = df_date.loc[:,selected_cols]
 
 
 # ## Seasonal Metrics
@@ -309,9 +500,9 @@ plt.imshow(X_train.corr())
 plt.colorbar()
 plt.show()
 
-colorscale=[[0.0, "rgb(240, 0, 0)"],
-            [0.3, "rgb(240, 240, 239)"],
-            [1.0, 'rgb(240, 240, 240)']]
+colorscale=[[1.0, "rgb(240, 0, 0)"],
+            [0.6, "rgb(240, 240, 239)"],
+            [0.0, 'rgb(240, 240, 240)']]
 
 fig = go.Figure()
 
@@ -350,7 +541,7 @@ def remove_high_correlation(df, threshold):
 
 
 remove_columns = remove_high_correlation(X_train, 0.7)
-remove_columns += ['Precipitacao_min']
+# remove_columns += ['Precipitacao_min']
 
 
 # In[ ]:
@@ -504,134 +695,4 @@ print('f1_score: ', f1_score(*evaluate))
 print('Accuracy: ', accuracy_score(*evaluate))
 print('Precision: ', precision_score(*evaluate))
 print('Recall: ', recall_score(*evaluate))
-
-
-# # Include Wind Direction
-
-# In[ ]:
-
-
-errors = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/error_regions.csv', sep = ';')
-errors[[c for c in errors.columns if 'Direcao' in c]].sum()
-
-
-# In[ ]:
-
-
-selected_wind = 2
-
-
-# In[ ]:
-
-
-v_ = reverse_mod(original_df[f'DirecaoDoVento_{selected_wind}'].values)
-v_ = moving_average(v_, window = 15)
-v_ = np.mod(v_, 360)
-
-
-# In[ ]:
-
-
-wind_direction = np.empty(v_.shape, dtype = np.int)
-wind_direction[(v_ > 315 ) | (v_ <=  45 )] = 0 # North
-wind_direction[(v_ >  45 ) & (v_ <= 135 )] = 1 # East
-wind_direction[(v_ > 135 ) & (v_ <= 225 )] = 2 # South
-wind_direction[(v_ > 225 ) & (v_ <= 315 )] = 3 # West
-
-original_df['DirecaoDoVento_cat'] = wind_direction
-original_df['Date'] = pd.to_datetime(original_df['Date'], yearfirst=True)
-
-# Mode
-wind_direction_mode = original_df[['DirecaoDoVento_cat','Date']].groupby('Date')                        .apply(pd.DataFrame.mode).set_index('Date', drop = True)
-
-
-# In[ ]:
-
-
-X = X.merge(wind_direction_mode, right_index=True, left_index=True)
-dummies = pd.get_dummies(X['DirecaoDoVento_cat'], drop_first=True)
-dummies.columns = [f'DirecaoDoVento_{i}' for i in range(len(dummies.columns))]
-X = pd.concat([X, dummies], axis = 1 ).drop(columns = ['DirecaoDoVento_cat'])
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-
-remove_columns = remove_high_correlation(X_train, 0.7)
-remove_columns += ['Precipitacao_min']
-X_test_sel = X_test.drop(columns = remove_columns)
-X_train_sel = X_train.drop(columns = remove_columns)
-
-
-# In[ ]:
-
-
-param_hyperopt = {
-    'max_depth':scope.int(hp.quniform('max_depth', 5, 30, 1)),
-    'n_estimators':scope.int(hp.quniform('n_estimators', 5, 1000, 1)),
-    'min_child_weight':  scope.int(hp.quniform('min_child_weight', 1, 8, 1)),
-    'reg_lambda':hp.uniform('reg_lambda', 0.01, 500.0),
-    'reg_alpha':hp.uniform('reg_alpha', 0.01, 500.0),
-    'colsample_bytree':hp.uniform('colsample_bytree', 0.3, 1.0),
-    'early_stopping_rounds':  scope.int(hp.quniform('early_stopping_rounds', 1, 20, 1)),
-                 }
-
-def cost_function(params):
-    
-    fit_parameters = {}
-    fit_parameters['early_stopping_rounds'] = params.pop('early_stopping_rounds')
-
-    clf = xgb.XGBClassifier(**params,
-                            objective="binary:logistic",
-                            random_state=42)
-
-    clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"], verbose = False,**fit_parameters)
-    y_pred = clf.predict(X_test_sel)
-
-    return {'loss':-fbeta_score(y_test, y_pred, beta=2),'status': STATUS_OK}
-
-num_eval = 250
-eval_set = [(X_train_sel, y_train), (X_test_sel, y_test)]
-
-trials = Trials()
-best_param = fmin(cost_function,
-                     param_hyperopt,
-                     algo=tpe.suggest,
-                     max_evals=num_eval,
-                     trials=trials,
-                     rstate=np.random.RandomState(1))
-
-best_param['min_child_weight'] = int(best_param['min_child_weight'])
-best_param['n_estimators'] = int(best_param['n_estimators'])
-best_param['max_depth'] = int(best_param['max_depth'])
-best_param['early_stopping_rounds'] = int(best_param['early_stopping_rounds'])
-best_param
-
-
-# In[ ]:
-
-
-params = best_param.copy()
-
-fit_parameters = {}
-fit_parameters['early_stopping_rounds'] = params.pop('early_stopping_rounds')
-
-clf = xgb.XGBClassifier(**params,
-                        objective="binary:logistic",
-                        random_state=42)
-
-clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"],
-        verbose = False,**fit_parameters)
-y_pred = clf.predict(X_test_sel)
-y_pred_prob = clf.predict_proba(X_test_sel)
-
-plot_confusion_matrix(y_test, y_pred, ['0','1'])
-evaluate = (y_test, y_pred)
-print('f1_score: ', f1_score(*evaluate))
-print('Accuracy: ', accuracy_score(*evaluate))
-print('Precision: ', precision_score(*evaluate))
-print('Recall: ', recall_score(*evaluate))
-
-
-# In[ ]:
-
-
-plot_precision_recall(y_test, y_pred_prob[:,1])
 

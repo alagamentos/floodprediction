@@ -288,3 +288,50 @@ def plot_regions(timeSeries, regions, start, stop,
           plt.ylim(ylim[0], ylim[1])
 
   plt.show()
+
+def reverse_mod(mod_array, divisor =  360, threshold = 200):
+  """
+  Reverses the modulo operation on a given array
+  :param mod_array: array
+  :type mod_array: np.array
+
+  :param divisor: mod divisor
+  :type divisor: float
+
+  :param threshold: difference threshold
+  :type threshold: float
+  """
+
+  n = mod_array.shape[0]
+
+  diff_array = np.diff(mod_array, 1, prepend = 0)
+  array = np.zeros([n])
+
+  aux = 0
+  for index in range(n):
+      if diff_array[index] > threshold:
+          aux -= divisor
+      elif diff_array[index] < -threshold:
+          aux += divisor
+
+      array[index] = mod_array[index] + aux
+  return array
+
+def moving_average(array, window):
+  """
+  Calculates the moving average on a given array
+  Pads the array with zeros
+
+  :param array: array
+  :type array: np.array
+
+  :param window: window size
+  :type window: int
+
+  """
+
+  ret = np.cumsum(array, dtype=float)
+  ret[window:] = ret[window:] - ret[:-window]
+  avg = ret[window - 1:] / window
+  avg = np.insert(avg, 0, np.zeros((window//2,)))
+  return np.append(avg, np.zeros((window//2,)))

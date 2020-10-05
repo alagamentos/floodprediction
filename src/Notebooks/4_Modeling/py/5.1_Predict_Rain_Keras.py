@@ -301,6 +301,12 @@ autoencoder.fit(X_train, X_train,
 # In[ ]:
 
 
+X_train.shape
+
+
+# In[ ]:
+
+
 encoded_data_train = encoder.predict(X_train)
 encoded_data_test = encoder.predict(X_test)
 
@@ -327,9 +333,9 @@ plt.show()
 
 import seaborn as sns
 df_encoded = pd.DataFrame(encoded_data_train, columns = list(range(encoded_data_train.shape[1] )) )
-figure = plt.figure(figsize=(13.5,12))
+figure = plt.figure(figsize=(17,12))
 corrMatrix = df_encoded.corr()
-sns.heatmap(corrMatrix, annot=True, cbar = False, cmap="viridis")
+sns.heatmap(corrMatrix, annot=True, cbar = True, cmap="viridis")
 plt.show()
 
 
