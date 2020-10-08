@@ -360,7 +360,20 @@ df_date
 # In[ ]:
 
 
-df_date.corr()['Rain_Next_Day'].abs().sort_values(ascending = False).to_dict()
+drop_cols = [c for c in df_date.columns if 'Precipitacao' in c] + ['Rain_Next_Day']
+df_date.drop(columns = drop_cols, inplace = True)
+
+
+# In[ ]:
+
+
+df_date.columns
+
+
+# In[ ]:
+
+
+#df_date.corr()['Rain_Next_Day'].abs().sort_values(ascending = False).to_dict()
 
 
 # # Reference Model
@@ -368,7 +381,7 @@ df_date.corr()['Rain_Next_Day'].abs().sort_values(ascending = False).to_dict()
 # In[ ]:
 
 
-X, y = df_date.drop(columns = ['Rain_Next_Day']), df_date.Rain_Next_Day.values
+X, y = df_date.drop(columns = ['Rain_Today']), df_date.Rain_Today.values
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
@@ -401,7 +414,7 @@ plot_confusion_matrix(y_test, y_pred, ['0', '1'])
 # In[ ]:
 
 
-df_date.Rain_Next_Day.value_counts()/df_date.shape[0]
+df_date.Rain_Today.value_counts()/df_date.shape[0]
 
 
 # In[ ]:

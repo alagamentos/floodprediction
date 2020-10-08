@@ -371,7 +371,7 @@ clf.fit(encoded_data_train, y_train,  eval_metric=["logloss","error", "auc", "ma
 
 keys = clf.evals_result()['validation_0'].keys()
 
-fig, ax = plt.subplots( 1, len(keys) ,figsize = (7*len(keys),7))
+fig, ax = plt.subplots( 1, len(keys), figsize = (7*len(keys),7))
 ax = ax.ravel()
 for i, key in enumerate(keys):
     ax[i].set_title(key)
@@ -398,5 +398,136 @@ print('Recall: ', recall_score(*evaluate))
 
 
 y_pred_prob = clf.predict_proba(encoded_data_test)
-plot_precision_recall(y_test, y_pred_prob[:,1])
+fig = plot_precision_recall(y_test, y_pred_prob[:,1])
+fig.update_layout(template = 'plotly_dark')
+fig.show()
+
+
+# In[ ]:
+
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+
+METRICS = [
+      keras.metrics.TruePositives(name='tp'),
+      keras.metrics.FalsePositives(name='fp'),
+      keras.metrics.TrueNegatives(name='tn'),
+      keras.metrics.FalseNegatives(name='fn'), 
+      keras.metrics.BinaryAccuracy(name='accuracy'),
+      keras.metrics.Precision(name='precision'),
+      keras.metrics.Recall(name='recall'),
+      keras.metrics.AUC(name='auc'),
+]
+
+
+# In[ ]:
+
+
+
+model = Sequential()
+model.add(Dense(20, input_dim=encoded_data_train.shape[1],
+                activation='relu'))
+model.add(Dense(15, activation='relu'))
+model.add(Dense(10, activation='relu'))
+model.add(Dense(5, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
+
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=METRICS)
+
+
+# In[ ]:
+
+
+history = model.fit(encoded_data_train, y_train, epochs=150, batch_size=10, 
+                    validation_data=(encoded_data_test, y_test))
+
+
+# In[ ]:
+
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.show()
+
+
+# In[ ]:
+
+
+y_pred = (model.predict(encoded_data_test) > 0.5 ).astype(int)
+plot_confusion_matrix(y_test, y_pred, ['0', '1'])
+
+
+# In[ ]:
+
+
+total = encoded_data_train.shape[0]
+pos = np.unique(y_train, return_counts=True)[1][1]
+neg = np.unique(y_train, return_counts=True)[1][0]
+
+weight_for_0 = (1 / neg)*(total)/2.0 
+weight_for_1 = (1 / pos)*(total)/2.0
+
+class_weights = {0: weight_for_0, 1: weight_for_1}
+
+
+# In[ ]:
+
+
+model = Sequential()
+model.add(Dense(20, input_dim=encoded_data_train.shape[1], activation='relu'))
+model.add(Dense(15, activation='relu'))
+model.add(Dropout(0.2))
+model.add(Dense(10, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(5, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(5, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(1, activation='sigmoid'))
+
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=METRICS)
+
+history = model.fit(encoded_data_train, y_train, epochs=150, batch_size=10, 
+                    validation_data=(encoded_data_test, y_test), class_weight = class_weights)
+
+
+# In[ ]:
+
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.show()
+
+
+# In[ ]:
+
+
+y_pred_prob = model.predict(encoded_data_test)
+y_pred = (y_pred_proba  > 0.5 ).astype(int)
+plot_confusion_matrix(y_test, y_pred, ['0', '1'])
+
+
+# In[ ]:
+
+
+fig = plot_precision_recall(y_test, y_pred_prob)
+fig.update_layout(template = 'plotly_dark')
+fig.show()
+
+
+# In[ ]:
+
+
+desired_recall = 0.8
+
+precision, recall, threshold = precision_recall_curve(y_test, y_pred_prob)
+y_pred_threshold = (y_pred_prob > threshold[arg_nearest(recall, desired_recall)]).astype(int)
+
+plot_confusion_matrix(y_test, y_pred_threshold, ['0','1'])
+evaluate = (y_test, y_pred_threshold)
+print('f1_score: ', f1_score(*evaluate))
+print('Accuracy: ', accuracy_score(*evaluate))
+print('Precision: ', precision_score(*evaluate))
+print('Recall: ', recall_score(*evaluate))
 

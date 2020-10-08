@@ -240,6 +240,18 @@ df_date = df_date.drop(columns = ['season'])
 df_date
 
 
+# In[ ]:
+
+
+df_date.corr()['Rain_Next_Day'].abs().sort_values(ascending = False).to_dict()
+
+
+# In[ ]:
+
+
+plt.bar(df_date.corr()['Rain_Next_Day'].index,df_date.corr()['Rain_Next_Day'].values)
+
+
 # # Reference Model
 
 # In[ ]:
@@ -367,7 +379,7 @@ fig = go.Figure()
 fig.add_trace(go.Heatmap( z = X_train_sel.corr(),
                          x = X_train_sel.columns,
                          y = X_train_sel.columns) )
-fig.update_layout(width = 700, height = 700)
+fig.update_layout(template = 'plotly_dark',width = 700, height = 700)
 fig.show()
 
 
@@ -487,7 +499,9 @@ print('Recall: ', recall_score(*evaluate))
 # In[ ]:
 
 
-plot_precision_recall(y_test, y_pred_prob[:,1])
+fig = plot_precision_recall(y_test, y_pred_prob[:,1])
+fig.update_layout(template = 'plotly_dark')
+fig.show()
 
 
 # In[ ]:
@@ -524,9 +538,42 @@ selected_wind = 2
 # In[ ]:
 
 
-v_ = reverse_mod(original_df[f'DirecaoDoVento_{selected_wind}'].values)
-v_ = moving_average(v_, window = 15)
+rv_ = reverse_mod(original_df[f'DirecaoDoVento_{selected_wind}'].values)
+v_ = moving_average(rv_, window = 15)
 v_ = np.mod(v_, 360)
+
+
+# In[ ]:
+
+
+fig = go.Figure(layout=dict(template = 'plotly_dark'))
+
+fig.add_trace(go.Scatter(
+x= list(range(len(rv_))),
+y = rv_))
+
+fig.show()
+
+
+# In[ ]:
+
+
+fig = go.Figure(layout=dict(template = 'plotly_dark'))
+
+fig.add_trace(go.Scatter(
+    x = original_df['Data_Hora'],
+    y = original_df[f'DirecaoDoVento_{selected_wind}'],
+    name = f'DirecaoDoVento_{selected_wind}',
+    line = dict(color = 'gray')),
+             )
+
+fig.add_trace(go.Scatter(
+    x = original_df['Data_Hora'],
+    y = v_,
+    name = 'Avg'),
+             )
+    
+fig.show()
 
 
 # In[ ]:
@@ -542,7 +589,7 @@ original_df['DirecaoDoVento_cat'] = wind_direction
 original_df['Date'] = pd.to_datetime(original_df['Date'], yearfirst=True)
 
 # Mode
-wind_direction_mode = original_df[['DirecaoDoVento_cat','Date']].groupby('Date')                        .apply(pd.DataFrame.mode).set_index('Date', drop = True)
+wind_direction_mode = original_df.loc[ original_df['Data_Hora'].dt.hour > 20, ['DirecaoDoVento_cat','Date']].groupby('Date')                        .apply(pd.DataFrame.mode).set_index('Date', drop = True)
 
 
 # In[ ]:
@@ -633,5 +680,7 @@ print('Recall: ', recall_score(*evaluate))
 # In[ ]:
 
 
-plot_precision_recall(y_test, y_pred_prob[:,1])
+fig = plot_precision_recall(y_test, y_pred_prob[:,1])
+fig.update_layout(template = 'plotly_dark')
+fig.show()
 
