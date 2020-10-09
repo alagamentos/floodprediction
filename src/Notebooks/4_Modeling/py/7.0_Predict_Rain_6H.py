@@ -101,7 +101,7 @@ original_df['Diff_Temp_POrvalho'] = original_df['TemperaturaDoAr'] -  original_d
 # In[ ]:
 
 
-hours = 6
+hours = 3
 
 unique_values = np.arange(0, len(original_df), 1)
 n_group = hours * 4
@@ -131,12 +131,6 @@ for row in drop_rows:
 # In[ ]:
 
 
-original_df.loc[::n_group, ['Data_Hora','h_id']]
-
-
-# In[ ]:
-
-
 map_ = original_df.loc[::n_group, ['Data_Hora', 'h_id']].set_index('h_id').to_dict()['Data_Hora']
 
 
@@ -145,16 +139,37 @@ map_ = original_df.loc[::n_group, ['Data_Hora', 'h_id']].set_index('h_id').to_di
 # In[ ]:
 
 
-
-has_rain_treshold = 10
 precipitacao_sum = original_df.loc[:, ['h_id', 'Precipitacao']].groupby('h_id').sum()
+
+
+# In[ ]:
+
+
+y = precipitacao_sum.loc[precipitacao_sum['Precipitacao'] != 0, 'Precipitacao'].values
+
+fig = go.Figure()
+
+fig.add_trace(go.Box(
+    name = f'Precipitacao Acc {hours}H',
+    y = y,
+                    ))
+fig.show()
+
+
+# In[ ]:
+
+
+has_rain_treshold = 0.01
+shift = 2
+
 precipitacao_sum.loc[:, 'Rain_Now'] = (precipitacao_sum['Precipitacao'] > has_rain_treshold ).astype(int)
-precipitacao_sum.loc[:, f'Rain_Next_{hours}H'] = precipitacao_sum.loc[:, 'Rain_Now'].shift(-1)
+precipitacao_sum.loc[:, f'Rain_Next_{hours}H'] = precipitacao_sum.loc[:, 'Rain_Now'].shift(-shift)
 precipitacao_sum = precipitacao_sum.dropna()
 
-# Remove last index (h_id) from original_df 
-last_index = original_df.groupby('h_id').count().iloc[:,0].index[-1]
-original_df = original_df[original_df.h_id != last_index]
+# Remove last index (h_id) from original_df
+for i in range(shift):
+    last_index = original_df.groupby('h_id').count().iloc[:,0].index[-1]
+    original_df = original_df[original_df.h_id != last_index]
 
 precipitacao_sum.head(10)
 
@@ -170,12 +185,14 @@ df = precipitacao_sum.loc[:, ['Rain_Now', f'Rain_Next_{hours}H']]
 # In[ ]:
 
 
+interest_cols.remove('DirecaoDoVento')
 
 sum_df = original_df[interest_cols + ['h_id']].groupby('h_id').sum()
 sum_df.columns = [c + '_sum' for c in sum_df.columns]
+sum_df = sum_df.loc[:,'Precipitacao_sum']
 
-median_df = original_df[interest_cols + ['h_id']].groupby('h_id').median()
-median_df.columns = [c + '_median' for c in median_df.columns]
+# median_df = original_df[interest_cols + ['h_id']].groupby('h_id').median()
+# median_df.columns = [c + '_median' for c in median_df.columns]
 
 mean_df = original_df[interest_cols + ['h_id']].groupby('h_id').mean()
 mean_df.columns = [c + '_mean' for c in mean_df.columns]
@@ -191,9 +208,15 @@ max_df.columns = [c + '_max' for c in max_df.columns]
 
 
 # df = pd.concat([df, mean_df], axis = 1)
-df = pd.concat([df, sum_df, mean_df, median_df, min_df, max_df], axis = 1)
+df = pd.concat([df, sum_df, mean_df, min_df, max_df], axis = 1)
 df.index = df.index.map(map_)
 df = df.dropna()
+
+
+# In[ ]:
+
+
+df.head()
 
 
 # ## Time Metrics
@@ -393,18 +416,18 @@ colorscale=[[0.0, "rgb(240, 0, 0)"],
 
 fig = go.Figure()
 
-fig.add_trace(go.Heatmap( z = X_train.corr(),
+fig.add_trace(go.Heatmap(z = X_train.corr(),
                          x = X_train.columns,
                          y = X_train.columns, 
                          colorscale = colorscale))
 fig.update_layout(width = 700, height = 700)
-fig.show
+fig.show()
 
 
 # In[ ]:
 
 
-def remove_high_correlation(df, threshold):
+def remove_high_correlation(df, threshold, label_corr):
     
     dataset = df.copy()
     
@@ -415,11 +438,16 @@ def remove_high_correlation(df, threshold):
     for i in range(len(corr_matrix.columns)):
         for j in range(i):
             if (np.abs(corr_matrix.iloc[i, j]) >= threshold) and (corr_matrix.columns[j] not in col_corr):
-                colname = corr_matrix.columns[i] # getting the name of column
-                col_corr.add(colname)
+                colname_i = corr_matrix.columns[i] # getting the name of column
+                colname_j = corr_matrix.columns[j] # getting the name of column
+                if label_corr[colname_i] > label_corr[colname_j]:
+                    col_corr.add(colname_j)
+                    colname = colname_j
+                else:
+                    col_corr.add(colname_i)
+                    colname = colname_i
                 if colname in dataset.columns:
                     remove_columns.append(colname) # deleting the column from the dataset
-                    
                     
     return remove_columns
 
@@ -427,7 +455,9 @@ def remove_high_correlation(df, threshold):
 # In[ ]:
 
 
-remove_columns = remove_high_correlation(X_train, 0.7)
+label_corr = pd.concat([X_train.reset_index(drop = True), pd.Series(y_train, name = 'label')], axis = 1).corr()['label'].abs().to_dict()
+
+remove_columns = remove_high_correlation(X_train, 0.7, label_corr)
 remove_columns += ['Precipitacao_min']
 
 
@@ -510,7 +540,7 @@ def cost_function(params):
                             objective="binary:logistic",
                             random_state=42)
 
-    clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"], verbose = False,**fit_parameters)
+    clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"], verbose = False, **fit_parameters)
     y_pred = clf.predict(X_test_sel)
 
     return {'loss':-fbeta_score(y_test, y_pred, beta=2),'status': STATUS_OK}
@@ -584,169 +614,4 @@ print('f1_score: ', f1_score(*evaluate))
 print('Accuracy: ', accuracy_score(*evaluate))
 print('Precision: ', precision_score(*evaluate))
 print('Recall: ', recall_score(*evaluate))
-
-
-# # Include Wind Direction
-
-# In[ ]:
-
-
-errors = pd.read_csv('../../../data/cleandata/Info pluviometricas/Merged Data/error_regions.csv', sep = ';')
-errors[[c for c in errors.columns if 'Direcao' in c]].sum()
-
-
-# In[ ]:
-
-
-selected_wind = 2
-
-
-# In[ ]:
-
-
-rv_ = reverse_mod(original_df[f'DirecaoDoVento_{selected_wind}'].values)
-v_ = moving_average(rv_, window = 15)
-v_ = np.mod(v_, 360)
-
-
-# In[ ]:
-
-
-fig = go.Figure(layout=dict(template = 'plotly_dark'))
-
-fig.add_trace(go.Scatter(
-x= list(range(len(rv_))),
-y = rv_))
-
-fig.show()
-
-
-# In[ ]:
-
-
-fig = go.Figure(layout=dict(template = 'plotly_dark'))
-
-fig.add_trace(go.Scatter(
-    x = original_df['Data_Hora'],
-    y = original_df[f'DirecaoDoVento_{selected_wind}'],
-    name = f'DirecaoDoVento_{selected_wind}',
-    line = dict(color = 'gray')),
-             )
-
-fig.add_trace(go.Scatter(
-    x = original_df['Data_Hora'],
-    y = v_,
-    name = 'Avg'),
-             )
-    
-fig.show()
-
-
-# In[ ]:
-
-
-wind_direction = np.empty(v_.shape, dtype = np.int)
-wind_direction[(v_ > 315 ) | (v_ <=  45 )] = 0 # North
-wind_direction[(v_ >  45 ) & (v_ <= 135 )] = 1 # East
-wind_direction[(v_ > 135 ) & (v_ <= 225 )] = 2 # South
-wind_direction[(v_ > 225 ) & (v_ <= 315 )] = 3 # West
-
-original_df['DirecaoDoVento_cat'] = wind_direction
-original_df['Date'] = pd.to_datetime(original_df['Date'], yearfirst=True)
-
-# Mode
-wind_direction_mode = original_df.loc[ original_df['Data_Hora'].dt.hour > 20, ['DirecaoDoVento_cat','Date']].groupby('Date')                        .apply(pd.DataFrame.mode).set_index('Date', drop = True)
-
-
-# In[ ]:
-
-
-X = X.merge(wind_direction_mode, right_index=True, left_index=True)
-dummies = pd.get_dummies(X['DirecaoDoVento_cat'], drop_first=True)
-dummies.columns = [f'DirecaoDoVento_{i}' for i in range(len(dummies.columns))]
-X = pd.concat([X, dummies], axis = 1 ).drop(columns = ['DirecaoDoVento_cat'])
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-
-remove_columns = remove_high_correlation(X_train, 0.7)
-remove_columns += ['Precipitacao_min']
-X_test_sel = X_test.drop(columns = remove_columns)
-X_train_sel = X_train.drop(columns = remove_columns)
-
-
-# In[ ]:
-
-
-param_hyperopt = {
-    'max_depth':scope.int(hp.quniform('max_depth', 5, 30, 1)),
-    'n_estimators':scope.int(hp.quniform('n_estimators', 5, 1000, 1)),
-    'min_child_weight':  scope.int(hp.quniform('min_child_weight', 1, 8, 1)),
-    'reg_lambda':hp.uniform('reg_lambda', 0.01, 500.0),
-    'reg_alpha':hp.uniform('reg_alpha', 0.01, 500.0),
-    'colsample_bytree':hp.uniform('colsample_bytree', 0.3, 1.0),
-    'early_stopping_rounds':  scope.int(hp.quniform('early_stopping_rounds', 1, 20, 1)),
-                 }
-
-def cost_function(params):
-    
-    fit_parameters = {}
-    fit_parameters['early_stopping_rounds'] = params.pop('early_stopping_rounds')
-
-    clf = xgb.XGBClassifier(**params,
-                            objective="binary:logistic",
-                            random_state=42)
-
-    clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"], verbose = False,**fit_parameters)
-    y_pred = clf.predict(X_test_sel)
-
-    return {'loss':-fbeta_score(y_test, y_pred, beta=2),'status': STATUS_OK}
-
-num_eval = 250
-eval_set = [(X_train_sel, y_train), (X_test_sel, y_test)]
-
-trials = Trials()
-best_param = fmin(cost_function,
-                     param_hyperopt,
-                     algo=tpe.suggest,
-                     max_evals=num_eval,
-                     trials=trials,
-                     rstate=np.random.RandomState(1))
-
-best_param['min_child_weight'] = int(best_param['min_child_weight'])
-best_param['n_estimators'] = int(best_param['n_estimators'])
-best_param['max_depth'] = int(best_param['max_depth'])
-best_param['early_stopping_rounds'] = int(best_param['early_stopping_rounds'])
-best_param
-
-
-# In[ ]:
-
-
-params = best_param.copy()
-
-fit_parameters = {}
-fit_parameters['early_stopping_rounds'] = params.pop('early_stopping_rounds')
-
-clf = xgb.XGBClassifier(**params,
-                        objective="binary:logistic",
-                        random_state=42)
-
-clf.fit(X_train_sel, y_train, eval_set = eval_set, eval_metric=["logloss"],
-        verbose = False,**fit_parameters)
-y_pred = clf.predict(X_test_sel)
-y_pred_prob = clf.predict_proba(X_test_sel)
-
-plot_confusion_matrix(y_test, y_pred, ['0','1'])
-evaluate = (y_test, y_pred)
-print('f1_score: ', f1_score(*evaluate))
-print('Accuracy: ', accuracy_score(*evaluate))
-print('Precision: ', precision_score(*evaluate))
-print('Recall: ', recall_score(*evaluate))
-
-
-# In[ ]:
-
-
-fig = plot_precision_recall(y_test, y_pred_prob[:,1])
-fig.update_layout(template = 'plotly_dark')
-fig.show()
 
