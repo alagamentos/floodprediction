@@ -167,7 +167,7 @@ fig.show()
 
 
 has_rain_treshold = 0.01
-shift = 2
+shift = 1
 
 precipitacao_sum.loc[:, 'Rain_Now'] = (precipitacao_sum['Precipitacao'] > has_rain_treshold ).astype(int)
 precipitacao_sum.loc[:, f'Rain_Next_{hours}H'] = precipitacao_sum.loc[:, 'Rain_Now'].shift(-shift)
@@ -217,33 +217,6 @@ df.head()
 # In[ ]:
 
 
-def make_timeseries(reference_dates, data_source, label_source, select_cols, hours_delta):
-        
-    n = len(reference_dates) # Number of samples
-    m = len(select_cols)     # Number of features
-    t = hours_delta * 4      # Length of timeseries
-    X = np.empty(shape = [n, t, m], dtype = np.float64)
-    hours = np.empty(shape = [n, t], dtype =  np.dtype('<M8[ns]'))
-    y = np.empty(shape = [n], dtype = np.int8)
-    
-    bar = tqdm(total=n)
-    
-    for i, end_time in enumerate(reference_dates):
-        start_time = end_time - timedelta(hours = hours_delta)
-        X[i,:,:] = data_source.loc[(data_source['Data_Hora'] >= start_time) & 
-                            (data_source['Data_Hora'] < end_time), select_cols].values
-        hours[i, : ] = data_source.loc[(data_source['Data_Hora'] >= start_time) & 
-                            (data_source['Data_Hora'] < end_time), 'Data_Hora'].values
-
-        y[i] = label_source[label_source.index == end_time].values.item()
-        bar.update(1)
-        
-    return X, y, hours
-
-
-# In[ ]:
-
-
 data_source= original_df[interest_cols]
 
 scaler = MinMaxScaler()
@@ -262,22 +235,50 @@ data_source_standart
 # In[ ]:
 
 
-hours_delta = 10
-X, y, time = make_timeseries(df.iloc[hours_delta*4:].index, original_df, df[f'Rain_Next_{hours}H'], interest_cols, hours_delta)
-X_min_max, y, time = make_timeseries(df.iloc[hours_delta*4:].index, data_source_minmax, df[f'Rain_Next_{hours}H'], interest_cols, hours_delta)
-X_s_s, y, time = make_timeseries(df.iloc[hours_delta*4:].index, data_source_standart, df[f'Rain_Next_{hours}H'], interest_cols, hours_delta)
+def make_timeseries(reference_dates, data_source, label_source, select_cols, hours_delta):
+        
+    n = len(reference_dates) # Number of samples
+    m = len(select_cols)     # Number of features
+    t = hours_delta * 4      # Length of timeseries
+    X = np.empty(shape = [n, t, m], dtype = np.float64)
+    hours = np.empty(shape = [n, t], dtype =  np.dtype('<M8[ns]'))
+    y = np.empty(shape = [n], dtype = np.int8)
+    
+    bar = tqdm(total=n)
+    
+    for i, end_time in enumerate(reference_dates):
+        start_time = end_time - timedelta(hours = hours_delta)
+        X[i,:,:] = data_source.loc[(data_source['Data_Hora'] >= start_time) & 
+                            (data_source['Data_Hora'] < end_time), select_cols].values
+        hours[i, : ] = data_source.loc[(data_source['Data_Hora'] > start_time) & 
+                            (data_source['Data_Hora'] <= end_time), 'Data_Hora'].values
+
+        y[i] = label_source[label_source.index == end_time].values.item()
+        bar.update(1)
+        
+    return X, y, hours
 
 
 # In[ ]:
 
 
-interest_colsX_min_max
+# LookBack Size
+hours_delta = 24
+
+normalization = 'MinMax'
+
+if normalization == 'None':
+    X, y, time = make_timeseries(df.iloc[hours_delta*4:].index, original_df, df[f'Rain_Next_{hours}H'], interest_cols, hours_delta)
+elif normalization == 'MinMax': 
+    X, y, time = make_timeseries(df.iloc[hours_delta*4//n_group:].index, data_source_minmax, df[f'Rain_Next_{hours}H'], interest_cols, hours_delta)
+elif normalization == 'Standart':
+    X, y, time = make_timeseries(df.iloc[hours_delta*4:].index, data_source_standart, df[f'Rain_Next_{hours}H'], interest_cols, hours_delta)
 
 
 # In[ ]:
 
 
-fig = make_subplots(3,1, shared_xaxes=True)
+fig = go.Figure()#(3,1, shared_xaxes=True)
 
 selected_col = 'UmidadeRelativa'
 
@@ -288,23 +289,7 @@ for i in range(50):
         x = x,
         y = X[i, :, index],
         name = interest_cols[1],
-    ),row = 1, col = 1
-                 )
-
-    x = pd.to_datetime(pd.DataFrame(time[i,:])[0])
-    fig.add_trace(go.Scatter(
-        x = x,
-        y = X_min_max[i, :, index],
-        name = interest_cols[index],
-    ),row = 2, col = 1
-                 )
-    
-    x = pd.to_datetime(pd.DataFrame(time[i,:])[0])
-    fig.add_trace(go.Scatter(
-        x = x,
-        y = X_s_s[i, :, index],
-        name = interest_cols[index],
-    ),row = 3, col = 1
+    )
                  )
     
 fig.update_layout(template='plotly_dark')
@@ -314,7 +299,11 @@ fig.show()
 # In[ ]:
 
 
-import tensorflow as tf
+
+import tensorflow
+physical_devices = tensorflow.config.list_physical_devices('GPU')
+tensorflow.config.experimental.set_memory_growth(physical_devices[0], enable=True)
+
 from tensorflow.keras.preprocessing import sequence
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Dropout
@@ -325,10 +314,10 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 METRICS = [
-      tf.keras.metrics.BinaryAccuracy(name='accuracy'),
-      tf.keras.metrics.Precision(name='precision'),
-      tf.keras.metrics.Recall(name='recall'),
-      tf.keras.metrics.AUC(name='auc'),
+      tensorflow.keras.metrics.BinaryAccuracy(name='accuracy'),
+      tensorflow.keras.metrics.Precision(name='precision'),
+      tensorflow.keras.metrics.Recall(name='recall'),
+      tensorflow.keras.metrics.AUC(name='auc'),
         ]
 
 def plot_history(history, key):
@@ -361,7 +350,7 @@ def plot_metrics(history):
     
 def make_model(shape, metrics = METRICS, output_bias=None):
     if output_bias is not None:
-        output_bias = tf.keras.initializers.Constant(output_bias)
+        output_bias = tensorflow.keras.initializers.Constant(output_bias)
         
     adam = Adam(lr=0.001)
 
@@ -382,7 +371,7 @@ def make_model(shape, metrics = METRICS, output_bias=None):
 EPOCHS = 50
 BATCH_SIZE = 200
 
-early_stopping = tf.keras.callbacks.EarlyStopping(
+early_stopping = tensorflow.keras.callbacks.EarlyStopping(
     monitor='loss', 
     verbose=1,
     patience=10,
@@ -403,7 +392,7 @@ model.summary()
 from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(
-                                    X_min_max, y, test_size=0.33, random_state=42)
+                                    X, y, test_size=0.33, random_state=42)
 
 
 # In[ ]:
@@ -415,7 +404,7 @@ X_test.shape, X_train.shape, y_test.shape, y_train.shape
 # In[ ]:
 
 
-for i in tqdm(range(30)):
+for i in tqdm(range(50)):
     model.fit(
         X_train,
         y_train,

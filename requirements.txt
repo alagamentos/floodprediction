@@ -8,3 +8,7 @@ plotly>=4.9
 kaleido
 google-cloud-bigquery
 tqdm
+shap
+hypteropt
+catboost
+lightgbm

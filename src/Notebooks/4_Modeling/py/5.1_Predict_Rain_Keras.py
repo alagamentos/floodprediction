@@ -418,7 +418,7 @@ METRICS = [
       keras.metrics.Precision(name='precision'),
       keras.metrics.Recall(name='recall'),
       keras.metrics.AUC(name='auc'),
-]
+           ]
 
 
 # In[ ]:
@@ -475,6 +475,7 @@ class_weights = {0: weight_for_0, 1: weight_for_1}
 
 
 model = Sequential()
+
 model.add(Dense(20, input_dim=encoded_data_train.shape[1], activation='relu'))
 model.add(Dense(15, activation='relu'))
 model.add(Dropout(0.2))
@@ -504,7 +505,7 @@ plt.show()
 
 
 y_pred_prob = model.predict(encoded_data_test)
-y_pred = (y_pred_proba  > 0.5 ).astype(int)
+y_pred = (y_pred_prob  > 0.5 ).astype(int)
 plot_confusion_matrix(y_test, y_pred, ['0', '1'])
 
 

@@ -77,7 +77,9 @@ df_plot = original_df[original_df.Data_Hora.dt.year == 2015]
 
 fig = go.Figure(layout=dict(template = 'plotly_dark'))
 
-for col in ['PontoDeOrvalho', 'Precipitacao', 'UmidadeRelativa', 'TemperaturaDoAr']:    
+df_plot.loc[:,'PressaoAtmosferica_norm'] = (df_plot.loc[:, 'PressaoAtmosferica'] - df_plot.loc[:, 'PressaoAtmosferica'].min() + 100 ).copy()
+
+for col in ['PontoDeOrvalho', 'Precipitacao', 'UmidadeRelativa', 'TemperaturaDoAr', 'PressaoAtmosferica_norm']:    
     fig.add_trace(go.Scatter(
         x = df_plot['Data_Hora'],
         y = df_plot[col],
@@ -96,7 +98,7 @@ interest_cols += ['Diff_Temp_POrvalho']
 original_df['Diff_Temp_POrvalho'] = original_df['TemperaturaDoAr'] -  original_df['PontoDeOrvalho']
 
 
-# # Create 6H-wise DataFrame 
+# # Create Hour-wise DataFrame 
 
 # In[ ]:
 
