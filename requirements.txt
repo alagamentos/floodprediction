@@ -12,3 +12,4 @@ shap
 hypteropt
 catboost
 lightgbm
+dash==1.16.3
