@@ -25,15 +25,22 @@ oservico_path = root / 'data/cleandata/Ordens de serviço/Enchentes_LatLong.csv'
 merged = pd.read_csv( merged_path, sep = ';')
 repaired = pd.read_csv( repaired_path, sep = ';')
 error = pd.read_csv( error_path, sep = ';')
-est = pd.read_csv(estacoes_path, sep = ';')
+est = pd.read_csv(estacoes_path, sep = ';').iloc[:-1,:]
 label = pd.read_csv(oservico_path, sep = ';')
 
-est = est.iloc[:-1,:]
-
+# Label
 merged['Data_Hora'] = pd.to_datetime(merged['Data_Hora'], yearfirst = True)
 repaired['Data_Hora'] = pd.to_datetime(repaired['Data_Hora'], yearfirst = True)
 error['Data_Hora'] = pd.to_datetime(error['Data_Hora'], yearfirst = True)
 label['Data'] = pd.to_datetime(label['Data'], yearfirst = True)
+gb_label = label.groupby('Data').count().reset_index()[['Data','lat']]
+gb_label.columns = ['Data', 'count']
+
+# Precipitacao Hora em Hora
+precipitacao = repaired[repaired['Data_Hora'].dt.minute == 0].copy()
+precipitacao['Data_Hora'] = pd.to_datetime(repaired['Data_Hora'], yearfirst = True)
+precipitacao['Data'] =  pd.to_datetime(precipitacao['Data_Hora'].dt.date, yearfirst = True)
+r_plot = precipitacao.groupby('Data').sum().reset_index()[['Data','Precipitacao_2']]
 
 list_of_years = list(range(2011, 2020, 1))
 year_options = [{'label':str(y),'value': y} for y in list_of_years]
@@ -126,7 +133,8 @@ def update_graphs(n_clicks, col, est, year, month):
 
 @app.callback(
     [Output('count', 'children'),
-    Output('mapa', 'figure')],
+    Output('mapa', 'figure'),
+    Output('os-subplots', 'figure')],
     [Input('year-slider', 'value')],
     )
 def update_map(date_range):
@@ -172,11 +180,41 @@ def update_map(date_range):
     height = 750
     )
 
-  return f'Total de ordens de serviço: {count}', mapa
+  gb_label_copy = gb_label.copy()
+  gb_label_copy = gb_label_copy[(gb_label_copy['Data'].dt.year >= date_range[0]) &
+                                (gb_label_copy['Data'].dt.year <= date_range[1])]
+
+  r_plot_copy = r_plot.copy()
+  r_plot_copy = r_plot_copy[(r_plot_copy['Data'].dt.year >= date_range[0]) &
+                            (r_plot_copy['Data'].dt.year <= date_range[1])]
+
+  ordem_servico_figure = make_subplots(2,1, shared_xaxes=True,
+                                       vertical_spacing = 0.1,
+                                       subplot_titles=('Ordens de Serviço',
+                                                       'Precipitação'))
+  ordem_servico_figure.add_trace(go.Bar(
+                                    x = gb_label_copy['Data'] ,
+                                    y = gb_label_copy['count']),
+                                  row = 1, col = 1
+                                )
+  ordem_servico_figure.add_trace(go.Bar(
+                    x = r_plot_copy['Data'],
+                    y = r_plot_copy['Precipitacao_2'] ,),
+              row = 2, col = 1,
+             )
+  ordem_servico_figure.update_layout(bargap = 0)
+  ordem_servico_figure.update_traces(marker_color='black',
+                                     marker_line_color='#3b3b3b',
+                                     marker_line_width=1,
+                                     opacity=1)
+
+  return f'Total de ordens de serviço: {count}', mapa, ordem_servico_figure
+
 
 # Startup figures -----------------------------------
-plots = make_subplots(2,1, shared_xaxes=True)
+data_plots_fig = make_subplots(2,1, shared_xaxes=True)
 mapa = go.Figure()
+ordemservico_fig = make_subplots(2,1, shared_xaxes=True)
 
 # Single Components ---------------------------------
 # Tab 1 components
@@ -221,10 +259,11 @@ mes_dropdown = dcc.Dropdown(
               id='mes',
               clearable=False
           )
-atualizar_button = html.Button('Atualizar', id='update-button', n_clicks=0)
+atualizar_button = html.Button(
+  'Atualizar', id='update-button', n_clicks=0)
 data_subplots = dcc.Graph(
                   id='plots',
-                  figure=plots
+                  figure=data_plots_fig
                       )
 
 # Tab 2 components
@@ -239,6 +278,10 @@ year_slider = dcc.RangeSlider(
               marks=year_options_slider,
               value=[list_of_years[0], list_of_years[-1] ],
               id = 'year-slider'
+          )
+ordemservico_figure = dcc.Graph(
+              id='os-subplots',
+              figure=ordemservico_fig
           )
 
 # Tab 3 components
@@ -276,9 +319,14 @@ root_layout = html.Div([
         html.Div(id='count'),
 
         html.Div([
-          html.Label('Alagamento'),
-          map_figure,
-          year_slider,
+          html.Div([
+            html.Label('Alagamento'),
+            map_figure,
+          ]),
+          html.Div([
+            ordemservico_figure,
+            year_slider,
+          ])
         ], style={'columnCount': 2}),
       ]),
 
