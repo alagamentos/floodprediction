@@ -12,7 +12,14 @@ from plotly.subplots import make_subplots
 from pathlib import Path
 import os
 
+from cptec import get_prediction
+
 root = Path(os.path.dirname(os.path.realpath(__file__))).parent.parent
+
+
+# Prediction Data ---------------------------
+
+x_pred, y_pred = get_prediction()
 
 # Prepdata ----------------------------------
 
@@ -176,8 +183,8 @@ def update_map(date_range):
         pitch=0,
         zoom=11
     ),
-    width = 700,
-    height = 750
+    width = 500,
+    height = 550
     )
 
   gb_label_copy = gb_label.copy()
@@ -215,6 +222,24 @@ def update_map(date_range):
 data_plots_fig = make_subplots(2,1, shared_xaxes=True)
 mapa = go.Figure()
 ordemservico_fig = make_subplots(2,1, shared_xaxes=True)
+cptec_fig = make_subplots(1,1, shared_xaxes = True)
+
+
+# Cptec Prediction -----------------------------------
+
+cptec_fig.add_trace(go.Scatter(
+                      x = x_pred['precipitacao_acc'],
+                      y = y_pred['precipitacao_acc'],
+                              ),
+                              row = 1, col = 1
+                  )
+cptec_fig.add_trace(go.Bar(
+                      x = x_pred['precipitacao'],
+                      y = y_pred['precipitacao'],
+                              ),
+                              row = 1, col = 1
+                  )
+
 
 # Single Components ---------------------------------
 # Tab 1 components
@@ -286,6 +311,11 @@ ordemservico_figure = dcc.Graph(
 
 # Tab 3 components
 
+cptec_figure = dcc.Graph(
+              id='cptec',
+              figure=cptec_fig
+          )
+
 # App layout ----------------------------------------
 
 root_layout = html.Div([
@@ -333,7 +363,9 @@ root_layout = html.Div([
       # Tab 3
       dcc.Tab(label='Previsões', children=[
         html.Div([
-          html.Label('Métrica')
+          html.Label('Métrica'),
+
+          cptec_figure,
                 ]),
         ]),
   ])
