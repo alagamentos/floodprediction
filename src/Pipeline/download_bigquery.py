@@ -36,11 +36,15 @@ CREDENTIALS = service_account.Credentials.from_service_account_file('key/tempora
 
 
 df_merged = pd.read_gbq(f'SELECT * FROM {PROJECT_ID}.{TABLE_merged}', credentials=CREDENTIALS, project_id=PROJECT_ID)
+df_merged['Data_Hora'] = pd.to_datetime(df_merged['Data_Hora'], yearfirst=True)
+df_merged = df_merged.sort_values(by='Data_Hora')
 df_merged.to_csv('data/cleandata/Info pluviometricas/Merged Data/merged.csv',  decimal='.', sep=';', index=False)
 print('merged done!')
 
 
 df_regions = pd.read_gbq(f'SELECT * FROM {PROJECT_ID}.{TABLE_regions}', credentials=CREDENTIALS, project_id=PROJECT_ID)
+df_regions['Data_Hora'] = pd.to_datetime(df_regions['Data_Hora'], yearfirst=True)
+df_regions = df_regions.sort_values(by='Data_Hora')
 df_regions.to_csv('data/cleandata/Info pluviometricas/Merged Data/error_regions.csv',
                   decimal='.', sep=';', index=False)
 print('error_regions done!')
@@ -48,6 +52,8 @@ print('error_regions done!')
 
 df_repaired = pd.read_gbq(f'SELECT * FROM {PROJECT_ID}.{TABLE_repaired}',
                           credentials=CREDENTIALS, project_id=PROJECT_ID)
+df_repaired['Data_Hora'] = pd.to_datetime(df_repaired['Data_Hora'], yearfirst=True)
+df_repaired = df_repaired.sort_values(by='Data_Hora')
 df_repaired.to_csv('data/cleandata/Info pluviometricas/Merged Data/repaired.csv',  decimal='.', sep=';', index=False)
 print('repaired done!')
 
@@ -60,5 +66,7 @@ print('lat_lng_estacoes done!')
 
 df_openweather_history = pd.read_gbq(
     f'SELECT * FROM {PROJECT_ID}.{TABLE_owm_history_bulk}', credentials=CREDENTIALS, project_id=PROJECT_ID)
+df_openweather_history['Data_Hora'] = pd.to_datetime(df_openweather_history['Data_Hora'], yearfirst=True)
+df_openweather_history = df_openweather_history.sort_values(by='Data_Hora')
 df_openweather_history.to_csv('data/cleandata/OpenWeather/history_bulk.csv',  decimal='.', sep=';', index=False)
 print('openweathermap history bulk done!')
