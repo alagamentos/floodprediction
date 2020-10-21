@@ -42,8 +42,9 @@ if __name__ == "__main__":
   df_merged['Data_Hora'] = pd.to_datetime(df_merged['Data_Hora'], yearfirst=True)
   df_repaired['Data_Hora'] = pd.to_datetime(df_repaired['Data_Hora'], yearfirst=True)
 
-  df = df_repaired[df_merged.columns.drop('index')].copy()
+  df = df_repaired[df_merged.columns.drop(['index'] + [c for c in df_merged.columns if 'Local' in c])].copy()
   df = df.drop(columns = [c for c in df.columns if 'Sensacao' in c or 'Interna' in c])
+  df = df.merge(df_merged[['Data_Hora'] + [c for c in df_merged.columns if 'Local' in c]], on='Data_Hora')
   df['Data'] = df['Data_Hora'].dt.strftime('%Y-%m-%d')
 
   logging.info(f'Carregando labels')
