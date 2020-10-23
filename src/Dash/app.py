@@ -12,14 +12,14 @@ from plotly.subplots import make_subplots
 from pathlib import Path
 import os
 
-from cptec import get_prediction
+from cptec import get_prediction, get_polygon
+
+from graphs import make_data_repair_plots, make_mapa_plot, \
+                   make_rain_ordem_servico_plot, make_cptec_prediction, \
+                   make_cptec_polygon
 
 root = Path(os.path.dirname(os.path.realpath(__file__))).parent.parent
 
-
-# Prediction Data ---------------------------
-
-x_pred, y_pred = get_prediction()
 
 # Prepdata ----------------------------------
 
@@ -47,7 +47,7 @@ gb_label.columns = ['Data', 'count']
 precipitacao = repaired[repaired['Data_Hora'].dt.minute == 0].copy()
 precipitacao['Data_Hora'] = pd.to_datetime(repaired['Data_Hora'], yearfirst = True)
 precipitacao['Data'] =  pd.to_datetime(precipitacao['Data_Hora'].dt.date, yearfirst = True)
-r_plot = precipitacao.groupby('Data').sum().reset_index()[['Data','Precipitacao_2']]
+rain_sum = precipitacao.groupby('Data').sum().reset_index()[['Data','Precipitacao_2']]
 
 list_of_years = list(range(2011, 2020, 1))
 year_options = [{'label':str(y),'value': y} for y in list_of_years]
@@ -103,39 +103,7 @@ def update_mont_options(ano, mes):
           ]
   )
 def update_graphs(n_clicks, col, est, year, month):
-
-  year, month = int(year), int(month)
-
-  repaired_plot = repaired.loc[(repaired['Data_Hora'].dt.year == year) &
-                               (repaired['Data_Hora'].dt.month == month),
-                              ['Data_Hora', f'{col}_{est}']
-                              ]
-  merged_plot = merged.loc[(merged['Data_Hora'].dt.year == year) &
-                           (merged['Data_Hora'].dt.month == month),
-                           ['Data_Hora', f'{col}_{est}']
-                          ]
-  error_plot = error.loc[(error['Data_Hora'].dt.year == year ) &
-                         (error['Data_Hora'].dt.month == month),
-                         ['Data_Hora', f'{col}_{est}_error']
-                        ]
-
-  plots = make_subplots(2,1, shared_xaxes=True)
-  plots.add_trace(go.Scatter(
-              x = merged_plot['Data_Hora'],
-              y = merged_plot[f'{col}_{est}'],
-              ), col = 1, row = 1)
-  plots.add_trace(go.Scatter(
-              x = merged_plot['Data_Hora'].where(error_plot[f'{col}_{est}_error']),
-              y = merged_plot[f'{col}_{est}'].fillna(0).where(error_plot[f'{col}_{est}_error']),
-              line = dict(color = 'red')
-              ), col = 1, row = 1)
-  plots.add_trace(go.Scatter(
-              x = repaired_plot['Data_Hora'],
-              y = repaired_plot[f'{col}_{est}'],
-              ), col = 1, row = 2)
-  plots.update_layout(transition_duration=500)
-
-  return plots
+  return make_data_repair_plots(merged, error, repaired, col, est, year, month)
 
 
 @app.callback(
@@ -146,99 +114,45 @@ def update_graphs(n_clicks, col, est, year, month):
     )
 def update_map(date_range):
 
-  label_copy = label.copy()
-  label_copy = label_copy[(label_copy['Data'].dt.year >= date_range[0]) &
-                          (label_copy['Data'].dt.year <= date_range[1])]
-  count = label_copy.shape[0]
+  # Ordens de serviço
+  label_plot = label.loc[(label['Data'].dt.year >= date_range[0]) &
+                          (label['Data'].dt.year <= date_range[1]), :]
 
-  mapa = go.Figure(go.Scattermapbox(
-          lat=est['lat'],
-          lon=est['lng'],
-          mode='markers',
-          marker=go.scattermapbox.Marker(
-            size=14,
-            color = 'black',
-            symbol = 'circle'
-        ),
-    text=['Santo Amaro'],
-              ))
-  mapa.add_trace(go.Densitymapbox(
-                      lat=label_copy.lat,
-                      lon=label_copy.lng,
-                      z=[1] * label_copy.shape[0],
-                      radius=10,
-                      colorscale = 'Blues',
-                      opacity = 0.75,
-                      showscale=False
-                  ))
-  mapa.update_layout(
-    mapbox_style="open-street-map",
-    hovermode='closest',
-    mapbox=dict(
-        bearing=0,
-        center=go.layout.mapbox.Center(
-            lon=-46.525556599,
-            lat=-23.682737600
-        ),
-        pitch=0,
-        zoom=11
-    ),
-    width = 500,
-    height = 550
-    )
+  # Grouped by ordens de serviço
+  gb_label_plot = gb_label.loc[(gb_label['Data'].dt.year >= date_range[0]) &
+                               (gb_label['Data'].dt.year <= date_range[1]), :]
 
-  gb_label_copy = gb_label.copy()
-  gb_label_copy = gb_label_copy[(gb_label_copy['Data'].dt.year >= date_range[0]) &
-                                (gb_label_copy['Data'].dt.year <= date_range[1])]
+  # Grouped by rain
+  rain_sum_plot = rain_sum.loc[(rain_sum['Data'].dt.year >= date_range[0]) &
+                            (rain_sum['Data'].dt.year <= date_range[1]), :]
 
-  r_plot_copy = r_plot.copy()
-  r_plot_copy = r_plot_copy[(r_plot_copy['Data'].dt.year >= date_range[0]) &
-                            (r_plot_copy['Data'].dt.year <= date_range[1])]
-
-  ordem_servico_figure = make_subplots(2,1, shared_xaxes=True,
-                                       vertical_spacing = 0.1,
-                                       subplot_titles=('Ordens de Serviço',
-                                                       'Precipitação'))
-  ordem_servico_figure.add_trace(go.Bar(
-                                    x = gb_label_copy['Data'] ,
-                                    y = gb_label_copy['count']),
-                                  row = 1, col = 1
-                                )
-  ordem_servico_figure.add_trace(go.Bar(
-                    x = r_plot_copy['Data'],
-                    y = r_plot_copy['Precipitacao_2'] ,),
-              row = 2, col = 1,
-             )
-  ordem_servico_figure.update_layout(bargap = 0)
-  ordem_servico_figure.update_traces(marker_color='black',
-                                     marker_line_color='#3b3b3b',
-                                     marker_line_width=1,
-                                     opacity=1)
+  mapa = make_mapa_plot(label_plot, est)
+  ordem_servico_figure = make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot)
+  count = label_plot.shape[0]
 
   return f'Total de ordens de serviço: {count}', mapa, ordem_servico_figure
 
+@app.callback(
+    Output('cptec-poly', 'figure'),
+    [Input('radio-poly', 'value')],
+    )
+def update_map(time):
+  return make_cptec_polygon(time)
+
+@app.callback(
+    Output('cptec', 'figure'),
+    [Input('radio-model', 'value')],
+    )
+def update_map(model):
+  return make_cptec_prediction(model)
 
 # Startup figures -----------------------------------
 data_plots_fig = make_subplots(2,1, shared_xaxes=True)
 mapa = go.Figure()
 ordemservico_fig = make_subplots(2,1, shared_xaxes=True)
-cptec_fig = make_subplots(1,1, shared_xaxes = True)
 
-
-# Cptec Prediction -----------------------------------
-
-cptec_fig.add_trace(go.Scatter(
-                      x = x_pred['precipitacao_acc'],
-                      y = y_pred['precipitacao_acc'],
-                              ),
-                              row = 1, col = 1
-                  )
-cptec_fig.add_trace(go.Bar(
-                      x = x_pred['precipitacao'],
-                      y = y_pred['precipitacao'],
-                              ),
-                              row = 1, col = 1
-                  )
+cptec_fig = make_subplots(2,2, shared_xaxes = True)
+cptec_poly_fig = make_cptec_polygon('Hoje')
 
 
 # Single Components ---------------------------------
@@ -311,10 +225,35 @@ ordemservico_figure = dcc.Graph(
 
 # Tab 3 components
 
+radio_button_model = dcc.RadioItems(
+    options=[
+        {'label': 'WRF 05x05 km', 'value': 'wrf'},
+        {'label': 'BAM 20x20 km', 'value': 'bam'},
+    ],
+    id = 'radio-model',
+    value='bam',
+    labelStyle={'display': 'inline-block'}
+  )
+
 cptec_figure = dcc.Graph(
               id='cptec',
               figure=cptec_fig
           )
+cptec_poly_figure = dcc.Graph(
+              id='cptec-poly',
+              figure=cptec_poly_fig
+          )
+
+radio_button_poly = dcc.RadioItems(
+    options=[
+        {'label': 'Hoje', 'value': 'Hoje'},
+        {'label': '48 horas', 'value': '48 horas'},
+        {'label': '72 horas', 'value': '72 horas'}
+    ],
+    id = 'radio-poly',
+    value='Hoje',
+    labelStyle={'display': 'inline-block'}
+  )
 
 # App layout ----------------------------------------
 
@@ -363,9 +302,13 @@ root_layout = html.Div([
       # Tab 3
       dcc.Tab(label='Previsões', children=[
         html.Div([
-          html.Label('Métrica'),
-
+          html.Label('Modelo'),
+          radio_button_model,
           cptec_figure,
+          radio_button_poly,
+          cptec_poly_figure,
+
+
                 ]),
         ]),
   ])
