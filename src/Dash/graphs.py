@@ -8,6 +8,37 @@ import json
 from shapely.geometry import Polygon
 import pandas as pd
 
+# Color palette
+
+BACKGRUOND = '#191A1A'
+
+TEAL = '#38b2a3'
+DARKER_TEAL = '#58C8A3'
+
+BLUE = '#3282b8'
+DARKER_BLUE = '#2D75A5'
+
+RED  = '#f05454'
+DARKER_RED = '#D84B4B'
+
+GREEN = '#6BDD67'
+DARKER_GREEN = '#55B052'
+
+ORANGE = '#f6830f'
+DARKER_ORANGE = ''
+
+# CPTEC pred
+PREP_ACC = RED
+PREP = TEAL
+TEMP = BLUE
+SENST = ORANGE
+UMIDADE = GREEN
+PRESSAO = DARKER_BLUE
+
+plot_layout_kwargs = dict(template='plotly_dark',
+                          paper_bgcolor = BACKGRUOND,
+                          plot_bgcolor  = BACKGRUOND)
+
 path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
 token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
 
@@ -17,6 +48,13 @@ with urlopen(path) as response:
     counties = json.load(response)
 SA = [ i for i in counties['features'] if i['properties']['name'] == 'Santo André' ][0]
 SA_polygon = Polygon(SA['geometry']['coordinates'][0])
+SA_layer = dict(sourcetype = 'geojson',
+             source = SA ,
+             below='',
+             type = 'fill',
+             opacity=0.25,
+             color = 'white')
+
 
 value_dict = {
               'Sem Aviso': 0,
@@ -34,14 +72,6 @@ inv_value_dict = {
               4:'Aviso Extraordinário de Risco Iminente',
               5:'Aviso Cessado',
               }
-
-
-SA_layer = dict(sourcetype = 'geojson',
-             source = SA ,
-             below='',
-             type = 'fill',
-             opacity=0.25,
-             color = 'white')
 
 x_pred, y_pred = {}, {}
 
@@ -83,7 +113,6 @@ def get_xgb_predictions(model):
   X = df.merge(sum_precipitacao, on = ['Dia','Mes'], how = 'inner')
 
   return X
-
 def predict(model, xgb_path):
   X = get_xgb_predictions(model)
 
@@ -118,6 +147,8 @@ def get_geojson_polygon(lons, lats, color='blue'):
              color = color)
     return layer
 
+# Graphs
+
 def make_data_repair_plots(merged, error, repaired, col, est, year, month):
   year, month = int(year), int(month)
   repaired_plot = repaired.loc[ (repaired['Data_Hora'].dt.year == year) &
@@ -133,21 +164,33 @@ def make_data_repair_plots(merged, error, repaired, col, est, year, month):
                          ['Data_Hora', f'{col}_{est}_error'] ]
 
 
-  plots = make_subplots(2,1, shared_xaxes=True)
+
+  plots = make_subplots(2,1, shared_xaxes=True,
+                             subplot_titles=('Dados Originais',
+                                             'Dados Reparados'))
   plots.add_trace(go.Scatter(
               x = merged_plot['Data_Hora'],
               y = merged_plot[f'{col}_{est}'],
+              line = dict( color = BLUE)
               ), col = 1, row = 1)
   plots.add_trace(go.Scatter(
               x = merged_plot['Data_Hora'].where(error_plot[f'{col}_{est}_error']),
               y = merged_plot[f'{col}_{est}'].fillna(0).where(error_plot[f'{col}_{est}_error']),
-              line = dict(color = 'red')
+              line = dict(color = RED)
               ), col = 1, row = 1)
   plots.add_trace(go.Scatter(
               x = repaired_plot['Data_Hora'],
               y = repaired_plot[f'{col}_{est}'],
+              line = dict( color = GREEN)
               ), col = 1, row = 2)
-  plots.update_layout(transition_duration=500)
+  plots.update_layout(showlegend = False,
+                      transition_duration=500,
+                      **plot_layout_kwargs )
+
+  ymax, ymin = max(repaired_plot[f'{col}_{est}']), min(repaired_plot[f'{col}_{est}'])
+
+  if col == 'PressaoAtmosferica':
+    plots.update_yaxes(range=[ymin, ymax], col = 1, row = 1)
 
   return plots
 
@@ -161,10 +204,10 @@ def make_mapa_plot(label_copy, est):
       mode='markers',
       marker=go.scattermapbox.Marker(
           size=14,
-          color = 'green',
+          color = 'white',
           symbol = 'marker'
       ),
-    text=['Santo Amaro'],
+    text=est['Estacao'],
               ))
 
   mapa.add_trace(go.Densitymapbox(
@@ -172,7 +215,7 @@ def make_mapa_plot(label_copy, est):
                       lon=label_copy['lng'],
                       z=[1] * label_copy.shape[0],
                       radius=5,
-                      colorscale = 'Blues',
+                      colorscale = 'Tealgrn',
                       reversescale=True,
                       opacity = 0.75,
       showscale=False
@@ -194,6 +237,7 @@ def make_mapa_plot(label_copy, est):
       width = 500,
       height = 550,
       showlegend = False,
+      **plot_layout_kwargs
                   )
 
   return mapa
@@ -214,11 +258,20 @@ def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
                     y = rain_sum_plot['Precipitacao_2'] ,),
               row = 2, col = 1,
              )
-  ordem_servico_figure.update_layout(bargap = 0)
-  ordem_servico_figure.update_traces(marker_color='black',
-                                     marker_line_color='#3b3b3b',
+  ordem_servico_figure.update_layout(showlegend = False,
+                                     bargap = 0,
+                                     **plot_layout_kwargs)
+
+  ordem_servico_figure.update_traces(marker_color= TEAL,
+                                     marker_line_color=DARKER_TEAL,
                                      marker_line_width=1,
-                                     opacity=1)
+                                     opacity=1,
+                                     col = 1, row = 1)
+  ordem_servico_figure.update_traces(marker_color = BLUE,
+                                     marker_line_color=DARKER_BLUE,
+                                     marker_line_width=1,
+                                     opacity=1,
+                                     col = 1, row = 2)
 
   return ordem_servico_figure
 
@@ -228,18 +281,28 @@ def make_cptec_prediction(model):
 
   # Cptec Prediction -----------------------------------
 
-  cptec_fig = make_subplots(2,2, shared_xaxes = True)
+  subplot_titles=("Precipitação",
+                  "Temperatura",
+                  "Umidade Relativa",
+                  "Pressão Atmosférica")
+
+  cptec_fig = make_subplots(2,2, shared_xaxes = True,
+                                 subplot_titles = subplot_titles)
 
   # Precipitação
   cptec_fig.add_trace(go.Scatter(
                         x = x['precipitacao_acc'],
                         y = y['precipitacao_acc'],
+                        name = 'Precipitação',
+                        line = dict(color = PREP_ACC)
                                 ),
                                 row = 1, col = 1
                     )
   cptec_fig.add_trace(go.Bar(
                         x = x['precipitacao'],
                         y = y['precipitacao'],
+                        name = 'Precipitação Acumulada',
+                        marker = dict(color = PREP)
                                 ),
                                 row = 1, col = 1
                     )
@@ -248,12 +311,16 @@ def make_cptec_prediction(model):
   cptec_fig.add_trace(go.Scatter(
                         x = x['temperatura'],
                         y = y['temperatura'],
+                        name = 'Temperatura',
+                        line = dict(color = TEMP)
                                 ),
                                 row = 1, col = 2
                     )
   cptec_fig.add_trace(go.Scatter(
                         x = x['temperatura_aparente'],
                         y = y['temperatura_aparente'],
+                        name = 'Sensação térmica',
+                        line = dict(color = SENST)
                                 ),
                                 row = 1, col = 2
                     )
@@ -262,6 +329,8 @@ def make_cptec_prediction(model):
   cptec_fig.add_trace(go.Scatter(
                         x = x['umidade_relativa'],
                         y = y['umidade_relativa'],
+                        name = 'Umidade Relativa',
+                        line = dict(color = UMIDADE)
                                 ),
                                 row = 2, col = 1
                     )
@@ -270,9 +339,19 @@ def make_cptec_prediction(model):
   cptec_fig.add_trace(go.Scatter(
                         x = x['pressao'],
                         y = y['pressao'],
+                        name = 'Pressão Atmosférica',
+                        line = dict ( color = PRESSAO)
                                 ),
                                 row = 2, col = 2
                     )
+
+  cptec_fig.update_layout(legend=dict(
+                                  orientation="h",
+                                  yanchor="bottom",
+                                  y=-0.3,
+                                  xanchor="center",
+                                  x=0.5
+                              ),**plot_layout_kwargs )
 
   return cptec_fig
 
@@ -356,8 +435,8 @@ def make_prob_graph(model):
           cmin = 0,
           cmax = 1,
           colorscale=[
-              [0, "green"],
-              [1, "red"]]
+              [0, GREEN],
+              [1, RED]]
                           ),
                       ), secondary_y=False,
               )
@@ -366,11 +445,20 @@ def make_prob_graph(model):
       y = y_pred[model]['precipitacao'] ,
       x = x_pred[model]['precipitacao'],
       name='Chuva [mm]',
-      line = dict(color = 'blue'),
+      line = dict(color = BLUE, width = 3),
                       ), secondary_y=True,
               )
-  fig.update_yaxes(range=[0, 100], title = 'Probabilidade de alagamento [%]', secondary_y=False, titlefont=dict(color="green"), tickfont=dict(color="green"),)
-  fig.update_yaxes(range=[0, y_max], title = 'Precipitacao [mm]',secondary_y=True, titlefont=dict(color="blue"), tickfont=dict(color="blue"),)
-  fig.update_layout(showlegend = False)
+  fig.update_yaxes(range=[0, 100],
+                   title = 'Probabilidade de alagamento [%]',
+                   secondary_y=False,
+                   titlefont=dict(color=GREEN),
+                   tickfont=dict(color=GREEN),)
+  fig.update_yaxes(range=[0, y_max],
+                   title = 'Precipitacao [mm]',
+                   secondary_y=True,
+                   titlefont=dict(color=BLUE),
+                   tickfont=dict(color=BLUE),)
+  fig.update_layout( showlegend = False,
+                    **plot_layout_kwargs )
 
   return fig
