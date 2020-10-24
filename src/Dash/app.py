@@ -133,17 +133,19 @@ def update_map(date_range):
   return f'Total de ordens de serviço: {count}', mapa, ordem_servico_figure
 
 @app.callback(
-    Output('cptec-poly', 'figure'),
+    [Output('cptec-poly', 'figure'),
+     Output('warning', 'children')],
     [Input('radio-poly', 'value')],
     )
-def update_map(time):
-  return make_cptec_polygon(time)
+def update_polygon_map(time):
+  fig, text = make_cptec_polygon(time)
+  return fig, text
 
 @app.callback(
     Output('cptec', 'figure'),
     [Input('radio-model', 'value')],
     )
-def update_map(model):
+def update_cptec_predictions(model):
   return make_cptec_prediction(model)
 
 # Startup figures -----------------------------------
@@ -306,9 +308,8 @@ root_layout = html.Div([
           radio_button_model,
           cptec_figure,
           radio_button_poly,
+          html.Div(id='warning'),
           cptec_poly_figure,
-
-
                 ]),
         ]),
   ])

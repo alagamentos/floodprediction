@@ -41,7 +41,7 @@ def get_polygon():
 
   htmlnow = re.search(r'^(.+?)\/\/ 48 horas', html_source).group(1)
   html48 = re.search(r'\/\/ 48 horas(.*?)\/\/ 72 horas', html_source).group(1)
-  html72 = re.search(r'\/\/ 72 horas[^:]*:(.*)', html_source).group(1)
+  html72 = re.search(r'\/\/ 72 horas(.*)', html_source).group(1)
 
   output_dict = {}
   for text, html in zip(['Hoje', '48 horas', '72 horas'],[htmlnow, html48, html72]):

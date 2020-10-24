@@ -5,6 +5,7 @@ from cptec import get_prediction, get_polygon
 
 from urllib.request import urlopen
 import json
+from shapely.geometry import Polygon
 
 token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
 
@@ -14,6 +15,25 @@ path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs
 with urlopen(path) as response:
     counties = json.load(response)
 SA = [ i for i in counties['features'] if i['properties']['name'] == 'Santo André' ][0]
+SA_polygon = Polygon(SA['geometry']['coordinates'][0])
+
+value_dict = {
+              'Sem Alerta': 0,
+              'Aviso de Observação':1,
+              'Aviso de Atenção': 2,
+              'Aviso Especial': 3,
+              'Aviso Extraordinário de Risco Iminente':4,
+              'Aviso Cessado': 5
+              }
+inv_value_dict = {
+              0:'Sem Alerta',
+              1:'Aviso de Observação',
+              2:'Aviso de Atenção',
+              3:'Aviso Especial',
+              4:'Aviso Extraordinário de Risco Iminente',
+              5:'Aviso Cessado',
+              }
+
 
 SA_layer = dict(sourcetype = 'geojson',
              source = SA ,
@@ -221,7 +241,15 @@ def make_cptec_polygon(time):
 
   mylayers = []
 
+  value = 0
+
   for t, g in zip(title,geom):
+
+    warning_poly = Polygon(geom[0])
+    if warning_poly.intersects(SA_polygon):
+      if value_dict[t] > value:
+        value = value_dict[t]
+
     lat = [p[1] for p in g]
     lon = [p[0] for p in g]
 
@@ -263,5 +291,6 @@ def make_cptec_polygon(time):
                   )
 
   fig.layout.update(mapbox_layers=mylayers)
-  return fig
+
+  return fig, inv_value_dict[value]
 
