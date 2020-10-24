@@ -10,7 +10,7 @@ import pandas as pd
 
 # Color palette
 
-BACKGRUOND = '#191A1A'
+BACKGROUND = '#191A1A'
 
 TEAL = '#38b2a3'
 DARKER_TEAL = '#58C8A3'
@@ -36,8 +36,8 @@ UMIDADE = GREEN
 PRESSAO = DARKER_BLUE
 
 plot_layout_kwargs = dict(template='plotly_dark',
-                          paper_bgcolor = BACKGRUOND,
-                          plot_bgcolor  = BACKGRUOND)
+                          paper_bgcolor = BACKGROUND,
+                          plot_bgcolor  = BACKGROUND)
 
 path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
 token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
@@ -222,13 +222,16 @@ def make_mapa_plot(label_copy, est):
                   ))
 
   mapa.update_layout(
+      title='Regiões de Alagamento',
+      title_x=0.5,
+      title_y=0.9,
       hovermode='closest',
       mapbox=dict(
           accesstoken=token,
           bearing=0,
           center=go.layout.mapbox.Center(
-            lat=-23.652598,
-            lon=-46.527872,
+            lat=-23.665773,
+            lon=-46.518075,
         ),
         style='dark',
         pitch=0,
@@ -245,7 +248,6 @@ def make_mapa_plot(label_copy, est):
 def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
 
   ordem_servico_figure = make_subplots(2,1, shared_xaxes=True,
-                                       vertical_spacing = 0.1,
                                        subplot_titles=('Ordens de Serviço',
                                                        'Precipitação'))
   ordem_servico_figure.add_trace(go.Bar(
@@ -409,6 +411,7 @@ def make_cptec_polygon(time):
       width = 750,
       height = 750,
       showlegend = False,
+      **plot_layout_kwargs
                   )
 
   fig.layout.update(mapbox_layers=mylayers)

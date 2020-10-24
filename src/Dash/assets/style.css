@@ -1,0 +1,113 @@
+:root {
+  --bg-light: #434343;
+  --bg-dark: #191a1a;
+}
+
+html, body {
+  background-color: var(--bg-dark);
+}
+
+.root {
+}
+
+.tab1 {
+
+}
+
+.tab1.tab--selected {
+  /* background-color: ; */
+}
+
+.tab1-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-dark);
+}
+
+.tab1-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 3em 0 1.5em;
+  padding: 2em 0;
+  color: #fff;
+  background-color: var(--bg-light);
+  width: 75%;
+  border-radius: 1em;
+}
+
+.tab1-form-title {
+  margin: 0 0 0 5%;
+}
+
+.tab1-dropdown-wrapper {
+  display: flex;
+  margin-bottom: 1.5em;
+}
+
+.tab1-dropdown-group {
+  width: 100%;
+  margin: 0 5%;
+}
+
+.tab1-dropdown-labels {
+  margin: .75em 0 .25em;
+}
+
+.tab1-update-btn {
+  width: max-content;
+  margin-left: 5%;
+  border-color: #fff;
+  color: #fff;
+};
+
+.tab2 {
+
+}
+
+.tab2-container {
+  display: flex;
+  justify-content: center;
+}
+
+.tab2-map-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tab2-graphs-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.tab2-map-info {
+  color: #fff;
+  transform: translateY(-4em);
+}
+
+.tb3-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tb3-model-select {
+  display: flex;
+  justify-content: center;
+  margin-top: 1em;
+  font-size: 2rem;
+  transform: translateY(1.5em);
+  color: #fff;
+  z-index: 100;
+}
+
+.tb3-model-title {
+  font-size: 2rem;
+  color: #fff;
+  transform: translateY(3.5em);
+  z-index: 100;
+}
