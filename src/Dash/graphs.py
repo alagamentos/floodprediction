@@ -1,16 +1,17 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
+from os import path
+import xgboost
 from cptec import get_prediction, get_polygon
-
 from urllib.request import urlopen
 import json
 from shapely.geometry import Polygon
-
-token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
-
+import pandas as pd
 
 path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
+token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
+
+xgb_path = 'src/Dash/model/Identificacao_0H.json'
 
 with urlopen(path) as response:
     counties = json.load(response)
@@ -18,7 +19,7 @@ SA = [ i for i in counties['features'] if i['properties']['name'] == 'Santo Andr
 SA_polygon = Polygon(SA['geometry']['coordinates'][0])
 
 value_dict = {
-              'Sem Alerta': 0,
+              'Sem Aviso': 0,
               'Aviso de Observação':1,
               'Aviso de Atenção': 2,
               'Aviso Especial': 3,
@@ -26,7 +27,7 @@ value_dict = {
               'Aviso Cessado': 5
               }
 inv_value_dict = {
-              0:'Sem Alerta',
+              0:'Sem Aviso',
               1:'Aviso de Observação',
               2:'Aviso de Atenção',
               3:'Aviso Especial',
@@ -55,6 +56,47 @@ color_dict = {'Aviso de Observação':'#FAFF06',
               'Aviso Extraordinário de Risco Iminente': '#000000',
               'Aviso Cessado': '#C3C3C3'
               }
+
+
+# XGBoost
+
+def get_xgb_predictions(model):
+
+  x_data_t = x_pred[model]
+  y_data = y_pred[model]
+
+  df = pd.DataFrame(columns=['Mes', 'Dia', 'Local', 'Precipitacao', 'Data_Hora'])
+
+  df['Data_Hora'] = x_data_t['precipitacao']
+  df['Data_Hora'] = pd.to_datetime(df['Data_Hora'], yearfirst = True)
+  df['Precipitacao'] = y_data['precipitacao']
+
+  df['Dia'] = df['Data_Hora'].dt.day
+  df['Mes'] = df['Data_Hora'].dt.month
+  df['Local'] = 1
+
+  df = df.drop(columns = 'Data_Hora')
+
+  sum_precipitacao = df.groupby(['Dia', 'Mes']).sum().reset_index().drop(columns = ['Local'])
+  sum_precipitacao = sum_precipitacao.rename(columns = {'Precipitacao': 'PrecSum'} )
+
+  X = df.merge(sum_precipitacao, on = ['Dia','Mes'], how = 'inner')
+
+  return X
+
+def predict(model, xgb_path):
+  X = get_xgb_predictions(model)
+
+  model = xgboost.Booster()
+  model.load_model(xgb_path)
+
+  data = xgboost.DMatrix(data=X)
+  return model.predict(data)
+
+y_xgb = {}
+y_xgb['bam'] = predict('bam', xgb_path)
+y_xgb['wrf'] = predict('wrf', xgb_path)
+
 
 def get_geojson_polygon(lons, lats, color='blue'):
     if len(lons) != len(lats):
@@ -294,3 +336,41 @@ def make_cptec_polygon(time):
 
   return fig, inv_value_dict[value]
 
+def make_prob_graph(model):
+
+  y = y_xgb[model]
+
+  m = max(y_pred[model]['precipitacao'])
+  y_max = 5*m
+  if y_max > 50:
+      y_max = m
+
+  fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+  fig.add_trace(go.Bar(
+      y= y * 100,
+      x= x_pred[model]['precipitacao'],
+      name='Chance de alagamento',
+      marker=dict(
+          color = y,
+          cmin = 0,
+          cmax = 1,
+          colorscale=[
+              [0, "green"],
+              [1, "red"]]
+                          ),
+                      ), secondary_y=False,
+              )
+
+  fig.add_trace(go.Scatter(
+      y = y_pred[model]['precipitacao'] ,
+      x = x_pred[model]['precipitacao'],
+      name='Chuva [mm]',
+      line = dict(color = 'blue'),
+                      ), secondary_y=True,
+              )
+  fig.update_yaxes(range=[0, 100], title = 'Probabilidade de alagamento [%]', secondary_y=False, titlefont=dict(color="green"), tickfont=dict(color="green"),)
+  fig.update_yaxes(range=[0, y_max], title = 'Precipitacao [mm]',secondary_y=True, titlefont=dict(color="blue"), tickfont=dict(color="blue"),)
+  fig.update_layout(showlegend = False)
+
+  return fig

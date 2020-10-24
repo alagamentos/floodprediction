@@ -16,7 +16,7 @@ from cptec import get_prediction, get_polygon
 
 from graphs import make_data_repair_plots, make_mapa_plot, \
                    make_rain_ordem_servico_plot, make_cptec_prediction, \
-                   make_cptec_polygon
+                   make_cptec_polygon, make_prob_graph
 
 root = Path(os.path.dirname(os.path.realpath(__file__))).parent.parent
 
@@ -142,11 +142,12 @@ def update_polygon_map(time):
   return fig, text
 
 @app.callback(
-    Output('cptec', 'figure'),
+    [Output('cptec', 'figure'),
+     Output('prob-graph', 'figure')],
     [Input('radio-model', 'value')],
     )
 def update_cptec_predictions(model):
-  return make_cptec_prediction(model)
+  return make_cptec_prediction(model), make_prob_graph(model)
 
 # Startup figures -----------------------------------
 data_plots_fig = make_subplots(2,1, shared_xaxes=True)
@@ -155,7 +156,7 @@ ordemservico_fig = make_subplots(2,1, shared_xaxes=True)
 
 cptec_fig = make_subplots(2,2, shared_xaxes = True)
 cptec_poly_fig = make_cptec_polygon('Hoje')
-
+prob_fig = go.Figure()
 
 # Single Components ---------------------------------
 # Tab 1 components
@@ -236,7 +237,6 @@ radio_button_model = dcc.RadioItems(
     value='bam',
     labelStyle={'display': 'inline-block'}
   )
-
 cptec_figure = dcc.Graph(
               id='cptec',
               figure=cptec_fig
@@ -245,7 +245,6 @@ cptec_poly_figure = dcc.Graph(
               id='cptec-poly',
               figure=cptec_poly_fig
           )
-
 radio_button_poly = dcc.RadioItems(
     options=[
         {'label': 'Hoje', 'value': 'Hoje'},
@@ -256,7 +255,10 @@ radio_button_poly = dcc.RadioItems(
     value='Hoje',
     labelStyle={'display': 'inline-block'}
   )
-
+prediction_prob_figure = dcc.Graph(
+              id='prob-graph',
+              figure=prob_fig
+          )
 # App layout ----------------------------------------
 
 root_layout = html.Div([
@@ -310,6 +312,7 @@ root_layout = html.Div([
           radio_button_poly,
           html.Div(id='warning'),
           cptec_poly_figure,
+          prediction_prob_figure
                 ]),
         ]),
   ])
