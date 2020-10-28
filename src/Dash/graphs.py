@@ -185,6 +185,7 @@ def make_data_repair_plots(merged, error, repaired, col, est, year, month):
               ), col = 1, row = 2)
   plots.update_layout(showlegend = False,
                       transition_duration=500,
+                      margin=dict(l=0, r=0, t=50, b=0),
                       **plot_layout_kwargs )
 
   ymax, ymin = max(repaired_plot[f'{col}_{est}']), min(repaired_plot[f'{col}_{est}'])
@@ -224,7 +225,6 @@ def make_mapa_plot(label_copy, est):
   mapa.update_layout(
       title='Regiões de Alagamento',
       title_x=0.5,
-      title_y=0.9,
       hovermode='closest',
       mapbox=dict(
           accesstoken=token,
@@ -240,6 +240,7 @@ def make_mapa_plot(label_copy, est):
       width = 500,
       height = 550,
       showlegend = False,
+      margin=dict(l=0, r=0, t=50, b=0),
       **plot_layout_kwargs
                   )
 
@@ -262,6 +263,7 @@ def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
              )
   ordem_servico_figure.update_layout(showlegend = False,
                                      bargap = 0,
+                                     margin=dict(l=0, r=0, t=50, b=0),
                                      **plot_layout_kwargs)
 
   ordem_servico_figure.update_traces(marker_color= TEAL,
@@ -292,14 +294,14 @@ def make_cptec_prediction(model):
                                  subplot_titles = subplot_titles)
 
   # Precipitação
-  cptec_fig.add_trace(go.Scatter(
-                        x = x['precipitacao_acc'],
-                        y = y['precipitacao_acc'],
-                        name = 'Precipitação',
-                        line = dict(color = PREP_ACC)
-                                ),
-                                row = 1, col = 1
-                    )
+  # cptec_fig.add_trace(go.Scatter(
+  #                       x = x['precipitacao_acc'],
+  #                       y = y['precipitacao_acc'],
+  #                       name = 'Precipitação',
+  #                       line = dict(color = PREP_ACC)
+  #                               ),
+  #                               row = 1, col = 1
+  #                   )
   cptec_fig.add_trace(go.Bar(
                         x = x['precipitacao'],
                         y = y['precipitacao'],
@@ -353,7 +355,9 @@ def make_cptec_prediction(model):
                                   y=-0.3,
                                   xanchor="center",
                                   x=0.5
-                              ),**plot_layout_kwargs )
+                              ),
+                              margin=dict(l=0, r=0, t=50, b=0),
+                              **plot_layout_kwargs )
 
   return cptec_fig
 
@@ -408,6 +412,7 @@ def make_cptec_polygon(time):
           pitch=0,
           zoom=9
       ),
+      margin=dict(l=0, r=0, t=50, b=0),
       width = 750,
       height = 750,
       showlegend = False,
@@ -461,7 +466,10 @@ def make_prob_graph(model):
                    secondary_y=True,
                    titlefont=dict(color=BLUE),
                    tickfont=dict(color=BLUE),)
-  fig.update_layout( showlegend = False,
+  fig.update_layout(showlegend = False,
+                    title_x=0.5,
+                    title_text="Previsão Alagamento",
+                    margin=dict(l=0, r=0, t=50, b=0),
                     **plot_layout_kwargs )
 
   return fig
