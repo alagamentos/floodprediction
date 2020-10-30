@@ -143,11 +143,18 @@ def update_polygon_map(time):
   return fig, text
 
 @app.callback(
-  [Output('cptec', 'figure'), Output('prob-graph', 'figure')],
-  [Input('radio-model', 'value')],
+  Output('cptec', 'figure'),
+  [Input('radio-model-tab3', 'value')],
 )
 def update_cptec_predictions(model):
-  return make_cptec_prediction(model), make_prob_graph(model)
+  return make_cptec_prediction(model)
+
+@app.callback(
+  Output('prob-graph', 'figure'),
+  [Input('radio-model-tab4', 'value')],
+)
+def update_prob_graph(model):
+  return make_prob_graph(model)
 
 # Startup figures -----------------------------------
 data_plots_fig = make_subplots(2,1, shared_xaxes=True)
@@ -172,8 +179,7 @@ metricas_dropdown = dcc.Dropdown(
   ],
   value='RadiacaoSolar',
   id = 'metrica',
-  clearable=False,
-  style={'color': 'black' }
+  clearable=False
 )
 estacao_dropdown = dcc.Dropdown(
   options=[
@@ -186,24 +192,21 @@ estacao_dropdown = dcc.Dropdown(
   value='0',
   multi=False,
   id='estacao',
-  clearable=False,
-  style={'color': 'black' }
+  clearable=False
 )
 year_dropdown = dcc.Dropdown(
   options= year_options,
   value='2019',
   multi=False,
   id='ano',
-  clearable=False,
-  style={'color': 'black' }
+  clearable=False
 )
 mes_dropdown = dcc.Dropdown(
   options= months_options,
   value='9',
   multi=False,
   id='mes',
-  clearable=False,
-  style={'color': 'black' }
+  clearable=False
 )
 atualizar_button = html.Button(
   'Atualizar',
@@ -228,7 +231,8 @@ year_slider = dcc.RangeSlider(
   step=None,
   marks=year_options_slider,
   value=[list_of_years[0], list_of_years[-1] ],
-  id = 'year-slider'
+  id ='year-slider',
+  className='tab2-graphs-slider'
 )
 ordemservico_figure = dcc.Graph(
   id='os-subplots',
@@ -236,19 +240,19 @@ ordemservico_figure = dcc.Graph(
 )
 
 # Tab 3 components
-radio_button_model = dcc.RadioItems(
+radio_button_model_tab3 = dcc.RadioItems(
   options=[
     {'label': 'WRF 05x05 km', 'value': 'wrf'},
     {'label': 'BAM 20x20 km', 'value': 'bam'},
   ],
-  id = 'radio-model',
+  id = 'radio-model-tab3',
   value='wrf',
-  labelStyle={'display': 'inline-block', 'margin-left': '1em'}
+  labelStyle={'display': 'inline-block', 'marginLeft': '1em'}
 )
 cptec_figure = dcc.Graph(
   id='cptec',
   figure=cptec_fig,
-  style={'width': '90%'}
+  style={'width': '90%', 'marginTop': '1.5em'}
 )
 cptec_poly_figure = dcc.Graph(
   id='cptec-poly',
@@ -262,12 +266,23 @@ radio_button_poly = dcc.RadioItems(
   ],
   id = 'radio-poly',
   value='Hoje',
-  labelStyle={'display': 'inline-block', 'margin-left': '1em'}
+  labelStyle={'display': 'inline-block', 'marginLeft': '1em'}
+)
+
+# Tab 4 components
+radio_button_model_tab4 = dcc.RadioItems(
+  options=[
+    {'label': 'WRF 05x05 km', 'value': 'wrf'},
+    {'label': 'BAM 20x20 km', 'value': 'bam'},
+  ],
+  id = 'radio-model-tab4',
+  value='wrf',
+  labelStyle={'display': 'inline-block', 'marginLeft': '1em'}
 )
 prediction_prob_figure = dcc.Graph(
   id='prob-graph',
   figure=prob_fig,
-  style={'width': '90%', 'transform': 'translateX(2em)'}
+  style={'width': '90%', 'marginTop': '1.5em'}
 )
 
 # App layout ----------------------------------------
@@ -313,22 +328,32 @@ root_layout = html.Div(className='root', children=[
     ]),
 
     # Tab 3
-    dcc.Tab(label='Previsões', className='tb3', children=[
-      html.Div(className='tb3-container', children=[
-        html.Div(className='tb3-model-select', children=[
+    dcc.Tab(label='Previsão do Tempo', className='tab3', children=[
+      html.Div(className='tab3-container', children=[
+        html.Div(className='tab3-model-select', children=[
           html.Label('Selecione o modelo de previsão:'),
-          radio_button_model,
+          radio_button_model_tab3,
         ]),
         cptec_figure,
-        prediction_prob_figure,
-        html.Div(className='tb3-model-select', children=[
+        html.Div(className='tab3-model-select', children=[
           html.Label('Selecione o modelo de previsão:'),
           radio_button_poly,
         ]),
-        html.Div(id='warning', className='tb3-model-title'),
+        html.Div(id='warning', className='tab3-model-info'),
         cptec_poly_figure,
       ]),
     ]),
+
+    #Tab 4
+    dcc.Tab(label='Previsão de Alagamento', className='tab4', children=[
+      html.Div(className='tab4-container', children=[
+        html.Div(className='tab4-model-select', children=[
+          html.Label('Selecione o modelo de previsão:'),
+          radio_button_model_tab4,
+        ]),
+        prediction_prob_figure,
+      ])
+    ])
   ])
 ])
 

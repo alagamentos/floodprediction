@@ -240,7 +240,7 @@ def make_mapa_plot(label_copy, est):
       width = 500,
       height = 550,
       showlegend = False,
-      margin=dict(l=0, r=0, t=50, b=0),
+      margin=dict(l=0, r=0, t=30, b=0),
       **plot_layout_kwargs
                   )
 
@@ -412,7 +412,7 @@ def make_cptec_polygon(time):
           pitch=0,
           zoom=9
       ),
-      margin=dict(l=0, r=0, t=50, b=0),
+      margin=dict(l=0, r=0, t=30, b=0),
       width = 750,
       height = 750,
       showlegend = False,
@@ -468,7 +468,7 @@ def make_prob_graph(model):
                    tickfont=dict(color=BLUE),)
   fig.update_layout(showlegend = False,
                     title_x=0.5,
-                    title_text="Previsão Alagamento",
+                    title_text="Previsão de Alagamento",
                     margin=dict(l=0, r=0, t=50, b=0),
                     **plot_layout_kwargs )
 
