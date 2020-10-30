@@ -39,46 +39,16 @@ plot_layout_kwargs = dict(template='plotly_dark',
                           paper_bgcolor = BACKGROUND,
                           plot_bgcolor  = BACKGROUND)
 
-path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
 token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
 
 xgb_path = 'src/Dash/model/Identificacao_0H.json'
-
-with urlopen(path) as response:
-    counties = json.load(response)
-SA = [ i for i in counties['features'] if i['properties']['name'] == 'Santo André' ][0]
-SA_polygon = Polygon(SA['geometry']['coordinates'][0])
-SA_layer = dict(sourcetype = 'geojson',
-             source = SA ,
-             below='',
-             type = 'fill',
-             opacity=0.25,
-             color = 'white')
-
-
-value_dict = {
-              'Sem Aviso': 0,
-              'Aviso de Observação':1,
-              'Aviso de Atenção': 2,
-              'Aviso Especial': 3,
-              'Aviso Extraordinário de Risco Iminente':4,
-              'Aviso Cessado': 5
-              }
-inv_value_dict = {
-              0:'Sem Aviso',
-              1:'Aviso de Observação',
-              2:'Aviso de Atenção',
-              3:'Aviso Especial',
-              4:'Aviso Extraordinário de Risco Iminente',
-              5:'Aviso Cessado',
-              }
 
 x_pred, y_pred = {}, {}
 
 x_pred['bam'], y_pred['bam'] = get_prediction('bam')
 x_pred['wrf'], y_pred['wrf'] = get_prediction('wrf')
 
-polygon_dict = get_polygon()
+polygon_dict, SA_polygon, SA_layer = get_polygon()
 
 color_dict = {'Aviso de Observação':'#FAFF06',
               'Aviso de Atenção': '#F2C004',
@@ -365,21 +335,13 @@ def make_cptec_polygon(time):
 
   geom = polygon_dict[time]['geom']
   title = polygon_dict[time]['title']
+  aviso = polygon_dict[time]['aviso']
 
   mylayers = []
 
-  value = 0
-
   for t, g in zip(title,geom):
-
-    warning_poly = Polygon(geom[0])
-    if warning_poly.intersects(SA_polygon):
-      if value_dict[t] > value:
-        value = value_dict[t]
-
     lat = [p[1] for p in g]
     lon = [p[0] for p in g]
-
     try:
       warning_color = color_dict[t]
     except KeyError:
@@ -421,7 +383,7 @@ def make_cptec_polygon(time):
 
   fig.layout.update(mapbox_layers=mylayers)
 
-  return fig, inv_value_dict[value]
+  return fig, aviso
 
 def make_prob_graph(model):
 

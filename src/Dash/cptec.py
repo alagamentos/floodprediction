@@ -2,9 +2,10 @@ import urllib.request
 import re
 import json
 from datetime import datetime
+from shapely.geometry import Polygon
+from urllib.request import urlopen
 
 def get_prediction(model):
-
   if model == 'bam':
     with urllib.request.urlopen('https://previsaonumerica.cptec.inpe.br/novo/meteograma/bam/sp/santo-andre') as response:
         html = str(response.read())
@@ -35,7 +36,46 @@ def extract_data(source_string: str):
 
     return x_data, x_data_t, y_data
 
+def get_SantoAndre_polygon():
+
+  path = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json'
+
+  with urlopen(path) as response:
+      counties = json.load(response)
+  SA = [ i for i in counties['features'] if i['properties']['name'] == 'Santo André' ][0]
+
+
+  return SA
+
 def get_polygon():
+
+  value_dict = {'Aviso de Observação':1,
+              'Aviso de Atenção': 2,
+              'Aviso Especial': 3,
+              'Aviso Extraordinário de Risco Iminente':4,
+              'Aviso Cessado': 5
+              }
+
+  inverse_value_dict = {
+              0:'Sem Alerta',
+              1:'Aviso de Observação',
+              2:'Aviso de Atenção',
+              3:'Aviso Especial',
+              4:'Aviso Extraordinário de Risco Iminente',
+              5:'Aviso Cessado'}
+
+  intersection = {}
+  output_dict = {}
+
+  SA = get_SantoAndre_polygon()
+  SA_polygon = Polygon(SA['geometry']['coordinates'][0])
+  SA_layer = dict(sourcetype = 'geojson',
+              source = SA ,
+              below='',
+              type = 'fill',
+              opacity=0.25,
+              color = 'white')
+
   with urllib.request.urlopen('http://tempo.cptec.inpe.br/avisos/') as response:
     html_source = str(response.read())
 
@@ -43,15 +83,15 @@ def get_polygon():
   html48 = re.search(r'\/\/ 48 horas(.*?)\/\/ 72 horas', html_source).group(1)
   html72 = re.search(r'\/\/ 72 horas(.*)', html_source).group(1)
 
-  output_dict = {}
   for text, html in zip(['Hoje', '48 horas', '72 horas'],[htmlnow, html48, html72]):
 
+      intersection[text] = 0
+
       output_dict[text] = {'geom':  [] ,
-                      'title': []}
+                           'title': []}
 
       poly_func_string_list = re.findall(r'google.maps.Polygon(.*?)\)', html)
       poly_func_string = re.search(r'new google.maps.Polygon\((.*?)\}\)', html)
-
 
       if poly_func_string is None: continue
 
@@ -72,4 +112,13 @@ def get_polygon():
           output_dict[text]['geom'].append(polygon_points)
           output_dict[text]['title'].append(title_string)
 
-  return output_dict
+      polygon = Polygon(polygon_points)
+
+      if SA_polygon.intersects(polygon):
+        if value_dict[title_string] > intersection[text]:
+          intersection[text] = value_dict[title_string]
+
+  for k in intersection.keys():
+    output_dict[k]['aviso'] = inverse_value_dict[intersection[k]]
+
+  return output_dict, SA_polygon, SA_layer
