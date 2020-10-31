@@ -321,6 +321,7 @@ root_layout = html.Div(className='root', children=[
         dcc.Tab(label='Histórico de Alagamentos', className='tab2', children=[
             html.Div(className='tab2-container', children=[
                 html.Div(className='tab2-map-wrapper', children=[
+                    html.Div(className='tab2-map-info', children='Regiões de Alagamento'),
                     html.Div(className='tab2-map-filter', children=[
                         map_figure,
                     ]),

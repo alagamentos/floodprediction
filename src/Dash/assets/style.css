@@ -106,13 +106,14 @@ html, body {
 
 .tab2-map-info {
   font-size: 1.6rem;
-  margin-top: 1em;
+  margin: 1em 0 .5em;
   color: #fff;
 }
 
 .tab2-graphs-wrapper {
   display: flex;
   flex-direction: column;
+  width: 50%;
 }
 
 .tab2-graphs-slider {
