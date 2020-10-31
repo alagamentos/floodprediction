@@ -9,29 +9,25 @@ from shapely.geometry import Polygon
 import pandas as pd
 
 # Color palette
-BACKGROUND = '#222437'
-TEAL = '#38b2a3'
-DARKER_TEAL = '#58C8A3'
-BLUE = '#3282b8'
-DARKER_BLUE = '#2D75A5'
-RED = '#f05454'
-DARKER_RED = '#D84B4B'
-GREEN = '#6BDD67'
-DARKER_GREEN = '#55B052'
-ORANGE = '#f6830f'
-DARKER_ORANGE = ''
+MIDNIGHT_BLUE = '#222437'
+TURQUOISE = '#1ad5c3'
+PURPLE = '#6201ed'
+RED = '#fd3f6e'
+YELLOW = '#eab009'
+BLUE = '#2c50ed'
+SLATEBLUE = '#6646ed'
+LIGHT_PINK = '#ecbdca'
 
-# CPTEC pred
-PREP_ACC = RED
-PREP = TEAL
-TEMP = BLUE
-SENST = ORANGE
-UMIDADE = GREEN
-PRESSAO = DARKER_BLUE
+BG_DARK = MIDNIGHT_BLUE
+PLOT_PRI = TURQUOISE
+PLOT_SEC = PURPLE
+PLOT_TER = RED
+PLOT_QUA = YELLOW
+PLOT_QUI = BLUE
 
 plot_layout_kwargs = dict(template='plotly_dark',
-                          paper_bgcolor=BACKGROUND,
-                          plot_bgcolor=BACKGROUND)
+                          paper_bgcolor=BG_DARK,
+                          plot_bgcolor=BG_DARK)
 
 token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
 
@@ -133,17 +129,17 @@ def make_data_repair_plots(merged, error, repaired, col, est, year, month):
   plots.add_trace(go.Scatter(
       x=merged_plot['Data_Hora'],
       y=merged_plot[f'{col}_{est}'],
-      line=dict(color=BLUE)
+      line=dict(color=PLOT_SEC)
   ), col=1, row=1)
   plots.add_trace(go.Scatter(
       x=merged_plot['Data_Hora'].where(error_plot[f'{col}_{est}_error']),
       y=merged_plot[f'{col}_{est}'].fillna(0).where(error_plot[f'{col}_{est}_error']),
-      line=dict(color=RED)
+      line=dict(color=PLOT_TER)
   ), col=1, row=1)
   plots.add_trace(go.Scatter(
       x=repaired_plot['Data_Hora'],
       y=repaired_plot[f'{col}_{est}'],
-      line=dict(color=GREEN)
+      line=dict(color=PLOT_PRI)
   ), col=1, row=2)
   plots.update_layout(showlegend=False,
                       transition_duration=500,
@@ -167,7 +163,7 @@ def make_mapa_plot(label_copy, est):
       mode='markers',
       marker=go.scattermapbox.Marker(
           size=14,
-          color='white',
+          color='#404042',
           symbol='marker'
       ),
       text=est['Estacao'],
@@ -226,13 +222,13 @@ def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
                                      margin=dict(l=40, r=20, t=40, b=30),
                                      **plot_layout_kwargs)
 
-  ordem_servico_figure.update_traces(marker_color=TEAL,
-                                     marker_line_color=DARKER_TEAL,
+  ordem_servico_figure.update_traces(marker_color=PLOT_PRI,
+                                     marker_line_color=PLOT_PRI,
                                      marker_line_width=1,
                                      opacity=1,
                                      col=1, row=1)
-  ordem_servico_figure.update_traces(marker_color=BLUE,
-                                     marker_line_color=DARKER_BLUE,
+  ordem_servico_figure.update_traces(marker_color=PLOT_SEC,
+                                     marker_line_color=PLOT_SEC,
                                      marker_line_width=1,
                                      opacity=1,
                                      col=1, row=2)
@@ -265,7 +261,7 @@ def make_cptec_prediction(model):
       x=x['precipitacao'],
       y=y['precipitacao'],
       name='Precipitação Acumulada',
-      marker=dict(color=PREP)
+      marker=dict(color=PLOT_PRI)
   ),
       row=1, col=1
   )
@@ -275,7 +271,7 @@ def make_cptec_prediction(model):
       x=x['temperatura'],
       y=y['temperatura'],
       name='Temperatura',
-      line=dict(color=TEMP)
+      line=dict(color=PLOT_TER)
   ),
       row=1, col=2
   )
@@ -283,7 +279,7 @@ def make_cptec_prediction(model):
       x=x['temperatura_aparente'],
       y=y['temperatura_aparente'],
       name='Sensação térmica',
-      line=dict(color=SENST)
+      line=dict(color=PLOT_SEC)
   ),
       row=1, col=2
   )
@@ -293,7 +289,7 @@ def make_cptec_prediction(model):
       x=x['umidade_relativa'],
       y=y['umidade_relativa'],
       name='Umidade Relativa',
-      line=dict(color=UMIDADE)
+      line=dict(color=PLOT_QUI)
   ),
       row=2, col=1
   )
@@ -303,7 +299,7 @@ def make_cptec_prediction(model):
       x=x['pressao'],
       y=y['pressao'],
       name='Pressão Atmosférica',
-      line=dict(color=PRESSAO)
+      line=dict(color=PLOT_QUA)
   ),
       row=2, col=2
   )
@@ -391,8 +387,8 @@ def make_prob_graph(model):
           cmin=0,
           cmax=1,
           colorscale=[
-              [0, GREEN],
-              [1, RED]]
+              [0, PLOT_PRI],
+              [1, PLOT_TER]]
       ),
   ), secondary_y=False,
   )
@@ -401,19 +397,19 @@ def make_prob_graph(model):
       y=y_pred[model]['precipitacao'],
       x=x_pred[model]['precipitacao'],
       name='Chuva [mm]',
-      line=dict(color=BLUE, width=3),
+      line=dict(color=PLOT_QUI, width=3),
   ), secondary_y=True,
   )
   fig.update_yaxes(range=[0, 100],
                    title='Probabilidade de alagamento [%]',
                    secondary_y=False,
-                   titlefont=dict(color=GREEN),
-                   tickfont=dict(color=GREEN),)
+                   titlefont=dict(color=PLOT_PRI),
+                   tickfont=dict(color=PLOT_PRI),)
   fig.update_yaxes(range=[0, y_max],
                    title='Precipitacao [mm]',
                    secondary_y=True,
-                   titlefont=dict(color=BLUE),
-                   tickfont=dict(color=BLUE),)
+                   titlefont=dict(color=PLOT_QUI),
+                   tickfont=dict(color=PLOT_QUI),)
   fig.update_layout(showlegend=False,
                     title_x=0.5,
                     title_text="Previsão de Alagamento",
