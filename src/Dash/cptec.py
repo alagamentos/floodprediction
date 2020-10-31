@@ -47,6 +47,27 @@ def get_SantoAndre_polygon():
 
   return SA
 
+def verify_title_string(t):
+  if 'observação' in t.lower() or 'observacao' in t.lower():
+    text = 'Aviso de Observação'
+
+  elif 'atenção' in t.lower() or 'atencao' in t.lower():
+    text = 'Aviso de Atenção'
+
+  elif 'especial' in t.lower():
+    text = 'Aviso Especial'
+
+  elif 'extraordinário' in t.lower() or 'extraordinario' in t.lower() or 'risco' in t.lower():
+    text = 'Aviso Extraordinário de Risco Iminente'
+
+  elif 'cessado' in t.lower():
+    text = 'Aviso Cessado'
+
+  else:
+    text = 'Sem Alerta'
+
+  return text
+
 def get_polygon():
 
   value_dict = {'Aviso de Observação':1,
@@ -85,32 +106,34 @@ def get_polygon():
 
   for text, html in zip(['Hoje', '48 horas', '72 horas'],[htmlnow, html48, html72]):
 
-      intersection[text] = 0
+    intersection[text] = 0
 
-      output_dict[text] = {'geom':  [] ,
-                           'title': []}
+    output_dict[text] = {'geom':  [],
+                          'title': []}
 
-      poly_func_string_list = re.findall(r'google.maps.Polygon(.*?)\)', html)
-      poly_func_string = re.search(r'new google.maps.Polygon\((.*?)\}\)', html)
+    poly_func_string_list = re.findall(r'google.maps.Polygon(.*?)\)', html)
+    poly_func_string = re.search(r'new google.maps.Polygon\((.*?)\}\)', html)
 
-      if poly_func_string is None: continue
+    if poly_func_string is None: continue
 
-      poly_func_string = poly_func_string.group(1)
+    poly_func_string = poly_func_string.group(1)
 
-      for poly_func_string in poly_func_string_list:
+    for poly_func_string in poly_func_string_list:
 
-          polygon_string = re.search(r'paths\: (.*?),\\n', poly_func_string).group(1)
+      polygon_string = re.search(r'paths\: (.*?),\\n', poly_func_string).group(1)
 
-          polygon_string = polygon_string.replace('lat', '"lat"').replace('lng', '"lng"')
-          polygon_dict = json.loads(polygon_string)
-          polygon_points = [(p['lng'], p['lat'] ) for p in polygon_dict]
+      polygon_string = polygon_string.replace('lat', '"lat"').replace('lng', '"lng"')
+      polygon_dict = json.loads(polygon_string)
+      polygon_points = [(p['lng'], p['lat'] ) for p in polygon_dict]
 
-          title_string = re.search(r'title\:\"(.*?)"', poly_func_string).group(1)
-          title_string = title_string.replace('\\xc3\\xa7','ç').replace('\\xc3\\xa3','ã').replace('\\xc3\\xa1','á')
+      title_string = re.search(r'title\:\"(.*?)"', poly_func_string).group(1)
+      title_string = title_string.replace('\\xc3\\xa7','ç').replace('\\xc3\\xa3','ã').replace('\\xc3\\xa1','á')
 
-          # Populate Dict
-          output_dict[text]['geom'].append(polygon_points)
-          output_dict[text]['title'].append(title_string)
+      title_string = verify_title_string(title_string)
+
+      # Populate Dict
+      output_dict[text]['geom'].append(polygon_points)
+      output_dict[text]['title'].append(title_string)
 
       polygon = Polygon(polygon_points)
 
