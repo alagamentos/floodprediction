@@ -16,7 +16,7 @@ from cptec import get_prediction, get_polygon
 
 from graphs import make_data_repair_plots, make_mapa_plot, \
     make_rain_ordem_servico_plot, make_cptec_prediction, \
-    make_cptec_polygon, make_prob_graph
+    make_cptec_polygon, make_prob_graph, make_rain_ordem_servico_plot_grouped_by
 
 root = Path(os.path.dirname(os.path.realpath(__file__))).parent.parent
 
@@ -111,7 +111,7 @@ def update_graphs(n_clicks, col, est, year, month):
 
 
 @app.callback(
-    [Output('count', 'children'), Output('mapa', 'figure'), Output('os-subplots', 'figure')],
+    [Output('count', 'children'), Output('mapa', 'figure'), Output('os-subplots', 'figure'), Output('os-subplots-month', 'figure')],
     [Input('year-slider', 'value')],
 )
 def update_map(date_range):
@@ -130,9 +130,10 @@ def update_map(date_range):
 
   mapa = make_mapa_plot(label_plot, est)
   ordem_servico_figure = make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot)
+  ordem_servico_figure_month = make_rain_ordem_servico_plot_grouped_by(gb_label_plot, rain_sum_plot)
   count = label_plot.shape[0]
 
-  return count, mapa, ordem_servico_figure
+  return count, mapa, ordem_servico_figure, ordem_servico_figure_month
 
 
 @app.callback(
@@ -164,6 +165,7 @@ def update_prob_graph(model):
 data_plots_fig = make_subplots(2, 1, shared_xaxes=True)
 mapa = go.Figure()
 ordemservico_fig = make_subplots(2, 1, shared_xaxes=True)
+ordemservico_fig_month = make_subplots(2, 1, shared_xaxes=True)
 
 cptec_fig = make_subplots(2, 2, shared_xaxes=True)
 cptec_poly_fig = make_cptec_polygon('Hoje')
@@ -241,6 +243,11 @@ year_slider = dcc.RangeSlider(
 ordemservico_figure = dcc.Graph(
     id='os-subplots',
     figure=ordemservico_fig
+)
+
+ordemservico_figure_month = dcc.Graph(
+    id='os-subplots-month',
+    figure=ordemservico_fig_month
 )
 
 # Tab 3 components
@@ -344,17 +351,20 @@ root_layout = html.Div(className='root', children=[
                     ]),
                 ]),
                 html.Div(className='tab2-wrapper', children=[
-                  html.Div(className='tab2-map-wrapper', children=[
-                      html.Div(className='tab2-map-info', children='Regiões de Alagamento'),
-                      html.Div(className='tab2-map-filter', children=[
-                          map_figure,
-                      ]),
-                      # html.Div(id='count', className='tab2-map-info'),
+                  html.Div(className='tab2-graphs-wrapper', children=[
+                      ordemservico_figure_month
                   ]),
                   html.Div(className='tab2-graphs-wrapper', children=[
                       ordemservico_figure,
                       year_slider,
                   ]),
+                ]),
+                html.Div(className='tab2-map-wrapper', children=[
+                    html.Div(className='tab2-map-info', children='Regiões de Alagamento'),
+                    html.Div(className='tab2-map-filter', children=[
+                        map_figure,
+                    ]),
+                    # html.Div(id='count', className='tab2-map-info'),
                 ]),
             ]),
         ]),

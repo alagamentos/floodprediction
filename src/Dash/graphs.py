@@ -25,6 +25,20 @@ PLOT_TER = RED
 PLOT_QUA = YELLOW
 PLOT_QUI = BLUE
 
+dict_months = {
+     1: u'Janeiro',
+     2: u'Fevereiro',
+     3: u'Março',
+     4: u'Abril',
+     5: u'Maio',
+     6: u'Junho',
+     7: u'Julho',
+     8: u'Agosto',
+     9: u'Setembro',
+     10: u'Outubro',
+     11: u'Novembro',
+     12: u'Dezembro'
+}
 plot_layout_kwargs = dict(template='plotly_dark',
                           paper_bgcolor=BG_DARK,
                           plot_bgcolor=BG_DARK)
@@ -235,6 +249,64 @@ def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
 
   return ordem_servico_figure
 
+
+def make_rain_ordem_servico_plot_grouped_by(gb_label_plot_, rain_sum_plot_):
+
+  gb_label_plot =  gb_label_plot_.copy()
+  rain_sum_plot =  rain_sum_plot_.copy()
+
+  gb_label_plot['Mes'] = gb_label_plot['Data'].dt.month
+  rain_sum_plot['Mes'] = rain_sum_plot['Data'].dt.month
+
+  gb_label_plot['Ano'] = gb_label_plot['Data'].dt.year
+  rain_sum_plot['Ano'] = rain_sum_plot['Data'].dt.year
+
+  gb_label_plot_gb = gb_label_plot.groupby(['Mes','Ano']).sum().reset_index()
+  rain_sum_plot_gb = rain_sum_plot.groupby(['Mes','Ano']).sum().reset_index()
+
+  df_label = gb_label_plot_gb.groupby('Mes').mean().drop(columns = ['Ano']).reset_index()
+  df_rain = rain_sum_plot_gb.groupby('Mes').mean().drop(columns = ['Ano']).reset_index()
+
+  df_label = df_label.sort_values(by = 'Mes', ascending = True)
+  df_rain = df_rain.sort_values(by = 'Mes', ascending = True)
+
+  df_label['Mes'] = df_label['Mes'].map(dict_months)
+  df_rain['Mes'] = df_rain['Mes'].map(dict_months)
+
+
+  ordem_servico_gb_figure = make_subplots(2, 1, shared_xaxes=True,
+                                       subplot_titles=('Ordens de Serviço',
+                                                       'Precipitação'))
+
+  ordem_servico_gb_figure.add_trace(go.Bar(
+      x=df_rain['Mes'],
+      y=df_rain['Precipitacao_2'],),
+      row=2, col=1,
+  )
+
+  ordem_servico_gb_figure.add_trace(go.Bar(
+      x=df_label['Mes'],
+      y=df_label['count']),
+      row=1, col=1
+  )
+
+  ordem_servico_gb_figure.update_layout(showlegend=False,
+                                     bargap=0.2,
+                                     margin=dict(l=40, r=20, t=40, b=30),
+                                     **plot_layout_kwargs)
+
+  ordem_servico_gb_figure.update_traces(marker_color=PLOT_PRI,
+                                     marker_line_color=PLOT_PRI,
+                                     marker_line_width=1,
+                                     opacity=1,
+                                     col=1, row=1)
+  ordem_servico_gb_figure.update_traces(marker_color=PLOT_SEC,
+                                     marker_line_color=PLOT_SEC,
+                                     marker_line_width=1,
+                                     opacity=1,
+                                     col=1, row=2)
+
+  return ordem_servico_gb_figure
 
 def make_cptec_prediction(model):
   x, y = x_pred[model], y_pred[model]
