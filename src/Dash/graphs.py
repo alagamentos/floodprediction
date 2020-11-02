@@ -200,12 +200,12 @@ def make_mapa_plot(label_copy, est):
           accesstoken=token,
           bearing=0,
           center=go.layout.mapbox.Center(
-              lat=-23.665773,
-              lon=-46.518075,
+              lat=-23.665688,
+              lon=-46.517582,
           ),
           style='light',
           pitch=0,
-          zoom=11
+          zoom=11.5
       ),
       width=500,
       height=550,
@@ -275,8 +275,8 @@ def make_rain_ordem_servico_plot_grouped_by(gb_label_plot_, rain_sum_plot_):
 
 
   ordem_servico_gb_figure = make_subplots(2, 1, shared_xaxes=True,
-                                       subplot_titles=('Ordens de Serviço',
-                                                       'Precipitação'))
+                                       subplot_titles=('Ordens de Serviço Média',
+                                                       'Precipitação Média'))
 
   ordem_servico_gb_figure.add_trace(go.Bar(
       x=df_rain['Mes'],
