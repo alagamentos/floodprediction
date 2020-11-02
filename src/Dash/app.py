@@ -132,7 +132,7 @@ def update_map(date_range):
   ordem_servico_figure = make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot)
   count = label_plot.shape[0]
 
-  return f'Total de ordens de serviço: {count}', mapa, ordem_servico_figure
+  return count, mapa, ordem_servico_figure
 
 
 @app.callback(
@@ -291,46 +291,71 @@ prediction_prob_figure = dcc.Graph(
 
 # App layout ----------------------------------------
 root_layout = html.Div(className='root', children=[
+    html.Div(className='header', children=[
+      html.H1('TCC - Sistema Inteligente de Previsão de Alagamentos', className='header-title'),
+      html.Img(src='/assets/maua-logo-branco.png', className='header-logo')
+    ]),
     dcc.Tabs([
         # Tab 1
         dcc.Tab(label='Dados Históricos', className='tab1', children=[
             html.Div(className='tab1-container', children=[
-                html.Div(className='tab1-form', children=[
-                    html.H5('Filtros', className='tab1-form-title'),
-                    html.Div(className='tab1-dropdown-wrapper', children=[
-                        html.Div(className='tab1-dropdown-group', children=[
-                            html.Label('Métrica', className='tab1-dropdown-labels'),
-                            metricas_dropdown,
-                            html.Label(u'Estação Meteorológica', className='tab1-dropdown-labels'),
-                            estacao_dropdown,
-                        ]),
-                        html.Div(className='tab1-dropdown-group', children=[
-                            html.Label(u'Ano', className='tab1-dropdown-labels'),
-                            year_dropdown,
-                            html.Label(u'Mês', className='tab1-dropdown-labels'),
-                            mes_dropdown,
-                        ]),
-                    ]),
-                    atualizar_button
-                ]),
-                data_subplots,
+              html.Div(className='tab1-header', children=[
+                  html.Div(className='tab1-form', children=[
+                      html.H5('Filtros', className='tab1-form-title'),
+                      html.Div(className='tab1-dropdown-wrapper', children=[
+                          html.Div(className='tab1-dropdown-group', children=[
+                              html.Label('Dado Meteorológico', className='tab1-dropdown-labels'),
+                              metricas_dropdown,
+                              html.Label(u'Estação Meteorológica', className='tab1-dropdown-labels'),
+                              estacao_dropdown,
+                          ]),
+                          html.Div(className='tab1-dropdown-group', children=[
+                              html.Label(u'Ano', className='tab1-dropdown-labels'),
+                              year_dropdown,
+                              html.Label(u'Mês', className='tab1-dropdown-labels'),
+                              mes_dropdown,
+                          ]),
+                      ]),
+                      atualizar_button
+                  ]),
+                  html.Div(className='tab1-info', children=[
+                    html.H3('Tratamento dos dados', className='tab1-info-title'),
+                    html.P(
+                      'Foram disponibilizados dados meteorológicos de 5 estações espalhadas pelo município. Por terem sido gerados a partir de medições de sensores ao longo de anos, após uma análise inicial, observou-se que esses dados eram imprecisos em alguns momentos.',
+                      className='tab1-info-text'
+                    ),
+                    html.P(
+                      'Para consertá-los foram utilizadas técnicas matemáticas e de aprendizagem de máquina, que conseguiram explicar de forma bastante acurada o comportamento dos dados reais.',
+                      className='tab1-info-text'
+                    ),
+                  ]),
+              ]),
+              data_subplots,
             ])
         ]),
 
         # Tab 2
         dcc.Tab(label='Histórico de Alagamentos', className='tab2', children=[
             html.Div(className='tab2-container', children=[
-                html.Div(className='tab2-map-wrapper', children=[
-                    html.Div(className='tab2-map-info', children='Regiões de Alagamento'),
-                    html.Div(className='tab2-map-filter', children=[
-                        map_figure,
+                html.Div(className='tab2-header', children=[
+                    html.Div(className='card', children=[
+                        html.Span(id='count', className='card-value'),
+                        html.H5('Nº de ordens de serviço', className='card-title'),
                     ]),
-                    html.Div(id='count', className='tab2-map-info'),
                 ]),
-                html.Div(className='tab2-graphs-wrapper', children=[
-                    ordemservico_figure,
-                    year_slider,
-                ])
+                html.Div(className='tab2-wrapper', children=[
+                  html.Div(className='tab2-map-wrapper', children=[
+                      html.Div(className='tab2-map-info', children='Regiões de Alagamento'),
+                      html.Div(className='tab2-map-filter', children=[
+                          map_figure,
+                      ]),
+                      # html.Div(id='count', className='tab2-map-info'),
+                  ]),
+                  html.Div(className='tab2-graphs-wrapper', children=[
+                      ordemservico_figure,
+                      year_slider,
+                  ]),
+                ]),
             ]),
         ]),
 

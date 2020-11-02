@@ -5,11 +5,73 @@
   --bg-darker: #1c1e2f;
 }
 
-html, body {
+html,
+body {
+  margin: 0;
+  padding: 0;
   background-color: var(--bg-darker);
 }
 
-.root {
+input[type='radio']:after {
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+  top: -2px;
+  left: -1px;
+  position: relative;
+  background-color: #d1d3d1;
+  content: '';
+  display: inline-block;
+  visibility: visible;
+  border: 2px solid white;
+}
+
+input[type='radio']:checked:after {
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+  top: -2px;
+  left: -1px;
+  position: relative;
+  background-color: #6646ed;
+  content: '';
+  display: inline-block;
+  visibility: visible;
+  border: 2px solid white;
+}
+
+.card {
+  padding: 1em 1.5em;
+  box-shadow: 2px 2px 5px 0px rgba(255,255,255,.2);
+  border-radius: 6px;
+  background-color: var(--bg-dark);
+}
+
+.card-value {
+  font-size: 2.5rem;
+  margin-bottom: .5em;
+  color: #fff;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  color: #d1d3d1;
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-title {
+  color: #fff;
+  margin: 2rem 5rem 2rem 0;
+}
+
+.header-logo {
+  width: 120px;
+  height: 60px;
 }
 
 .tab1,
@@ -37,11 +99,39 @@ html, body {
   background-color: var(--bg-darker);
 }
 
+.tab1-header {
+  display: flex;
+  margin: 3em 0 1.5em;
+  width: 80%;
+}
+
+.tab1-info {
+  width: 20%;
+  color: #fff;
+  margin-left: 2em;
+  padding: 2em;
+  background-color: var(--bg-dark);
+}
+
+.tab1-info-title {
+  font-size: 3rem;
+  margin: 0 0 1em;
+}
+
+.tab1-info-text {
+  text-align: justify;
+  font-size: 1.2rem;
+  margin-bottom: 1em;
+}
+
+.tab1-info-text:last-of-type {
+  margin-bottom: 0;
+}
+
 .tab1-form {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin: 3em 0 1.5em;
   padding: 2em 0;
   color: #fff;
   background-color: var(--bg-dark);
@@ -98,9 +188,20 @@ html, body {
 
 .tab2-container {
   display: flex;
+  flex-direction: column;
+  margin-top: 3em;
+}
+
+.tab2-header {
+  display: flex;
+  justify-content: space-evenly;
+  margin-bottom: 2em;
+}
+
+.tab2-wrapper {
+  display: flex;
   justify-content: space-evenly;
   align-items: center;
-  margin-top: 4em;
 }
 
 .tab2-map-wrapper {

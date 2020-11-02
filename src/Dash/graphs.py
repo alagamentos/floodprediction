@@ -41,10 +41,10 @@ x_pred['wrf'], y_pred['wrf'] = get_prediction('wrf')
 polygon_dict, SA_polygon, SA_layer = get_polygon()
 
 color_dict = {
-  'Aviso de Observação': '#FAFF06',
-  'Aviso de Atenção': '#F2C004',
-  'Aviso Especial': '#E92C00',
-  'Aviso Extraordinário de Risco Iminente': '#000000',
+  'Aviso de Observação': LIGHT_PINK,
+  'Aviso de Atenção': YELLOW,
+  'Aviso Especial': RED,
+  'Aviso Extraordinário de Risco Iminente': BLUE,
   'Aviso Cessado': '#C3C3C3'
 }
 
@@ -125,7 +125,7 @@ def make_data_repair_plots(merged, error, repaired, col, est, year, month):
 
   plots = make_subplots(2, 1, shared_xaxes=True,
                         subplot_titles=('Dados Originais',
-                                        'Dados Reparados'))
+                                        'Dados Corrigidos'))
   plots.add_trace(go.Scatter(
       x=merged_plot['Data_Hora'],
       y=merged_plot[f'{col}_{est}'],

@@ -95,7 +95,7 @@ def get_polygon():
               below='',
               type = 'fill',
               opacity=0.25,
-              color = 'white')
+              color = '#1c1e2f')
 
   with urllib.request.urlopen('http://tempo.cptec.inpe.br/avisos/') as response:
     html_source = str(response.read())
