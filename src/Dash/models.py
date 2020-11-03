@@ -4,8 +4,11 @@ import xgboost
 from os import path
 
 def identification_0H(reading):
-  dir = path.dirname(path.realpath(__file__))
-  model_path = path.join(dir, '../../data/model/Identificacao_0H.json')
+  # dir = path.dirname(path.realpath(__file__))
+  # model_path = path.join(dir, '../../data/model/Identificacao_0H.json')
+
+  model_path = 'data/model/Identificacao_0H.json'
+
   threshold = 0.5
 
   model = xgboost.Booster()

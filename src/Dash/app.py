@@ -18,15 +18,15 @@ from graphs import make_data_repair_plots, make_mapa_plot, \
     make_rain_ordem_servico_plot, make_cptec_prediction, \
     make_cptec_polygon, make_prob_graph, make_rain_ordem_servico_plot_grouped_by
 
-root = Path(os.path.dirname(os.path.realpath(__file__))).parent.parent
-
+import os
+import psutil
 
 # Prepdata ----------------------------------
-merged_path = root / 'data/cleandata/Info pluviometricas/Merged Data/merged.csv'
-repaired_path = root / 'data/cleandata/Info pluviometricas/Merged Data/repaired.csv'
-error_path = root / 'data/cleandata/Info pluviometricas/Merged Data/error_regions.csv'
-estacoes_path = root / 'data/cleandata/Estacoes/lat_lng_estacoes.csv'
-oservico_path = root / 'data/cleandata/Ordens de serviço/Enchentes_LatLong.csv'
+merged_path = 'data/merged.csv'
+repaired_path =  'data/repaired.csv'
+error_path =  'data/error_regions.csv'
+estacoes_path =  'data/lat_lng_estacoes.csv'
+oservico_path = 'data/Enchentes_LatLong.csv'
 
 merged = pd.read_csv(merged_path, sep=';')
 repaired = pd.read_csv(repaired_path, sep=';')
@@ -87,7 +87,7 @@ app = dash.Dash(
     state=[State('mes', 'value')]
 )
 def update_mont_options(ano, mes):
-  if ano == 2019:
+  if int(ano) == 2019:
     year_options = [{'label': k, 'value': int(v)} for k, v in dict_months.items() if int(v) < 10]
     if int(mes) >= 10:
       mes = str(9)
@@ -111,7 +111,11 @@ def update_graphs(n_clicks, col, est, year, month):
 
 
 @app.callback(
-    [Output('count', 'children'), Output('mapa', 'figure'), Output('os-subplots', 'figure'), Output('os-subplots-month', 'figure')],
+    [Output('count', 'children'),
+     Output('mapa', 'figure'),
+     Output('os-subplots', 'figure'),
+     Output('os-subplots-month', 'figure'),
+     Output('kpi-media-ano', 'children') ],
     [Input('year-slider', 'value')],
 )
 def update_map(date_range):
@@ -133,7 +137,10 @@ def update_map(date_range):
   ordem_servico_figure_month = make_rain_ordem_servico_plot_grouped_by(gb_label_plot, rain_sum_plot)
   count = label_plot.shape[0]
 
-  return count, mapa, ordem_servico_figure, ordem_servico_figure_month
+  rain_sum_plot['Ano'] = rain_sum_plot['Data'].dt.year.copy()
+  media_anual = int(rain_sum_plot.groupby(['Ano']).sum()[['Precipitacao_2']].mean().item())
+
+  return count, mapa, ordem_servico_figure, ordem_servico_figure_month, f'{media_anual} mm/ano'
 
 
 @app.callback(
@@ -208,7 +215,7 @@ year_dropdown = dcc.Dropdown(
     clearable=False
 )
 mes_dropdown = dcc.Dropdown(
-    options=months_options,
+    options=months_options[0:10],
     value='9',
     multi=False,
     id='mes',
@@ -304,7 +311,7 @@ prediction_prob_figure = dcc.Graph(
 # App layout ----------------------------------------
 root_layout = html.Div(className='root', children=[
     html.Div(className='header', children=[
-      html.H1('TCC - Sistema Inteligente de Previsão de Alagamentos', className='header-title'),
+      html.H1('Sistema Inteligente de Previsão de Alagamentos', className='header-title'),
       html.Img(src='/assets/maua-logo-branco.png', className='header-logo'),
     ]),
     dcc.Tabs([
@@ -356,12 +363,12 @@ root_layout = html.Div(className='root', children=[
                             html.H5('Nº de ordens de serviço', className='card-title'),
                         ]),
                         html.Div(className='card', children=[
-                            html.Span('34,4 mm/dia', id='', className='card-value'),
+                            html.Span('', id='kpi-media-ano', className='card-value'),
                             html.H5('Precipitação média no período', className='card-title'),
                         ]),
                     ]),
                     html.Div(className='tab2-slider-wrapper', children=[
-                        html.H5('Período Observado', className='slider-title'),
+                        html.H5('Período', className='slider-title'),
                         year_slider,
                     ]),
                     html.Div(className='tab2-map-wrapper', children=[
@@ -414,3 +421,4 @@ app.layout = root_layout
 
 if __name__ == '__main__':
   app.run_server(debug=True, port=8060,  threaded=True)
+

@@ -25,6 +25,8 @@ PLOT_TER = RED
 PLOT_QUA = YELLOW
 PLOT_QUI = BLUE
 
+subplots_vertical_spacing = 0.22
+
 dict_months = {
      1: u'Janeiro',
      2: u'Fevereiro',
@@ -45,7 +47,7 @@ plot_layout_kwargs = dict(template='plotly_dark',
 
 token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
 
-xgb_path = 'src/Dash/model/Identificacao_0H.json'
+xgb_path = 'model/Identificacao_0H.json'
 
 x_pred, y_pred = {}, {}
 
@@ -160,10 +162,13 @@ def make_data_repair_plots(merged, error, repaired, col, est, year, month):
                       margin=dict(l=50, r=30, t=40, b=30),
                       **plot_layout_kwargs)
 
-  ymax, ymin = max(repaired_plot[f'{col}_{est}']), min(repaired_plot[f'{col}_{est}'])
+  try:
+    ymax, ymin = max(repaired_plot[f'{col}_{est}']), min(repaired_plot[f'{col}_{est}'])
 
-  if col == 'PressaoAtmosferica':
-    plots.update_yaxes(range=[ymin, ymax], col=1, row=1)
+    if col == 'PressaoAtmosferica':
+      plots.update_yaxes(range=[ymin, ymax], col=1, row=1)
+  except ValueError:
+    pass
 
   return plots
 
@@ -219,8 +224,9 @@ def make_mapa_plot(label_copy, est):
 
 def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
   ordem_servico_figure = make_subplots(2, 1, shared_xaxes=True,
-                                       subplot_titles=('Ordens de Serviço',
-                                                       'Precipitação'))
+                                       vertical_spacing= subplots_vertical_spacing,
+                                       subplot_titles=('Ordens de Serviço por Dia',
+                                                       'Precipitação por Dia'))
   ordem_servico_figure.add_trace(go.Bar(
       x=gb_label_plot['Data'],
       y=gb_label_plot['count']),
@@ -275,8 +281,9 @@ def make_rain_ordem_servico_plot_grouped_by(gb_label_plot_, rain_sum_plot_):
 
 
   ordem_servico_gb_figure = make_subplots(2, 1, shared_xaxes=True,
-                                       subplot_titles=('Ordens de Serviço Média',
-                                                       'Precipitação Média'))
+                                          vertical_spacing=subplots_vertical_spacing,
+                                          subplot_titles=('Média Mensal das Ordens de Serviço',
+                                                          'Média Mensal da Precipitação'))
 
   ordem_servico_gb_figure.add_trace(go.Bar(
       x=df_rain['Mes'],
@@ -308,6 +315,7 @@ def make_rain_ordem_servico_plot_grouped_by(gb_label_plot_, rain_sum_plot_):
 
   return ordem_servico_gb_figure
 
+
 def make_cptec_prediction(model):
   x, y = x_pred[model], y_pred[model]
 
@@ -318,6 +326,7 @@ def make_cptec_prediction(model):
                     "Pressão Atmosférica")
 
   cptec_fig = make_subplots(2, 2, shared_xaxes=True,
+                            vertical_spacing = subplots_vertical_spacing,
                             subplot_titles=subplot_titles)
 
   # Precipitação
