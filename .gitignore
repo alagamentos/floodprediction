@@ -16,6 +16,7 @@ venv/
 
 # BigQuery key folder
 key/
+src/Dash/key/
 
 # Data validation folders
 images/
