@@ -209,8 +209,8 @@ def make_mapa_plot(label_copy, est):
           accesstoken=token,
           bearing=0,
           center=go.layout.mapbox.Center(
-              lat=-23.665688,
-              lon=-46.517582,
+              lat=-23.6634526,
+              lon=-46.5248255
           ),
           style='light',
           pitch=0,
@@ -447,7 +447,7 @@ def make_cptec_polygon(time):
       ),
       margin=dict(l=0, r=0, t=0, b=0),
       width=750,
-      height=800,
+      height=805,
       showlegend=False,
       **plot_layout_kwargs
   )

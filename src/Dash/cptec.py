@@ -54,19 +54,14 @@ def get_SantoAndre_polygon():
 def verify_title_string(t):
   if 'observação' in t.lower() or 'observacao' in t.lower():
     text = 'Aviso de Observação'
-
   elif 'atenção' in t.lower() or 'atencao' in t.lower():
     text = 'Aviso de Atenção'
-
   elif 'especial' in t.lower():
     text = 'Aviso Especial'
-
   elif 'extraordinário' in t.lower() or 'extraordinario' in t.lower() or 'risco' in t.lower():
     text = 'Aviso Extraordinário de Risco Iminente'
-
   elif 'cessado' in t.lower():
     text = 'Aviso Cessado'
-
   else:
     text = 'Sem Aviso'
 

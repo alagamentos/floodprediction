@@ -146,7 +146,7 @@ def update_map(date_range):
 )
 def update_polygon_map(time):
   fig, text = make_cptec_polygon(time)
-  return fig, text
+  return fig, text.lower().capitalize()
 
 
 @app.callback(
@@ -227,7 +227,7 @@ atualizar_button = html.Button(
 data_subplots = dcc.Graph(
     id='plots',
     figure=data_plots_fig,
-    style={'width': '80%', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
+    style={'width': '100%', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
 # Tab 2 components
@@ -270,7 +270,7 @@ radio_button_model_tab3 = dcc.RadioItems(
 cptec_figure = dcc.Graph(
     id='cptec',
     figure=cptec_fig,
-    style={'width': '80%', 'marginTop': '1.5em',
+    style={'width': '100%', 'marginTop': '1.5em',
            'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 cptec_poly_figure = dcc.Graph(
@@ -303,7 +303,7 @@ radio_button_model_tab4 = dcc.RadioItems(
 prediction_prob_figure = dcc.Graph(
     id='prob-graph',
     figure=prob_fig,
-    style={'width': '80%', 'marginTop': '1.5em',
+    style={'width': '100%', 'marginTop': '1.5em',
            'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
@@ -353,7 +353,9 @@ root_layout = html.Div(className='root', children=[
                         ),
                     ]),
                 ]),
-                data_subplots,
+                html.Div(className='tab1-graphs-wrapper', children=[
+                    data_subplots,
+                ]),
             ])
         ]),
 
@@ -442,11 +444,13 @@ root_layout = html.Div(className='root', children=[
         #Tab 4
         dcc.Tab(label='Previsão de Alagamento', className='tab4', children=[
             html.Div(className='tab4-container', children=[
-                html.Div(className='model-selection', children=[
-                    html.Label('Selecione o modelo de previsão:'),
-                    radio_button_model_tab4,
+                html.Div(className='tab4-graphs-wrapper', children=[
+                    html.Div(className='model-selection', children=[
+                        html.Label('Selecione o modelo de previsão:'),
+                        radio_button_model_tab4,
+                    ]),
+                    prediction_prob_figure,
                 ]),
-                prediction_prob_figure,
             ])
         ])
     ])
