@@ -1,13 +1,9 @@
-service: default
+service: dash
 runtime: python37
 
-basic_scaling:
-    max_instances: 5
-    idle_timeout: 10m
-
 resources:
-    cpu: 2
-    memory_gb: 3
-    disk_size_gb: 10
+    cpu: 1
+    memory_gb: 2
+    disk_size_gb: 15
 
 entrypoint: gunicorn -b 0.0.0.0:8080 main:server
