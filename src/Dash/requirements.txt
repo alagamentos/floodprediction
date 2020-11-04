@@ -6,11 +6,6 @@ xlrd
 scikit-learn
 plotly>=4.9
 kaleido
-google-cloud-bigquery
 tqdm
-shap
-hyperopt
-catboost
-lightgbm
 dash==1.16.3
 shapely
