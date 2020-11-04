@@ -1,4 +1,3 @@
-
 #%%
 import dash
 import dash_core_components as dcc
@@ -19,13 +18,12 @@ from graphs import make_data_repair_plots, make_mapa_plot, \
     make_cptec_polygon, make_prob_graph, make_rain_ordem_servico_plot_grouped_by
 
 import os
-import psutil
 
 # Prepdata ----------------------------------
 merged_path = 'data/merged.csv'
-repaired_path =  'data/repaired.csv'
-error_path =  'data/error_regions.csv'
-estacoes_path =  'data/lat_lng_estacoes.csv'
+repaired_path = 'data/repaired.csv'
+error_path = 'data/error_regions.csv'
+estacoes_path = 'data/lat_lng_estacoes.csv'
 oservico_path = 'data/Enchentes_LatLong.csv'
 
 merged = pd.read_csv(merged_path, sep=';')
@@ -115,11 +113,10 @@ def update_graphs(n_clicks, col, est, year, month):
      Output('mapa', 'figure'),
      Output('os-subplots', 'figure'),
      Output('os-subplots-month', 'figure'),
-     Output('kpi-media-ano', 'children') ],
+     Output('kpi-media-ano', 'children')],
     [Input('year-slider', 'value')],
 )
 def update_map(date_range):
-
   # Ordens de serviço
   label_plot = label.loc[(label['Data'].dt.year >= date_range[0]) &
                          (label['Data'].dt.year <= date_range[1]), :]
@@ -137,7 +134,7 @@ def update_map(date_range):
   ordem_servico_figure_month = make_rain_ordem_servico_plot_grouped_by(gb_label_plot, rain_sum_plot)
   count = label_plot.shape[0]
 
-  rain_sum_plot['Ano'] = rain_sum_plot['Data'].dt.year.copy()
+  rain_sum_plot['Ano'] = rain_sum_plot['Data'].dt.year
   media_anual = int(rain_sum_plot.groupby(['Ano']).sum()[['Precipitacao_2']].mean().item())
 
   return count, mapa, ordem_servico_figure, ordem_servico_figure_month, f'{media_anual} mm/ano'
@@ -225,7 +222,7 @@ atualizar_button = html.Button(
     'Atualizar',
     id='update-button',
     n_clicks=0,
-    className='tab1-update-btn'
+    className='button'
 )
 data_subplots = dcc.Graph(
     id='plots',
@@ -250,7 +247,7 @@ year_slider = dcc.RangeSlider(
 ordemservico_figure = dcc.Graph(
     id='os-subplots',
     figure=ordemservico_fig,
-    style={'marginBottom': '1em', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
+    style={'marginBottom': '2.5em', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
 ordemservico_figure_month = dcc.Graph(
@@ -273,7 +270,8 @@ radio_button_model_tab3 = dcc.RadioItems(
 cptec_figure = dcc.Graph(
     id='cptec',
     figure=cptec_fig,
-    style={'width': '90%', 'marginTop': '1.5em', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
+    style={'width': '80%', 'marginTop': '1.5em',
+           'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 cptec_poly_figure = dcc.Graph(
     id='cptec-poly',
@@ -305,21 +303,27 @@ radio_button_model_tab4 = dcc.RadioItems(
 prediction_prob_figure = dcc.Graph(
     id='prob-graph',
     figure=prob_fig,
-    style={'width': '90%', 'marginTop': '1.5em', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
+    style={'width': '80%', 'marginTop': '1.5em',
+           'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
 # App layout ----------------------------------------
 root_layout = html.Div(className='root', children=[
     html.Div(className='header', children=[
-      html.H1('Sistema Inteligente de Previsão de Alagamentos', className='header-title'),
-      html.Img(src='/assets/maua-logo-branco.png', className='header-logo'),
+        html.H1('Sistema Inteligente de Previsão de Alagamentos', className='header-title'),
+        html.A(href='https://maua.br', className='header-logo-maua', children=[
+            html.Img(src='/assets/maua-logo-branco.png'),
+        ]),
+        html.A(href='https://www2.santoandre.sp.gov.br', className='header-logo-sa', children=[
+            html.Img(src='/assets/prefeitura-sa-logo.png'),
+        ]),
     ]),
     dcc.Tabs([
         # Tab 1
         dcc.Tab(label='Dados Históricos', className='tab1', children=[
             html.Div(className='tab1-container', children=[
-              html.Div(className='tab1-header', children=[
-                  html.Div(className='tab1-form', children=[
+                html.Div(className='tab1-header', children=[
+                    html.Div(className='tab1-form', children=[
                       html.H5('Filtros', className='tab1-form-title'),
                       html.Div(className='tab1-dropdown-wrapper', children=[
                           html.Div(className='tab1-dropdown-group', children=[
@@ -335,21 +339,21 @@ root_layout = html.Div(className='root', children=[
                               mes_dropdown,
                           ]),
                       ]),
-                      atualizar_button
-                  ]),
-                  html.Div(className='tab1-info', children=[
-                    html.H3('Tratamento dos dados', className='tab1-info-title'),
-                    html.P(
-                      'Ao lado é possível visualizar os dados meteorológicos de 5 estações espalhadas por Santo André. Por terem sido gerados a partir de medições de sensores ao longo de anos, fez-se necessário realizar o tratamento dos mesmos antes de usá-los nos modelos de previsão.',
-                      className='tab1-info-text'
-                    ),
-                    html.P(
-                      'Para corrigí-los foram utilizadas técnicas matemáticas e de aprendizagem de máquina capazes de explicar de forma bastante acurada o comportamento real dos dados, conforme mostram os gráficos abaixo.',
-                      className='tab1-info-text'
-                    ),
-                  ]),
-              ]),
-              data_subplots,
+                        atualizar_button
+                    ]),
+                    html.Div(className='info', children=[
+                        html.H3('Tratamento dos dados', className='info-title'),
+                        html.P(
+                            'Nesta página é possível visualizar os dados das 5 estações meteorológicas espalhadas pelo município de Santo André. Por terem sido gerados a partir de medições de sensores ao longo de anos, fez-se necessário realizar o tratamento dos mesmos antes de usá-los nos modelos de previsão de alagamentos.',
+                            className='info-content'
+                        ),
+                        html.P(
+                            'Para corrigí-los foram utilizadas técnicas matemáticas e de aprendizagem de máquina capazes de explicar de forma bastante acurada o comportamento real dos dados, conforme ilustram os gráficos abaixo.',
+                            className='info-content'
+                        ),
+                    ]),
+                ]),
+                data_subplots,
             ])
         ]),
 
@@ -388,18 +392,49 @@ root_layout = html.Div(className='root', children=[
         # Tab 3
         dcc.Tab(label='Previsão do Tempo', className='tab3', children=[
             html.Div(className='tab3-container', children=[
-                html.Div(className='model-selection', children=[
-                    html.Label('Selecione o modelo de previsão:'),
-                    radio_button_model_tab3,
+                html.Div(className='tab3-graphs-wrapper', children=[
+                    html.Div(className='model-selection', children=[
+                        html.Label('Selecione o modelo de previsão:'),
+                        radio_button_model_tab3,
+                    ]),
+                    cptec_figure,
                 ]),
-                cptec_figure,
                 html.Div(className='model-selection', children=[
-                    html.Label('Selecione o modelo de previsão:'),
+                    html.Label('Selecione o período de previsão:'),
                     radio_button_poly,
                 ]),
-                html.Div(id='warning', className='tab3-model-info'),
-                html.Div(className='tab3-map-filter', children=[
-                    cptec_poly_figure,
+                html.Div(className='tab3-map-wrapper', children=[
+                    html.Div(className='tab3-info-wrapper', children=[
+                        html.Div(className='card', children=[
+                            html.Span('', id='warning', className='card-value'),
+                            html.H5('Aviso meteorológico para Santo André', className='card-title'),
+                        ]),
+                        html.Div(className='info', children=[
+                            html.H3('Previsões numéricas', className='info-title'),
+                            html.P(
+                                'Os dados das previsões numéricas utilizadas nesta página pertencem ao CPTEC/INPE e são referentes apenas ao município de Santo André. Os números que seguem os modelos atmosféricos WRF e BAM dizem respeito a resolução espacial de cada previsão. Quanto menor essa resolução, mais precisa é a previsão de tempo.',
+                                className='info-content'
+                            ),
+                            html.P(
+                                'O Centro de Previsão de Tempo e Estudos Climáticos (CPTEC) do Instituto Nacional de Pesquisas Espaciais (INPE) é o centro mais avançado de previsão numérica de tempo e clima da América Latina, fornecendo previsões de tempo de curto e médio prazos e climáticas de alta precisão desde o início de 1995, além de dominar técnicas de modelagem numérica altamente complexas da atmosfera e dos oceanos a fim de prever condições futuras.',
+                                className='info-content'
+                            ),
+                        ]),
+                        html.Div(className='info', children=[
+                            html.H3('Modelos atmosféricos', className='info-title'),
+                            html.P(
+                                'O modelo de Pesquisa e Previsão do Tempo (WRF - Weather Research and Forecasting), desenvolvido por agências e universidades norte-americanas, é um sistema de previsão numérica do tempo projetado para atender às necessidades de pesquisa atmosférica e de previsão operacional. Sistemas de previsão numérica referem-se à simulações e previsões da atmosfera por modelos computacionais com o intuito de prever o tempo com vários dias de antecedência. O WRF possui dois núcleos dinâmicos, um sistema de assimilação de dados e uma arquitetura de software que permitem a computação paralela e extensibilidade do sistema, além de atender a uma ampla gama de aplicações meteorológicas em escalas que variam de metros a milhares de quilômetros.',
+                                className='info-content'
+                            ),
+                            html.P(
+                                'O Modelo Atmosférico Brasileiro (BAM - Brazilian Atmospheric Model), desenvolvido pelo CPTEC, é um modelo global de previsão de tempo capaz de gerar as condições iniciais para a execução de modelos regionais, além de ser utilizado na geração das previsões climáticas sazionais e de cenários climáticos de mais longo prazo. O BAM apresenta-se como solução para deficiências de modelos utilizados anteriormente, possuindo vantagens como: a melhora na previsão para o sudeste do Brasil em decorrência de uma maior resolução horizontal, modelando melhor eventos com orografia complexa; e o aumento da resolução espacial com a qual as previsões de tempo e clima são processadas.',
+                                className='info-content'
+                            ),
+                        ]),
+                    ]),
+                    html.Div(className='tab3-map-filter', children=[
+                        cptec_poly_figure,
+                    ]),
                 ]),
             ]),
         ]),
@@ -421,4 +456,3 @@ app.layout = root_layout
 
 if __name__ == '__main__':
   app.run_server(debug=True, port=8060,  threaded=True)
-

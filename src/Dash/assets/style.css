@@ -23,6 +23,17 @@ canvas {
   border-radius: 6px;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+img {
+  width: inherit;
+  height: inherit;
+}
+
 input[type='radio'] {
   margin-right: 4px;
 }
@@ -59,18 +70,32 @@ input[type='radio']:checked:after {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 2em;
   font-size: 1.8rem;
   color: #fff;
-  z-index: 100;
+  padding: .75em 1.75em;
+  box-shadow: 0px 1px 5px 0px rgba(255,255,255,.2);
+  border-radius: 6px;
+  background-color: var(--bg-dark);
 }
 
 .model-selection-items {
   display: flex;
 }
 
-.dropdown-labels {
-  margin: .75em 0 .25em;
+.button {
+  width: max-content;
+  border-color: #fff;
+  color: #fff;
+  transition: transform .2s ease-in-out;
+}
+
+.button:focus {
+  border-color: #fff !important;
+  color: #fff !important;
+}
+
+.button:active {
+  transform: scale(.95);
 }
 
 .dash-dropdown .Select-value {
@@ -84,6 +109,10 @@ input[type='radio']:checked:after {
 .dash-dropdown .Select-menu-outer {
   background-color: var(--bg-dark);
   color: #fff;
+}
+
+.dropdown-labels {
+  margin: .75em 0 .25em;
 }
 
 .slider {
@@ -135,6 +164,35 @@ input[type='radio']:checked:after {
   color: #d1d3d1;
 }
 
+.info {
+  color: #fff;
+  padding: 2em;
+  background-color: var(--bg-dark);
+  box-shadow: 0px 1px 5px 0px rgba(255,255,255,.2);
+  border-radius: 6px;
+}
+
+.info-title {
+  font-size: 3rem;
+  margin: 0 0 .75em;
+}
+
+.info-subtitle {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin: 1em 0 .75em;
+}
+
+.info-content {
+  text-align: justify;
+  font-size: 1.2rem;
+  margin-bottom: 1em;
+}
+
+.info-content:last-of-type {
+  margin-bottom: 0;
+}
+
 .header {
   display: flex;
   justify-content: center;
@@ -147,9 +205,15 @@ input[type='radio']:checked:after {
   margin: 0 1em 0 0;
 }
 
-.header-logo {
+.header-logo-maua {
   width: 120px;
   height: 60px;
+  margin-right: 2em;
+}
+
+.header-logo-sa {
+  width: 68px;
+  height: 78px;
 }
 
 .tab1,
@@ -186,33 +250,8 @@ input[type='radio']:checked:after {
 
 .tab1-header {
   display: flex;
-  margin-bottom: 1.5em;
+  margin-bottom: 2em;
   width: 80%;
-}
-
-.tab1-info {
-  width: 30%;
-  color: #fff;
-  margin-left: 2em;
-  padding: 2em;
-  background-color: var(--bg-dark);
-  box-shadow: 0px 1px 5px 0px rgba(255,255,255,.2);
-  border-radius: 6px;
-}
-
-.tab1-info-title {
-  font-size: 3rem;
-  margin: 0 0 1em;
-}
-
-.tab1-info-text {
-  text-align: justify;
-  font-size: 1.2rem;
-  margin-bottom: 1em;
-}
-
-.tab1-info-text:last-of-type {
-  margin-bottom: 0;
 }
 
 .tab1-form {
@@ -221,6 +260,7 @@ input[type='radio']:checked:after {
   flex-direction: column;
   justify-content: center;
   padding: 2em 0;
+  margin-right: 2em;
   color: #fff;
   background-color: var(--bg-dark);
   box-shadow: 0px 1px 5px 0px rgba(255,255,255,.2);
@@ -241,32 +281,23 @@ input[type='radio']:checked:after {
   margin: 0 5%;
 }
 
-.tab1-update-btn {
-  width: max-content;
+.tab1-form .button {
   margin-left: 5%;
-  border-color: #fff;
-  color: #fff;
-  transition: transform .2s ease-in-out;
 }
 
-.tab1-update-btn:focus {
-  border-color: #fff !important;
-  color: #fff !important;
-}
-
-.tab1-update-btn:active {
-  transform: scale(.95);
+.tab1-container .info {
+  width: 30%;
 }
 
 .tab2-container {
-  justify-content: space-evenly;
-  align-items: center;
+  justify-content: center;
 }
 
 .tab2-side-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-right: 6em;
 }
 
 .tab2-cards-wrapper {
@@ -287,7 +318,6 @@ input[type='radio']:checked:after {
 .tab2-map-wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
 }
 
@@ -300,6 +330,8 @@ input[type='radio']:checked:after {
 .tab2-graphs-wrapper {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  width: 50%;
 }
 
 .tab2-map-filter,
@@ -312,11 +344,38 @@ input[type='radio']:checked:after {
   align-items: center;
 }
 
-.tab3-model-info {
-  margin: 1em 0;
-  font-size: 1.6rem;
-  color: #fff;
-  z-index: 100;
+.tab3-graphs-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 4em;
+}
+
+.tab3-map-wrapper {
+  display: flex;
+  width: 80%;
+  margin-top: 1.5em;
+}
+
+.tab3-info-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-right: 3em;
+}
+
+.tab3-info-wrapper .card {
+  padding: 1em 2em;
+  margin-bottom: 1.5em;
+}
+
+.tab3-info-wrapper .info:last-of-type {
+  margin-top: 1.5em;
+}
+
+.tab3-info-wrapper .button {
+  margin-top: 1.5em;
 }
 
 .tab4-container {

@@ -28,18 +28,18 @@ PLOT_QUI = BLUE
 subplots_vertical_spacing = 0.22
 
 dict_months = {
-     1: u'Janeiro',
-     2: u'Fevereiro',
-     3: u'Março',
-     4: u'Abril',
-     5: u'Maio',
-     6: u'Junho',
-     7: u'Julho',
-     8: u'Agosto',
-     9: u'Setembro',
-     10: u'Outubro',
-     11: u'Novembro',
-     12: u'Dezembro'
+    1: u'Janeiro',
+    2: u'Fevereiro',
+    3: u'Março',
+    4: u'Abril',
+    5: u'Maio',
+    6: u'Junho',
+    7: u'Julho',
+    8: u'Agosto',
+    9: u'Setembro',
+    10: u'Outubro',
+    11: u'Novembro',
+    12: u'Dezembro'
 }
 plot_layout_kwargs = dict(template='plotly_dark',
                           paper_bgcolor=BG_DARK,
@@ -57,14 +57,16 @@ x_pred['wrf'], y_pred['wrf'] = get_prediction('wrf')
 polygon_dict, SA_polygon, SA_layer = get_polygon()
 
 color_dict = {
-  'Aviso de Observação': LIGHT_PINK,
-  'Aviso de Atenção': YELLOW,
-  'Aviso Especial': RED,
-  'Aviso Extraordinário de Risco Iminente': BLUE,
-  'Aviso Cessado': '#C3C3C3'
+    'Aviso de Observação': LIGHT_PINK,
+    'Aviso de Atenção': YELLOW,
+    'Aviso Especial': RED,
+    'Aviso Extraordinário de Risco Iminente': BLUE,
+    'Aviso Cessado': '#C3C3C3'
 }
 
 # XGBoost
+
+
 def get_xgb_predictions(model):
   x_data_t = x_pred[model]
   y_data = y_pred[model]
@@ -125,6 +127,8 @@ def get_geojson_polygon(lons, lats, color='blue'):
     return layer
 
 # Graphs
+
+
 def make_data_repair_plots(merged, error, repaired, col, est, year, month):
   year, month = int(year), int(month)
   repaired_plot = repaired.loc[(repaired['Data_Hora'].dt.year == year) &
@@ -224,7 +228,7 @@ def make_mapa_plot(label_copy, est):
 
 def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
   ordem_servico_figure = make_subplots(2, 1, shared_xaxes=True,
-                                       vertical_spacing= subplots_vertical_spacing,
+                                       vertical_spacing=subplots_vertical_spacing,
                                        subplot_titles=('Ordens de Serviço por Dia',
                                                        'Precipitação por Dia'))
   ordem_servico_figure.add_trace(go.Bar(
@@ -240,6 +244,7 @@ def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
   ordem_servico_figure.update_layout(showlegend=False,
                                      bargap=0,
                                      margin=dict(l=40, r=20, t=40, b=30),
+                                     height=400,
                                      **plot_layout_kwargs)
 
   ordem_servico_figure.update_traces(marker_color=PLOT_PRI,
@@ -258,8 +263,8 @@ def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
 
 def make_rain_ordem_servico_plot_grouped_by(gb_label_plot_, rain_sum_plot_):
 
-  gb_label_plot =  gb_label_plot_.copy()
-  rain_sum_plot =  rain_sum_plot_.copy()
+  gb_label_plot = gb_label_plot_.copy()
+  rain_sum_plot = rain_sum_plot_.copy()
 
   gb_label_plot['Mes'] = gb_label_plot['Data'].dt.month
   rain_sum_plot['Mes'] = rain_sum_plot['Data'].dt.month
@@ -267,18 +272,17 @@ def make_rain_ordem_servico_plot_grouped_by(gb_label_plot_, rain_sum_plot_):
   gb_label_plot['Ano'] = gb_label_plot['Data'].dt.year
   rain_sum_plot['Ano'] = rain_sum_plot['Data'].dt.year
 
-  gb_label_plot_gb = gb_label_plot.groupby(['Mes','Ano']).sum().reset_index()
-  rain_sum_plot_gb = rain_sum_plot.groupby(['Mes','Ano']).sum().reset_index()
+  gb_label_plot_gb = gb_label_plot.groupby(['Mes', 'Ano']).sum().reset_index()
+  rain_sum_plot_gb = rain_sum_plot.groupby(['Mes', 'Ano']).sum().reset_index()
 
-  df_label = gb_label_plot_gb.groupby('Mes').mean().drop(columns = ['Ano']).reset_index()
-  df_rain = rain_sum_plot_gb.groupby('Mes').mean().drop(columns = ['Ano']).reset_index()
+  df_label = gb_label_plot_gb.groupby('Mes').mean().drop(columns=['Ano']).reset_index()
+  df_rain = rain_sum_plot_gb.groupby('Mes').mean().drop(columns=['Ano']).reset_index()
 
-  df_label = df_label.sort_values(by = 'Mes', ascending = True)
-  df_rain = df_rain.sort_values(by = 'Mes', ascending = True)
+  df_label = df_label.sort_values(by='Mes', ascending=True)
+  df_rain = df_rain.sort_values(by='Mes', ascending=True)
 
   df_label['Mes'] = df_label['Mes'].map(dict_months)
   df_rain['Mes'] = df_rain['Mes'].map(dict_months)
-
 
   ordem_servico_gb_figure = make_subplots(2, 1, shared_xaxes=True,
                                           vertical_spacing=subplots_vertical_spacing,
@@ -298,20 +302,21 @@ def make_rain_ordem_servico_plot_grouped_by(gb_label_plot_, rain_sum_plot_):
   )
 
   ordem_servico_gb_figure.update_layout(showlegend=False,
-                                     bargap=0.2,
-                                     margin=dict(l=40, r=20, t=40, b=30),
-                                     **plot_layout_kwargs)
+                                        bargap=0.2,
+                                        margin=dict(l=40, r=20, t=40, b=30),
+                                        height=400,
+                                        **plot_layout_kwargs)
 
   ordem_servico_gb_figure.update_traces(marker_color=PLOT_PRI,
-                                     marker_line_color=PLOT_PRI,
-                                     marker_line_width=1,
-                                     opacity=1,
-                                     col=1, row=1)
+                                        marker_line_color=PLOT_PRI,
+                                        marker_line_width=1,
+                                        opacity=1,
+                                        col=1, row=1)
   ordem_servico_gb_figure.update_traces(marker_color=PLOT_SEC,
-                                     marker_line_color=PLOT_SEC,
-                                     marker_line_width=1,
-                                     opacity=1,
-                                     col=1, row=2)
+                                        marker_line_color=PLOT_SEC,
+                                        marker_line_width=1,
+                                        opacity=1,
+                                        col=1, row=2)
 
   return ordem_servico_gb_figure
 
@@ -326,7 +331,7 @@ def make_cptec_prediction(model):
                     "Pressão Atmosférica")
 
   cptec_fig = make_subplots(2, 2, shared_xaxes=True,
-                            vertical_spacing = subplots_vertical_spacing,
+                            vertical_spacing=subplots_vertical_spacing,
                             subplot_titles=subplot_titles)
 
   # Precipitação
@@ -442,7 +447,7 @@ def make_cptec_polygon(time):
       ),
       margin=dict(l=0, r=0, t=0, b=0),
       width=750,
-      height=750,
+      height=800,
       showlegend=False,
       **plot_layout_kwargs
   )
