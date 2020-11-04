@@ -119,15 +119,15 @@ def update_graphs(n_clicks, col, est, year, month):
 def update_map(date_range):
   # Ordens de serviço
   label_plot = label.loc[(label['Data'].dt.year >= date_range[0]) &
-                         (label['Data'].dt.year <= date_range[1]), :]
+                         (label['Data'].dt.year <= date_range[1]), :].copy()
 
   # Grouped by ordens de serviço
   gb_label_plot = gb_label.loc[(gb_label['Data'].dt.year >= date_range[0]) &
-                               (gb_label['Data'].dt.year <= date_range[1]), :]
+                               (gb_label['Data'].dt.year <= date_range[1]), :].copy()
 
   # Grouped by rain
   rain_sum_plot = rain_sum.loc[(rain_sum['Data'].dt.year >= date_range[0]) &
-                               (rain_sum['Data'].dt.year <= date_range[1]), :]
+                               (rain_sum['Data'].dt.year <= date_range[1]), :].copy()
 
   mapa = make_mapa_plot(label_plot, est)
   ordem_servico_figure = make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot)
