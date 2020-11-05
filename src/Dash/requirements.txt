@@ -1,3 +1,4 @@
+gunicorn==19.3.0
 xgboost>=1.1
 numpy>=1.14
 pandas>=1.0
@@ -6,6 +7,8 @@ xlrd
 scikit-learn
 plotly>=4.9
 kaleido
-tqdm
 dash==1.16.3
 shapely
+google-cloud-bigquery
+pandas-gbq
+pyarrow

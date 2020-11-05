@@ -1,12 +1,12 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from os import path
-import xgboost
 from cptec import get_prediction, get_polygon
-from urllib.request import urlopen
 import json
 from shapely.geometry import Polygon
 import pandas as pd
+from google.oauth2 import service_account
+import xgboost
 
 # Color palette
 MIDNIGHT_BLUE = '#222437'
@@ -26,6 +26,11 @@ PLOT_QUA = YELLOW
 PLOT_QUI = BLUE
 
 subplots_vertical_spacing = 0.22
+
+# BigQuery ===========================
+CREDENTIALS = service_account.Credentials.from_service_account_file('key/temporal-285820-cde76c259484.json')
+PROJECT_ID = 'temporal-285820'
+DATA_TABLE = 'temporal-285820.dash.data'
 
 dict_months = {
     1: u'Janeiro',
@@ -126,48 +131,43 @@ def get_geojson_polygon(lons, lats, color='blue'):
                  color=color)
     return layer
 
-# Graphs
+# Graphs ==============
+
+def make_data_repair_plots(col, est, year, month):
 
 
-def make_data_repair_plots(merged, error, repaired, col, est, year, month):
-  year, month = int(year), int(month)
-  repaired_plot = repaired.loc[(repaired['Data_Hora'].dt.year == year) &
-                               (repaired['Data_Hora'].dt.month == month),
-                               ['Data_Hora', f'{col}_{est}']]
-
-  merged_plot = merged.loc[(merged['Data_Hora'].dt.year == year) &
-                           (merged['Data_Hora'].dt.month == month),
-                           ['Data_Hora', f'{col}_{est}']]
-
-  error_plot = error.loc[(error['Data_Hora'].dt.year == year) &
-                         (error['Data_Hora'].dt.month == month),
-                         ['Data_Hora', f'{col}_{est}_error']]
+  # Query
+  year, month, est = int(year), int(month), int(est)
+  merged_plot = pd.read_gbq(f'SELECT Data_Hora, {col}_{est}_merg, {col}_{est}_rep, {col}_{est}_error FROM {DATA_TABLE} WHERE ano = {year} and mes = {month}',
+                            credentials = CREDENTIALS, project_id=PROJECT_ID).sort_values('Data_Hora')
 
   plots = make_subplots(2, 1, shared_xaxes=True,
-                        subplot_titles=('Dados Originais',
-                                        'Dados Corrigidos'))
+                        subplot_titles=('Dados Originais', 'Dados Corrigidos'))
   plots.add_trace(go.Scatter(
       x=merged_plot['Data_Hora'],
-      y=merged_plot[f'{col}_{est}'],
+      y=merged_plot[f'{col}_{est}_merg'],
       line=dict(color=PLOT_SEC)
   ), col=1, row=1)
+
   plots.add_trace(go.Scatter(
-      x=merged_plot['Data_Hora'].where(error_plot[f'{col}_{est}_error']),
-      y=merged_plot[f'{col}_{est}'].fillna(0).where(error_plot[f'{col}_{est}_error']),
+      x=merged_plot['Data_Hora'].where(merged_plot[f'{col}_{est}_error']),
+      y=merged_plot[f'{col}_{est}_merg'].fillna(0).where(merged_plot[f'{col}_{est}_error']),
       line=dict(color=PLOT_TER)
   ), col=1, row=1)
+
   plots.add_trace(go.Scatter(
-      x=repaired_plot['Data_Hora'],
-      y=repaired_plot[f'{col}_{est}'],
+      x=merged_plot['Data_Hora'],
+      y=merged_plot[f'{col}_{est}_rep'],
       line=dict(color=PLOT_PRI)
   ), col=1, row=2)
-  plots.update_layout(showlegend=False,
-                      transition_duration=500,
+
+  plots.update_layout(showlegend=False, transition_duration=500,
                       margin=dict(l=50, r=30, t=40, b=30),
                       **plot_layout_kwargs)
 
+  # Update yaxis
   try:
-    ymax, ymin = max(repaired_plot[f'{col}_{est}']), min(repaired_plot[f'{col}_{est}'])
+    ymax, ymin = max(merged_plot[f'{col}_{est}_rep']), min(merged_plot[f'{col}_{est}_rep'])
 
     if col == 'PressaoAtmosferica':
       plots.update_yaxes(range=[ymin, ymax], col=1, row=1)
@@ -263,17 +263,8 @@ def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
 
 def make_rain_ordem_servico_plot_grouped_by(gb_label_plot_, rain_sum_plot_):
 
-  gb_label_plot = gb_label_plot_.copy()
-  rain_sum_plot = rain_sum_plot_.copy()
-
-  gb_label_plot['Mes'] = gb_label_plot['Data'].dt.month
-  rain_sum_plot['Mes'] = rain_sum_plot['Data'].dt.month
-
-  gb_label_plot['Ano'] = gb_label_plot['Data'].dt.year
-  rain_sum_plot['Ano'] = rain_sum_plot['Data'].dt.year
-
-  gb_label_plot_gb = gb_label_plot.groupby(['Mes', 'Ano']).sum().reset_index()
-  rain_sum_plot_gb = rain_sum_plot.groupby(['Mes', 'Ano']).sum().reset_index()
+  gb_label_plot_gb = gb_label_plot_.groupby(['Mes', 'Ano']).sum().reset_index()
+  rain_sum_plot_gb = rain_sum_plot_.groupby(['Mes', 'Ano']).sum().reset_index()
 
   df_label = gb_label_plot_gb.groupby('Mes').mean().drop(columns=['Ano']).reset_index()
   df_rain = rain_sum_plot_gb.groupby('Mes').mean().drop(columns=['Ano']).reset_index()

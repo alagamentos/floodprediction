@@ -19,38 +19,37 @@ from graphs import make_data_repair_plots, make_mapa_plot, \
 
 import os
 
+
 # Prepdata ----------------------------------
-merged_path = 'data/merged.csv'
-repaired_path = 'data/repaired.csv'
-error_path = 'data/error_regions.csv'
+
 estacoes_path = 'data/lat_lng_estacoes.csv'
 oservico_path = 'data/Enchentes_LatLong.csv'
+precipitacoa_path = 'data/Precipitacao.csv'
 
-merged = pd.read_csv(merged_path, sep=';')
-repaired = pd.read_csv(repaired_path, sep=';')
-error = pd.read_csv(error_path, sep=';')
 est = pd.read_csv(estacoes_path, sep=';').iloc[:-1, :]
 label = pd.read_csv(oservico_path, sep=';')
+precipitacao = pd.read_csv(precipitacoa_path, sep = ';')
 
 # Label
-merged['Data_Hora'] = pd.to_datetime(merged['Data_Hora'], yearfirst=True)
-repaired['Data_Hora'] = pd.to_datetime(repaired['Data_Hora'], yearfirst=True)
-error['Data_Hora'] = pd.to_datetime(error['Data_Hora'], yearfirst=True)
 label['Data'] = pd.to_datetime(label['Data'], yearfirst=True)
+
 gb_label = label.groupby('Data').count().reset_index()[['Data', 'lat']]
 gb_label.columns = ['Data', 'count']
+gb_label['Ano'] = gb_label['Data'].dt.year
+gb_label['Mes'] = gb_label['Data'].dt.month
 
 # Precipitacao Hora em Hora
-precipitacao = repaired[repaired['Data_Hora'].dt.minute == 0].copy()
-precipitacao['Data_Hora'] = pd.to_datetime(repaired['Data_Hora'], yearfirst=True)
+precipitacao['Data_Hora'] = pd.to_datetime(precipitacao['Data_Hora'], yearfirst = True)
 precipitacao['Data'] = pd.to_datetime(precipitacao['Data_Hora'].dt.date, yearfirst=True)
 rain_sum = precipitacao.groupby('Data').sum().reset_index()[['Data', 'Precipitacao_2']]
+
+rain_sum['Ano'] = rain_sum['Data'].dt.year
+rain_sum['Mes'] = rain_sum['Data'].dt.month
 
 list_of_years = list(range(2011, 2020, 1))
 year_options = [{'label': str(y), 'value': y} for y in list_of_years]
 year_options_slider = {y: str(y) for y in list_of_years}
 
-#%%
 dict_months = {
     u'Janeiro': 1,
     u'Fevereiro': 2,
@@ -76,7 +75,7 @@ app = dash.Dash(
     assets_external_path='/assets/',
     assets_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets/')
 )
-
+server = app.server
 
 # Callbacks ----------------------------------------
 @app.callback(
@@ -105,7 +104,7 @@ def update_mont_options(ano, mes):
     ]
 )
 def update_graphs(n_clicks, col, est, year, month):
-  return make_data_repair_plots(merged, error, repaired, col, est, year, month)
+  return make_data_repair_plots(col, est, year, month)
 
 
 @app.callback(
@@ -119,15 +118,15 @@ def update_graphs(n_clicks, col, est, year, month):
 def update_map(date_range):
   # Ordens de serviço
   label_plot = label.loc[(label['Data'].dt.year >= date_range[0]) &
-                         (label['Data'].dt.year <= date_range[1]), :].copy()
+                         (label['Data'].dt.year <= date_range[1]), :]
 
   # Grouped by ordens de serviço
   gb_label_plot = gb_label.loc[(gb_label['Data'].dt.year >= date_range[0]) &
-                               (gb_label['Data'].dt.year <= date_range[1]), :].copy()
+                               (gb_label['Data'].dt.year <= date_range[1]), :]
 
   # Grouped by rain
   rain_sum_plot = rain_sum.loc[(rain_sum['Data'].dt.year >= date_range[0]) &
-                               (rain_sum['Data'].dt.year <= date_range[1]), :].copy()
+                               (rain_sum['Data'].dt.year <= date_range[1]), :]
 
   mapa = make_mapa_plot(label_plot, est)
   ordem_servico_figure = make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot)
@@ -166,7 +165,11 @@ def update_prob_graph(model):
 
 
 # Startup figures -----------------------------------
+from graphs import BG_DARK
 data_plots_fig = make_subplots(2, 1, shared_xaxes=True)
+data_plots_fig.update_layout(margin=dict(l=50, r=30, t=40, b=30),
+                             template='plotly_dark',
+                             paper_bgcolor=BG_DARK, plot_bgcolor=BG_DARK)
 mapa = go.Figure()
 ordemservico_fig = make_subplots(2, 1, shared_xaxes=True)
 ordemservico_fig_month = make_subplots(2, 1, shared_xaxes=True)
@@ -459,4 +462,4 @@ root_layout = html.Div(className='root', children=[
 app.layout = root_layout
 
 if __name__ == '__main__':
-  app.run_server(debug=True, port=8060,  threaded=True)
+    app.run_server(host='0.0.0.0', port=8080, debug=True, use_reloader=False)
