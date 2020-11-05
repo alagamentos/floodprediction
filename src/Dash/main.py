@@ -15,7 +15,7 @@ from cptec import get_prediction, get_polygon
 
 from graphs import make_data_repair_plots, make_mapa_plot, \
     make_rain_ordem_servico_plot, make_cptec_prediction, \
-    make_cptec_polygon, make_prob_graph, make_rain_ordem_servico_plot_grouped_by
+    make_cptec_polygon, make_prob_graph, make_rain_ordem_servico_plot_grouped_by, BG_DARK
 
 import os
 
@@ -23,12 +23,12 @@ import os
 # Prepdata ----------------------------------
 
 estacoes_path = 'data/lat_lng_estacoes.csv'
-oservico_path = 'data/Enchentes_LatLong.csv'
-precipitacoa_path = 'data/Precipitacao.csv'
+ordemservico_path = 'data/Enchentes_LatLong.csv'
+precipitacao_path = 'data/Precipitacao.csv'
 
 est = pd.read_csv(estacoes_path, sep=';').iloc[:-1, :]
-label = pd.read_csv(oservico_path, sep=';')
-precipitacao = pd.read_csv(precipitacoa_path, sep = ';')
+label = pd.read_csv(ordemservico_path, sep=';')
+precipitacao = pd.read_csv(precipitacao_path, sep=';')
 
 # Label
 label['Data'] = pd.to_datetime(label['Data'], yearfirst=True)
@@ -39,7 +39,7 @@ gb_label['Ano'] = gb_label['Data'].dt.year
 gb_label['Mes'] = gb_label['Data'].dt.month
 
 # Precipitacao Hora em Hora
-precipitacao['Data_Hora'] = pd.to_datetime(precipitacao['Data_Hora'], yearfirst = True)
+precipitacao['Data_Hora'] = pd.to_datetime(precipitacao['Data_Hora'], yearfirst=True)
 precipitacao['Data'] = pd.to_datetime(precipitacao['Data_Hora'].dt.date, yearfirst=True)
 rain_sum = precipitacao.groupby('Data').sum().reset_index()[['Data', 'Precipitacao_2']]
 
@@ -67,23 +67,24 @@ dict_months = {
 months_options = [{'label': k, 'value': int(v)} for k, v in dict_months.items()]
 
 # Startup app -------------------------------------
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(
     __name__,
-    external_stylesheets=external_stylesheets,
+    title='Sistema Inteligente de Previsão de Alagamentos',
+    external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'],
     url_base_pathname='/',
     assets_external_path='/assets/',
     assets_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets/')
 )
-server = app.server
 
 # Callbacks ----------------------------------------
+
+
 @app.callback(
-    [Output('mes', 'options'), Output('mes', 'value')],
-    [Input('ano', 'value')],
-    state=[State('mes', 'value')]
+    [Output('mes-hist-dados', 'options'), Output('mes-hist-dados', 'value')],
+    [Input('ano-hist-dados', 'value')],
+    state=[State('mes-hist-dados', 'value')]
 )
-def update_mont_options(ano, mes):
+def update_month_options(ano, mes):
   if int(ano) == 2019:
     year_options = [{'label': k, 'value': int(v)} for k, v in dict_months.items() if int(v) < 10]
     if int(mes) >= 10:
@@ -94,13 +95,13 @@ def update_mont_options(ano, mes):
 
 
 @app.callback(
-    Output('plots', 'figure'),
-    [Input('update-button', 'n_clicks')],
+    Output('plots-hist-dados', 'figure'),
+    [Input('btn-update-hist-dados', 'n_clicks')],
     state=[
-        State('metrica', 'value'),
-        State('estacao', 'value'),
-        State('ano', 'value'),
-        State('mes', 'value'),
+        State('metrica-hist-dados', 'value'),
+        State('estacao-hist-dados', 'value'),
+        State('ano-hist-dados', 'value'),
+        State('mes-hist-dados', 'value'),
     ]
 )
 def update_graphs(n_clicks, col, est, year, month):
@@ -108,12 +109,12 @@ def update_graphs(n_clicks, col, est, year, month):
 
 
 @app.callback(
-    [Output('count', 'children'),
-     Output('mapa', 'figure'),
-     Output('os-subplots', 'figure'),
-     Output('os-subplots-month', 'figure'),
-     Output('kpi-media-ano', 'children')],
-    [Input('year-slider', 'value')],
+    [Output('kpi-ordem-servico', 'children'),
+     Output('mapa-alagamentos', 'figure'),
+     Output('ordem-servico-subplots', 'figure'),
+     Output('ordem-servico-subplots-month', 'figure'),
+     Output('kpi-precipitacao-media', 'children')],
+    [Input('slider-ordem-servico', 'value')],
 )
 def update_map(date_range):
   # Ordens de serviço
@@ -140,32 +141,31 @@ def update_map(date_range):
 
 
 @app.callback(
-    [Output('cptec-poly', 'figure'), Output('warning', 'children')],
-    [Input('radio-poly', 'value')],
+    [Output('cptec-mapa', 'figure'), Output('cptec-mapa-warning', 'children')],
+    [Input('rb-cptec-mapa', 'value')],
 )
-def update_polygon_map(time):
+def update_polygon_mapa(time):
   fig, text = make_cptec_polygon(time)
   return fig, text.lower().capitalize()
 
 
 @app.callback(
-    Output('cptec', 'figure'),
-    [Input('radio-model-tab3', 'value')],
+    Output('cptec-graphs', 'figure'),
+    [Input('rb-cptec-graphs', 'value')],
 )
 def update_cptec_predictions(model):
   return make_cptec_prediction(model)
 
 
 @app.callback(
-    Output('prob-graph', 'figure'),
-    [Input('radio-model-tab4', 'value')],
+    Output('prop-alagamento-graph', 'figure'),
+    [Input('rb-prop-alagamento-graph', 'value')],
 )
 def update_prob_graph(model):
   return make_prob_graph(model)
 
 
 # Startup figures -----------------------------------
-from graphs import BG_DARK
 data_plots_fig = make_subplots(2, 1, shared_xaxes=True)
 data_plots_fig.update_layout(margin=dict(l=50, r=30, t=40, b=30),
                              template='plotly_dark',
@@ -191,7 +191,7 @@ metricas_dropdown = dcc.Dropdown(
         {'label': u'Precipitação', 'value': 'Precipitacao'},
     ],
     value='RadiacaoSolar',
-    id='metrica',
+    id='metrica-hist-dados',
     clearable=False
 )
 estacao_dropdown = dcc.Dropdown(
@@ -204,38 +204,38 @@ estacao_dropdown = dcc.Dropdown(
     ],
     value='0',
     multi=False,
-    id='estacao',
+    id='estacao-hist-dados',
     clearable=False
 )
 year_dropdown = dcc.Dropdown(
     options=year_options,
     value='2019',
     multi=False,
-    id='ano',
+    id='ano-hist-dados',
     clearable=False
 )
 mes_dropdown = dcc.Dropdown(
     options=months_options[0:10],
     value='9',
     multi=False,
-    id='mes',
+    id='mes-hist-dados',
     clearable=False
 )
 atualizar_button = html.Button(
     'Atualizar',
-    id='update-button',
+    id='btn-update-hist-dados',
     n_clicks=0,
     className='button'
 )
 data_subplots = dcc.Graph(
-    id='plots',
+    id='plots-hist-dados',
     figure=data_plots_fig,
     style={'width': '100%', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
 # Tab 2 components
 map_figure = dcc.Graph(
-    id='mapa',
+    id='mapa-alagamentos',
     figure=mapa
 )
 year_slider = dcc.RangeSlider(
@@ -244,17 +244,17 @@ year_slider = dcc.RangeSlider(
     step=None,
     marks=year_options_slider,
     value=[list_of_years[0], list_of_years[-1]],
-    id='year-slider',
+    id='slider-ordem-servico',
     className='slider'
 )
 ordemservico_figure = dcc.Graph(
-    id='os-subplots',
+    id='ordem-servico-subplots',
     figure=ordemservico_fig,
     style={'marginBottom': '2.5em', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
 ordemservico_figure_month = dcc.Graph(
-    id='os-subplots-month',
+    id='ordem-servico-subplots-month',
     figure=ordemservico_fig_month,
     style={'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
@@ -265,19 +265,19 @@ radio_button_model_tab3 = dcc.RadioItems(
         {'label': 'WRF 05x05 km', 'value': 'wrf'},
         {'label': 'BAM 20x20 km', 'value': 'bam'},
     ],
-    id='radio-model-tab3',
+    id='rb-cptec-graphs',
     value='wrf',
     labelStyle={'display': 'flex', 'alignItems': 'center', 'marginLeft': '1em'},
     className='model-selection-items'
 )
 cptec_figure = dcc.Graph(
-    id='cptec',
+    id='cptec-graphs',
     figure=cptec_fig,
     style={'width': '100%', 'marginTop': '1.5em',
            'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 cptec_poly_figure = dcc.Graph(
-    id='cptec-poly',
+    id='cptec-mapa',
     figure=cptec_poly_fig
 )
 radio_button_poly = dcc.RadioItems(
@@ -286,7 +286,7 @@ radio_button_poly = dcc.RadioItems(
         {'label': '48 horas', 'value': '48 horas'},
         {'label': '72 horas', 'value': '72 horas'}
     ],
-    id='radio-poly',
+    id='rb-cptec-mapa',
     value='Hoje',
     labelStyle={'display': 'flex', 'alignItems': 'center', 'marginLeft': '1em'},
     className='model-selection-items'
@@ -298,13 +298,13 @@ radio_button_model_tab4 = dcc.RadioItems(
         {'label': 'WRF 05x05 km', 'value': 'wrf'},
         {'label': 'BAM 20x20 km', 'value': 'bam'},
     ],
-    id='radio-model-tab4',
+    id='rb-prop-alagamento-graph',
     value='wrf',
     labelStyle={'display': 'flex', 'alignItems': 'center', 'marginLeft': '1em'},
     className='model-selection-items'
 )
 prediction_prob_figure = dcc.Graph(
-    id='prob-graph',
+    id='prop-alagamento-graph',
     figure=prob_fig,
     style={'width': '100%', 'marginTop': '1.5em',
            'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
@@ -314,10 +314,10 @@ prediction_prob_figure = dcc.Graph(
 root_layout = html.Div(className='root', children=[
     html.Div(className='header', children=[
         html.H1('Sistema Inteligente de Previsão de Alagamentos', className='header-title'),
-        html.A(href='https://maua.br', className='header-logo-maua', children=[
+        html.A(href='https://maua.br', target='_blank', className='header-logo-maua', children=[
             html.Img(src='/assets/maua-logo-branco.png'),
         ]),
-        html.A(href='https://www2.santoandre.sp.gov.br', className='header-logo-sa', children=[
+        html.A(href='https://www2.santoandre.sp.gov.br', target='_blank', className='header-logo-sa', children=[
             html.Img(src='/assets/prefeitura-sa-logo.png'),
         ]),
     ]),
@@ -368,11 +368,15 @@ root_layout = html.Div(className='root', children=[
                 html.Div(className='tab2-side-wrapper', children=[
                     html.Div(className='tab2-cards-wrapper', children=[
                         html.Div(className='card', children=[
-                            html.Span(id='count', className='card-value'),
+                            html.Div(className='card-wrapper', children=[
+                                html.Span(id='kpi-ordem-servico', className='card-value'),
+                            ]),
                             html.H5('Nº de ordens de serviço', className='card-title'),
                         ]),
                         html.Div(className='card', children=[
-                            html.Span('', id='kpi-media-ano', className='card-value'),
+                            html.Div(className='card-wrapper', children=[
+                                html.Span('', id='kpi-precipitacao-media', className='card-value'),
+                            ]),
                             html.H5('Precipitação média no período', className='card-title'),
                         ]),
                     ]),
@@ -408,37 +412,77 @@ root_layout = html.Div(className='root', children=[
                     html.Label('Selecione o período de previsão:'),
                     radio_button_poly,
                 ]),
-                html.Div(className='tab3-map-wrapper', children=[
+                html.Div(className='tab3-wrapper', children=[
                     html.Div(className='tab3-info-wrapper', children=[
                         html.Div(className='card', children=[
-                            html.Span('', id='warning', className='card-value'),
+                            html.Div(className='card-wrapper', children=[
+                                html.Span(id='cptec-mapa-warning', className='card-value'),
+                                html.A(href='http://tempo.cptec.inpe.br/avisos', target='_blank',
+                                       className='card-tooltip')
+                            ]),
                             html.H5('Aviso meteorológico para Santo André', className='card-title'),
                         ]),
                         html.Div(className='info', children=[
                             html.H3('Previsões numéricas', className='info-title'),
-                            html.P(
-                                'Os dados das previsões numéricas utilizadas nesta página pertencem ao CPTEC/INPE e são referentes apenas ao município de Santo André. Os números que seguem os modelos atmosféricos WRF e BAM dizem respeito a resolução espacial de cada previsão. Quanto menor essa resolução, mais precisa é a previsão de tempo.',
-                                className='info-content'
-                            ),
-                            html.P(
-                                'O Centro de Previsão de Tempo e Estudos Climáticos (CPTEC) do Instituto Nacional de Pesquisas Espaciais (INPE) é o centro mais avançado de previsão numérica de tempo e clima da América Latina, fornecendo previsões de tempo de curto e médio prazos e climáticas de alta precisão desde o início de 1995, além de dominar técnicas de modelagem numérica altamente complexas da atmosfera e dos oceanos a fim de prever condições futuras.',
-                                className='info-content'
-                            ),
+                            html.P(className='info-content', children=[
+                                'Os dados de previsão numérica utilizados nesta página pertencem ao ',
+                                html.A('CPTEC/INPE', href='https://www.cptec.inpe.br/sp/santo-andre',
+                                       target='_blank', className='link'),
+                                ' e são referentes apenas ao município de Santo André. Os números que seguem os modelos atmosféricos WRF e BAM dizem respeito a resolução espacial de cada previsão. Quanto menor essa resolução, mais precisa é a previsão de tempo.',
+                            ]),
+                            html.P(className='info-content', children=[
+                                'O ',
+                                html.A('Centro de Previsão de Tempo e Estudos Climáticos (CPTEC)',
+                                       href='https://www.cptec.inpe.br', target='_blank', className='link'),
+                                ' do ',
+                                html.A('Instituto Nacional de Pesquisas Espaciais (INPE)',
+                                       href='http://www.inpe.br', target='_blank', className='link'),
+                                ' é o centro mais avançado de previsão numérica de tempo e clima da América Latina, fornecendo previsões de tempo de curto e médio prazos e climáticas de alta precisão desde o início de 1995, além de dominar técnicas de modelagem numérica altamente complexas da atmosfera e dos oceanos a fim de prever condições futuras.',
+                            ]),
                         ]),
                         html.Div(className='info', children=[
                             html.H3('Modelos atmosféricos', className='info-title'),
-                            html.P(
-                                'O modelo de Pesquisa e Previsão do Tempo (WRF - Weather Research and Forecasting), desenvolvido por agências e universidades norte-americanas, é um sistema de previsão numérica do tempo projetado para atender às necessidades de pesquisa atmosférica e de previsão operacional. Sistemas de previsão numérica referem-se à simulações e previsões da atmosfera por modelos computacionais com o intuito de prever o tempo com vários dias de antecedência. O WRF possui dois núcleos dinâmicos, um sistema de assimilação de dados e uma arquitetura de software que permitem a computação paralela e extensibilidade do sistema, além de atender a uma ampla gama de aplicações meteorológicas em escalas que variam de metros a milhares de quilômetros.',
-                                className='info-content'
-                            ),
-                            html.P(
-                                'O Modelo Atmosférico Brasileiro (BAM - Brazilian Atmospheric Model), desenvolvido pelo CPTEC, é um modelo global de previsão de tempo capaz de gerar as condições iniciais para a execução de modelos regionais, além de ser utilizado na geração das previsões climáticas sazionais e de cenários climáticos de mais longo prazo. O BAM apresenta-se como solução para deficiências de modelos utilizados anteriormente, possuindo vantagens como: a melhora na previsão para o sudeste do Brasil em decorrência de uma maior resolução horizontal, modelando melhor eventos com orografia complexa; e o aumento da resolução espacial com a qual as previsões de tempo e clima são processadas.',
-                                className='info-content'
-                            ),
+                            html.P(className='info-content', children=[
+                                'O modelo de ',
+                                html.A('Pesquisa e Previsão do Tempo (WRF - Weather Research and Forecasting)',
+                                       href='https://en.wikipedia.org/wiki/Weather_Research_and_Forecasting_Model', target='_blank', className='link'),
+                                ', desenvolvido por agências e universidades norte-americanas, é um sistema de previsão numérica do tempo projetado para atender às necessidades de pesquisa atmosférica e de previsão operacional. Sistemas de previsão numérica referem-se à simulações e previsões da atmosfera por modelos computacionais com o intuito de prever o tempo com vários dias de antecedência. O WRF possui dois núcleos dinâmicos, um sistema de assimilação de dados e uma arquitetura de software que permitem a computação paralela e extensibilidade do sistema, além de atender a uma ampla gama de aplicações meteorológicas em escalas que variam de metros a milhares de quilômetros.',
+                            ]),
+                            html.P(className='info-content', children=[
+                                'O ',
+                                html.A('Modelo Atmosférico Brasileiro (BAM - Brazilian Atmospheric Model)',
+                                       href='http://www.cntu.org.br/new/component/content/article?id=3807', target='_blank', className='link'),
+                                ', desenvolvido pelo CPTEC, é um modelo global de previsão de tempo capaz de gerar as condições iniciais para a execução de modelos regionais, além de ser utilizado na geração das previsões climáticas sazionais e de cenários climáticos de mais longo prazo. O BAM apresenta-se como solução para deficiências de modelos utilizados anteriormente, possuindo vantagens como: a melhora na previsão para o sudeste do Brasil em decorrência de uma maior resolução horizontal, modelando melhor eventos com orografia complexa; e o aumento da resolução espacial com a qual as previsões de tempo e clima são processadas.',
+                            ]),
                         ]),
                     ]),
-                    html.Div(className='tab3-map-filter', children=[
-                        cptec_poly_figure,
+                    html.Div(className='tab3-map-wrapper', children=[
+                        html.H5(className='tab3-map-title', children='Avisos Meteorológicos'),
+                        html.Div(className='tab3-map-filter', children=[
+                            cptec_poly_figure,
+                        ]),
+                        html.Div(className='tab3-map-labels', children=[
+                            html.Div(className='tab3-map-label-wrapper', children=[
+                                html.Span('Aviso de observação', style={
+                                          'backgroundColor': 'rgba(223, 209, 126, .25)'}, className='tab3-map-label'),
+                            ]),
+                            html.Div(className='tab3-map-label-wrapper', children=[
+                                html.Span('Aviso de atenção', style={
+                                          'backgroundColor': 'rgba(234, 176, 9, .25)'}, className='tab3-map-label'),
+                            ]),
+                            html.Div(className='tab3-map-label-wrapper', children=[
+                                html.Span('Aviso especial', style={
+                                          'backgroundColor': 'rgba(253, 63, 110, .25)'}, className='tab3-map-label'),
+                            ]),
+                            html.Div(className='tab3-map-label-wrapper', children=[
+                                html.Span('Aviso extraordinário de risco iminente', style={
+                                          'backgroundColor': 'rgba(44, 80, 237, .25)'}, className='tab3-map-label'),
+                            ]),
+                            html.Div(className='tab3-map-label-wrapper', children=[
+                                html.Span('Aviso cessado', style={
+                                          'backgroundColor': 'rgba(195, 195, 195, .25)'}, className='tab3-map-label'),
+                            ]),
+                        ]),
                     ]),
                 ]),
             ]),
@@ -459,7 +503,10 @@ root_layout = html.Div(className='root', children=[
     ])
 ])
 
+
 app.layout = root_layout
+server = app.server
+
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8080, debug=True, use_reloader=False)
+    app.run_server(host='0.0.0.0', port=8080, debug=True, use_reloader=True)

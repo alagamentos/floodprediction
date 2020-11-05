@@ -15,8 +15,6 @@ PURPLE = '#6201ed'
 RED = '#fd3f6e'
 YELLOW = '#eab009'
 BLUE = '#2c50ed'
-SLATEBLUE = '#6646ed'
-LIGHT_PINK = '#ecbdca'
 
 BG_DARK = MIDNIGHT_BLUE
 PLOT_PRI = TURQUOISE
@@ -62,11 +60,11 @@ x_pred['wrf'], y_pred['wrf'] = get_prediction('wrf')
 polygon_dict, SA_polygon, SA_layer = get_polygon()
 
 color_dict = {
-    'Aviso de Observação': LIGHT_PINK,
+    'Aviso de Observação': '#dfd17e',
     'Aviso de Atenção': YELLOW,
     'Aviso Especial': RED,
     'Aviso Extraordinário de Risco Iminente': BLUE,
-    'Aviso Cessado': '#C3C3C3'
+    'Aviso Cessado': '#c3c3c3'
 }
 
 # XGBoost
@@ -133,13 +131,13 @@ def get_geojson_polygon(lons, lats, color='blue'):
 
 # Graphs ==============
 
-def make_data_repair_plots(col, est, year, month):
 
+def make_data_repair_plots(col, est, year, month):
 
   # Query
   year, month, est = int(year), int(month), int(est)
   merged_plot = pd.read_gbq(f'SELECT Data_Hora, {col}_{est}_merg, {col}_{est}_rep, {col}_{est}_error FROM {DATA_TABLE} WHERE ano = {year} and mes = {month}',
-                            credentials = CREDENTIALS, project_id=PROJECT_ID).sort_values('Data_Hora')
+                            credentials=CREDENTIALS, project_id=PROJECT_ID).sort_values('Data_Hora')
 
   plots = make_subplots(2, 1, shared_xaxes=True,
                         subplot_titles=('Dados Originais', 'Dados Corrigidos'))
@@ -438,7 +436,7 @@ def make_cptec_polygon(time):
       ),
       margin=dict(l=0, r=0, t=0, b=0),
       width=750,
-      height=805,
+      height=740,
       showlegend=False,
       **plot_layout_kwargs
   )
