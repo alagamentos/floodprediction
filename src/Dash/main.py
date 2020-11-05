@@ -179,6 +179,15 @@ cptec_poly_fig = make_cptec_polygon('Hoje')
 prob_fig = go.Figure()
 
 # Single Components ---------------------------------
+
+map_config = {'modeBarButtonsToRemove': ['select2d', 'lasso2d', 'toggleHover', 'toImage'],
+              'displaylogo': False}
+
+graph_config = {'modeBarButtonsToRemove': ['select2d', 'lasso2d', 'toggleHover', 'toImage',
+                'zoomIn2d', 'zoomOut2d', 'toggleHover', 'resetViews', 'toggleSpikelines',
+                'hoverClosestCartesian', 'hoverCompareCartesian','autoScale2d'],
+                'displaylogo': False}
+
 # Tab 1 components
 metricas_dropdown = dcc.Dropdown(
     options=[
@@ -230,13 +239,15 @@ atualizar_button = html.Button(
 data_subplots = dcc.Graph(
     id='plots-hist-dados',
     figure=data_plots_fig,
+    config = graph_config,
     style={'width': '100%', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
 # Tab 2 components
 map_figure = dcc.Graph(
     id='mapa-alagamentos',
-    figure=mapa
+    figure=mapa,
+    config = map_config,
 )
 year_slider = dcc.RangeSlider(
     min=list_of_years[0],
@@ -250,12 +261,14 @@ year_slider = dcc.RangeSlider(
 ordemservico_figure = dcc.Graph(
     id='ordem-servico-subplots',
     figure=ordemservico_fig,
+    config=graph_config,
     style={'marginBottom': '2.5em', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
 ordemservico_figure_month = dcc.Graph(
     id='ordem-servico-subplots-month',
     figure=ordemservico_fig_month,
+    config=graph_config,
     style={'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
@@ -273,12 +286,14 @@ radio_button_model_tab3 = dcc.RadioItems(
 cptec_figure = dcc.Graph(
     id='cptec-graphs',
     figure=cptec_fig,
+    config=graph_config,
     style={'width': '100%', 'marginTop': '1.5em',
            'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 cptec_poly_figure = dcc.Graph(
     id='cptec-mapa',
-    figure=cptec_poly_fig
+    figure=cptec_poly_fig,
+    config = map_config,
 )
 radio_button_poly = dcc.RadioItems(
     options=[
@@ -306,6 +321,7 @@ radio_button_model_tab4 = dcc.RadioItems(
 prediction_prob_figure = dcc.Graph(
     id='prop-alagamento-graph',
     figure=prob_fig,
+    config=graph_config,
     style={'width': '100%', 'marginTop': '1.5em',
            'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
