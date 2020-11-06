@@ -184,8 +184,8 @@ map_config = {'modeBarButtonsToRemove': ['select2d', 'lasso2d', 'toggleHover', '
               'displaylogo': False}
 
 graph_config = {'modeBarButtonsToRemove': ['select2d', 'lasso2d', 'toggleHover', 'toImage',
-                'zoomIn2d', 'zoomOut2d', 'toggleHover', 'resetViews', 'toggleSpikelines',
-                'hoverClosestCartesian', 'hoverCompareCartesian','autoScale2d'],
+                                           'zoomIn2d', 'zoomOut2d', 'toggleHover', 'resetViews', 'toggleSpikelines',
+                                           'hoverClosestCartesian', 'hoverCompareCartesian', 'autoScale2d'],
                 'displaylogo': False}
 
 # Tab 1 components
@@ -239,7 +239,7 @@ atualizar_button = html.Button(
 data_subplots = dcc.Graph(
     id='plots-hist-dados',
     figure=data_plots_fig,
-    config = graph_config,
+    config=graph_config,
     style={'width': '100%', 'boxShadow': '0px 1px 5px 0px rgba(255,255,255,.2)', 'borderRadius': '6px'}
 )
 
@@ -247,7 +247,7 @@ data_subplots = dcc.Graph(
 map_figure = dcc.Graph(
     id='mapa-alagamentos',
     figure=mapa,
-    config = map_config,
+    config=map_config,
 )
 year_slider = dcc.RangeSlider(
     min=list_of_years[0],
@@ -293,7 +293,7 @@ cptec_figure = dcc.Graph(
 cptec_poly_figure = dcc.Graph(
     id='cptec-mapa',
     figure=cptec_poly_fig,
-    config = map_config,
+    config=map_config,
 )
 radio_button_poly = dcc.RadioItems(
     options=[
@@ -515,8 +515,14 @@ root_layout = html.Div(className='root', children=[
                     prediction_prob_figure,
                 ]),
             ])
-        ])
-    ])
+        ]),
+    ]),
+    html.Div(className='copyright', children=[
+        'Desenvolvido por:',
+        html.A('Felipe Andrade', href='https://github.com/Kaisen-san', target='_blank', className='link'),
+        html.A('Felipe Ippolito', href='https://github.com/feippolito', target='_blank', className='link'),
+        html.A('Vinícius Pereira', href='https://github.com/VinPer', target='_blank', className='link'),
+    ]),
 ])
 
 

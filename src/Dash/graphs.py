@@ -163,8 +163,8 @@ def make_data_repair_plots(col, est, year, month):
                       transition_duration=500,
                       margin=dict(l=50, r=30, t=40, b=30),
                       **plot_layout_kwargs)
-  plots.update_yaxes(fixedrange = True, col = 1, row = 1)
-  plots.update_yaxes(fixedrange = True, col = 1, row = 2)
+  plots.update_yaxes(fixedrange=True, col=1, row=1)
+  plots.update_yaxes(fixedrange=True, col=1, row=2)
 
   # Update yaxis
   try:
@@ -248,8 +248,8 @@ def make_rain_ordem_servico_plot(gb_label_plot, rain_sum_plot):
                                      height=400,
                                      **plot_layout_kwargs)
 
-  ordem_servico_figure.update_yaxes(fixedrange = True, col = 1, row = 1)
-  ordem_servico_figure.update_yaxes(fixedrange = True, col = 1, row = 2)
+  ordem_servico_figure.update_yaxes(fixedrange=True, col=1, row=1)
+  ordem_servico_figure.update_yaxes(fixedrange=True, col=1, row=2)
 
   ordem_servico_figure.update_traces(marker_color=PLOT_PRI,
                                      marker_line_color=PLOT_PRI,
@@ -313,8 +313,8 @@ def make_rain_ordem_servico_plot_grouped_by(gb_label_plot_, rain_sum_plot_):
                                         opacity=1,
                                         col=1, row=2)
 
-  ordem_servico_gb_figure.update_yaxes(fixedrange=True, col = 1, row = 1)
-  ordem_servico_gb_figure.update_yaxes(fixedrange=True, col = 1, row = 2)
+  ordem_servico_gb_figure.update_yaxes(fixedrange=True, col=1, row=1)
+  ordem_servico_gb_figure.update_yaxes(fixedrange=True, col=1, row=2)
 
   return ordem_servico_gb_figure
 
@@ -398,10 +398,10 @@ def make_cptec_prediction(model):
       margin=dict(l=40, r=30, t=40, b=30),
       **plot_layout_kwargs)
 
-  cptec_fig.update_yaxes(fixedrange=True, col = 1, row = 1)
-  cptec_fig.update_yaxes(fixedrange=True, col = 1, row = 2)
-  cptec_fig.update_yaxes(fixedrange=True, col = 2, row = 1)
-  cptec_fig.update_yaxes(fixedrange=True, col = 2, row = 2)
+  cptec_fig.update_yaxes(fixedrange=True, col=1, row=1)
+  cptec_fig.update_yaxes(fixedrange=True, col=1, row=2)
+  cptec_fig.update_yaxes(fixedrange=True, col=2, row=1)
+  cptec_fig.update_yaxes(fixedrange=True, col=2, row=2)
 
   return cptec_fig
 
@@ -494,13 +494,13 @@ def make_prob_graph(model):
                    secondary_y=False,
                    titlefont=dict(color=PLOT_PRI),
                    tickfont=dict(color=PLOT_PRI),
-                   fixedrange = True)
+                   fixedrange=True)
   fig.update_yaxes(range=[0, y_max],
                    title='Precipitacao [mm]',
                    secondary_y=True,
                    titlefont=dict(color=PLOT_QUI),
                    tickfont=dict(color=PLOT_QUI),
-                   fixedrange = True)
+                   fixedrange=True)
   fig.update_layout(showlegend=False,
                     title_x=0.5,
                     title_text="Previsão de Alagamento",

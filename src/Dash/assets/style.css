@@ -1,3 +1,5 @@
+/* DEFAULTS */
+
 :root {
   --bg-ligher: #fff;
   --bg-light: #d1d3d1;
@@ -74,6 +76,9 @@ input[type='radio']:checked:after {
   visibility: visible;
   border: 2px solid var(--border-lighter);
 }
+
+
+/* COMPONENTS */
 
 .model-selection {
   display: flex;
@@ -228,6 +233,13 @@ input[type='radio']:checked:after {
 
 .info-content:last-of-type {
   margin-bottom: 0;
+}
+
+
+/* PAGE */
+
+.root {
+  height: 100vh;
 }
 
 .header {
@@ -456,6 +468,7 @@ input[type='radio']:checked:after {
 .tab4-container {
   flex-direction: column;
   align-items: center;
+  margin-bottom: 97px;
 }
 
 .tab4-graphs-wrapper {
@@ -464,6 +477,20 @@ input[type='radio']:checked:after {
   justify-content: center;
   align-items: center;
   width: 80%;
+}
+
+.copyright {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.15rem;
+  width: 100%;
+  color: #fff;
+  margin-bottom: 1em;
+}
+
+.copyright .link {
+  margin-left: .75em;
 }
 
 @media screen and (min-width: 1921px) {
