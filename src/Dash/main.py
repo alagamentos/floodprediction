@@ -337,7 +337,7 @@ root_layout = html.Div(className='root', children=[
             html.Img(src='/assets/prefeitura-sa-logo.png'),
         ]),
     ]),
-    dcc.Tabs([
+    dcc.Tabs(className='tabs', children=[
         # Tab 1
         dcc.Tab(label='Dados Históricos', className='tab1', children=[
             html.Div(className='tab1-container', children=[
