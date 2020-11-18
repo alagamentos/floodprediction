@@ -337,184 +337,186 @@ root_layout = html.Div(className='root', children=[
             html.Img(src='/assets/prefeitura-sa-logo.png'),
         ]),
     ]),
-    dcc.Tabs(className='tabs', children=[
-        # Tab 1
-        dcc.Tab(label='Dados Históricos', className='tab1', children=[
-            html.Div(className='tab1-container', children=[
-                html.Div(className='tab1-header', children=[
-                    html.Div(className='tab1-form', children=[
-                      html.H5('Filtros', className='tab1-form-title'),
-                      html.Div(className='tab1-dropdown-wrapper', children=[
-                          html.Div(className='tab1-dropdown-group', children=[
-                              html.Label(u'Dado Meteorológico', className='dropdown-labels'),
-                              metricas_dropdown,
-                              html.Label(u'Estação Meteorológica', className='dropdown-labels'),
-                              estacao_dropdown,
+    html.Div(className='tabs', children=[
+        dcc.Tabs([
+            # Tab 1
+            dcc.Tab(label='Dados Históricos', className='tab1', children=[
+                html.Div(className='tab1-container', children=[
+                    html.Div(className='tab1-header', children=[
+                        html.Div(className='tab1-form', children=[
+                          html.H5('Filtros', className='tab1-form-title'),
+                          html.Div(className='tab1-dropdown-wrapper', children=[
+                              html.Div(className='tab1-dropdown-group', children=[
+                                  html.Label(u'Dado Meteorológico', className='dropdown-labels'),
+                                  metricas_dropdown,
+                                  html.Label(u'Estação Meteorológica', className='dropdown-labels'),
+                                  estacao_dropdown,
+                              ]),
+                              html.Div(className='tab1-dropdown-group', children=[
+                                  html.Label(u'Ano', className='dropdown-labels'),
+                                  year_dropdown,
+                                  html.Label(u'Mês', className='dropdown-labels'),
+                                  mes_dropdown,
+                              ]),
                           ]),
-                          html.Div(className='tab1-dropdown-group', children=[
-                              html.Label(u'Ano', className='dropdown-labels'),
-                              year_dropdown,
-                              html.Label(u'Mês', className='dropdown-labels'),
-                              mes_dropdown,
-                          ]),
-                      ]),
-                        atualizar_button
-                    ]),
-                    html.Div(className='info', children=[
-                        html.H3('Tratamento dos dados', className='info-title'),
-                        html.P(
-                            'Nesta página é possível visualizar os dados das 5 estações meteorológicas espalhadas pelo município de Santo André. Por terem sido gerados a partir de medições de sensores ao longo de anos, fez-se necessário realizar o tratamento dos mesmos antes de usá-los nos modelos de previsão de alagamentos.',
-                            className='info-content'
-                        ),
-                        html.P(
-                            'Para corrigí-los foram utilizadas técnicas matemáticas e de aprendizagem de máquina capazes de explicar de forma bastante acurada o comportamento real dos dados, conforme ilustram os gráficos abaixo.',
-                            className='info-content'
-                        ),
-                    ]),
-                ]),
-                html.Div(className='tab1-graphs-wrapper', children=[
-                    data_subplots,
-                ]),
-            ])
-        ]),
-
-        # Tab 2
-        dcc.Tab(label='Histórico de Alagamentos', className='tab2', children=[
-            html.Div(className='tab2-container', children=[
-                html.Div(className='tab2-side-wrapper', children=[
-                    html.Div(className='tab2-cards-wrapper', children=[
-                        html.Div(className='card', children=[
-                            html.Div(className='card-wrapper', children=[
-                                html.Span(id='kpi-ordem-servico', className='card-value'),
-                            ]),
-                            html.H5('Nº de ordens de serviço', className='card-title'),
+                            atualizar_button
                         ]),
-                        html.Div(className='card', children=[
-                            html.Div(className='card-wrapper', children=[
-                                html.Span('', id='kpi-precipitacao-media', className='card-value'),
-                            ]),
-                            html.H5('Precipitação média no período', className='card-title'),
+                        html.Div(className='info', children=[
+                            html.H3('Tratamento dos dados', className='info-title'),
+                            html.P(
+                                'Nesta página é possível visualizar os dados das 5 estações meteorológicas espalhadas pelo município de Santo André. Por terem sido gerados a partir de medições de sensores ao longo de anos, fez-se necessário realizar o tratamento dos mesmos antes de usá-los nos modelos de previsão de alagamentos.',
+                                className='info-content'
+                            ),
+                            html.P(
+                                'Para corrigí-los foram utilizadas técnicas matemáticas e de aprendizagem de máquina capazes de explicar de forma bastante acurada o comportamento real dos dados, conforme ilustram os gráficos abaixo.',
+                                className='info-content'
+                            ),
                         ]),
                     ]),
-                    html.Div(className='tab2-slider-wrapper', children=[
-                        html.H5('Período', className='slider-title'),
-                        year_slider,
+                    html.Div(className='tab1-graphs-wrapper', children=[
+                        data_subplots,
                     ]),
-                    html.Div(className='tab2-map-wrapper', children=[
-                        html.H5(className='tab2-map-title', children='Regiões de Alagamento'),
-                        html.Div(className='tab2-map-filter', children=[
-                            map_figure,
-                        ]),
-                    ]),
-                ]),
-                html.Div(className='tab2-graphs-wrapper', children=[
-                    ordemservico_figure,
-                    ordemservico_figure_month,
-                ]),
+                ])
             ]),
-        ]),
 
-        # Tab 3
-        dcc.Tab(label='Previsão do Tempo', className='tab3', children=[
-            html.Div(className='tab3-container', children=[
-                html.Div(className='tab3-graphs-wrapper', children=[
-                    html.Div(className='model-selection', children=[
-                        html.Label('Selecione o modelo de previsão:'),
-                        radio_button_model_tab3,
-                    ]),
-                    cptec_figure,
-                ]),
-                html.Div(className='model-selection', children=[
-                    html.Label('Selecione o período de previsão:'),
-                    radio_button_poly,
-                ]),
-                html.Div(className='tab3-wrapper', children=[
-                    html.Div(className='tab3-info-wrapper', children=[
-                        html.Div(className='card', children=[
-                            html.Div(className='card-wrapper', children=[
-                                html.Span(id='cptec-mapa-warning', className='card-value'),
-                                html.A(href='http://tempo.cptec.inpe.br/avisos', target='_blank',
-                                       className='card-tooltip')
+            # Tab 2
+            dcc.Tab(label='Histórico de Alagamentos', className='tab2', children=[
+                html.Div(className='tab2-container', children=[
+                    html.Div(className='tab2-side-wrapper', children=[
+                        html.Div(className='tab2-cards-wrapper', children=[
+                            html.Div(className='card', children=[
+                                html.Div(className='card-wrapper', children=[
+                                    html.Span(id='kpi-ordem-servico', className='card-value'),
+                                ]),
+                                html.H5('Nº de ordens de serviço', className='card-title'),
                             ]),
-                            html.H5('Aviso meteorológico para Santo André', className='card-title'),
-                        ]),
-                        html.Div(className='info', children=[
-                            html.H3('Previsões numéricas', className='info-title'),
-                            html.P(className='info-content', children=[
-                                'Os dados de previsão numérica utilizados nesta página pertencem ao ',
-                                html.A('CPTEC/INPE', href='https://www.cptec.inpe.br/sp/santo-andre',
-                                       target='_blank', className='link'),
-                                ' e são referentes apenas ao município de Santo André. Os números que seguem os modelos atmosféricos WRF e BAM dizem respeito a resolução espacial de cada previsão. Quanto menor essa resolução, mais precisa é a previsão de tempo.',
-                            ]),
-                            html.P(className='info-content', children=[
-                                'O ',
-                                html.A('Centro de Previsão de Tempo e Estudos Climáticos (CPTEC)',
-                                       href='https://www.cptec.inpe.br', target='_blank', className='link'),
-                                ' do ',
-                                html.A('Instituto Nacional de Pesquisas Espaciais (INPE)',
-                                       href='http://www.inpe.br', target='_blank', className='link'),
-                                ' é o centro mais avançado de previsão numérica de tempo e clima da América Latina, fornecendo previsões de tempo de curto e médio prazos e climáticas de alta precisão desde o início de 1995, além de dominar técnicas de modelagem numérica altamente complexas da atmosfera e dos oceanos a fim de prever condições futuras.',
+                            html.Div(className='card', children=[
+                                html.Div(className='card-wrapper', children=[
+                                    html.Span('', id='kpi-precipitacao-media', className='card-value'),
+                                ]),
+                                html.H5('Precipitação média no período', className='card-title'),
                             ]),
                         ]),
-                        html.Div(className='info', children=[
-                            html.H3('Modelos atmosféricos', className='info-title'),
-                            html.P(className='info-content', children=[
-                                'O modelo de ',
-                                html.A('Pesquisa e Previsão do Tempo (WRF - Weather Research and Forecasting)',
-                                       href='https://en.wikipedia.org/wiki/Weather_Research_and_Forecasting_Model', target='_blank', className='link'),
-                                ', desenvolvido por agências e universidades norte-americanas, é um sistema de previsão numérica do tempo projetado para atender às necessidades de pesquisa atmosférica e de previsão operacional. Sistemas de previsão numérica referem-se à simulações e previsões da atmosfera por modelos computacionais com o intuito de prever o tempo com vários dias de antecedência. O WRF possui dois núcleos dinâmicos, um sistema de assimilação de dados e uma arquitetura de software que permitem a computação paralela e extensibilidade do sistema, além de atender a uma ampla gama de aplicações meteorológicas em escalas que variam de metros a milhares de quilômetros.',
-                            ]),
-                            html.P(className='info-content', children=[
-                                'O ',
-                                html.A('Modelo Atmosférico Brasileiro (BAM - Brazilian Atmospheric Model)',
-                                       href='http://www.cntu.org.br/new/component/content/article?id=3807', target='_blank', className='link'),
-                                ', desenvolvido pelo CPTEC, é um modelo global de previsão de tempo capaz de gerar as condições iniciais para a execução de modelos regionais, além de ser utilizado na geração das previsões climáticas sazionais e de cenários climáticos de mais longo prazo. O BAM apresenta-se como solução para deficiências de modelos utilizados anteriormente, possuindo vantagens como: a melhora na previsão para o sudeste do Brasil em decorrência de uma maior resolução horizontal, modelando melhor eventos com orografia complexa; e o aumento da resolução espacial com a qual as previsões de tempo e clima são processadas.',
+                        html.Div(className='tab2-slider-wrapper', children=[
+                            html.H5('Período', className='slider-title'),
+                            year_slider,
+                        ]),
+                        html.Div(className='tab2-map-wrapper', children=[
+                            html.H5(className='tab2-map-title', children='Regiões de Alagamento'),
+                            html.Div(className='tab2-map-filter', children=[
+                                map_figure,
                             ]),
                         ]),
                     ]),
-                    html.Div(className='tab3-map-wrapper', children=[
-                        html.H5(className='tab3-map-title', children='Avisos Meteorológicos'),
-                        html.Div(className='tab3-map-filter', children=[
-                            cptec_poly_figure,
-                        ]),
-                        html.Div(className='tab3-map-labels', children=[
-                            html.Div(className='tab3-map-label-wrapper', children=[
-                                html.Span('Aviso de observação', style={
-                                          'backgroundColor': 'rgba(223, 209, 126, .25)'}, className='tab3-map-label'),
-                            ]),
-                            html.Div(className='tab3-map-label-wrapper', children=[
-                                html.Span('Aviso de atenção', style={
-                                          'backgroundColor': 'rgba(234, 176, 9, .25)'}, className='tab3-map-label'),
-                            ]),
-                            html.Div(className='tab3-map-label-wrapper', children=[
-                                html.Span('Aviso especial', style={
-                                          'backgroundColor': 'rgba(253, 63, 110, .25)'}, className='tab3-map-label'),
-                            ]),
-                            html.Div(className='tab3-map-label-wrapper', children=[
-                                html.Span('Aviso extraordinário de risco iminente', style={
-                                          'backgroundColor': 'rgba(44, 80, 237, .25)'}, className='tab3-map-label'),
-                            ]),
-                            html.Div(className='tab3-map-label-wrapper', children=[
-                                html.Span('Aviso cessado', style={
-                                          'backgroundColor': 'rgba(195, 195, 195, .25)'}, className='tab3-map-label'),
-                            ]),
-                        ]),
+                    html.Div(className='tab2-graphs-wrapper', children=[
+                        ordemservico_figure,
+                        ordemservico_figure_month,
                     ]),
                 ]),
             ]),
-        ]),
 
-        #Tab 4
-        dcc.Tab(label='Previsão de Alagamento', className='tab4', children=[
-            html.Div(className='tab4-container', children=[
-                html.Div(className='tab4-graphs-wrapper', children=[
-                    html.Div(className='model-selection', children=[
-                        html.Label('Selecione o modelo de previsão:'),
-                        radio_button_model_tab4,
+            # Tab 3
+            dcc.Tab(label='Previsão do Tempo', className='tab3', children=[
+                html.Div(className='tab3-container', children=[
+                    html.Div(className='tab3-graphs-wrapper', children=[
+                        html.Div(className='model-selection', children=[
+                            html.Label('Selecione o modelo de previsão:'),
+                            radio_button_model_tab3,
+                        ]),
+                        cptec_figure,
                     ]),
-                    prediction_prob_figure,
+                    html.Div(className='model-selection', children=[
+                        html.Label('Selecione o período de previsão:'),
+                        radio_button_poly,
+                    ]),
+                    html.Div(className='tab3-wrapper', children=[
+                        html.Div(className='tab3-info-wrapper', children=[
+                            html.Div(className='card', children=[
+                                html.Div(className='card-wrapper', children=[
+                                    html.Span(id='cptec-mapa-warning', className='card-value'),
+                                    html.A(href='http://tempo.cptec.inpe.br/avisos', target='_blank',
+                                           className='card-tooltip')
+                                ]),
+                                html.H5('Aviso meteorológico para Santo André', className='card-title'),
+                            ]),
+                            html.Div(className='info', children=[
+                                html.H3('Previsões numéricas', className='info-title'),
+                                html.P(className='info-content', children=[
+                                    'Os dados de previsão numérica utilizados nesta página pertencem ao ',
+                                    html.A('CPTEC/INPE', href='https://www.cptec.inpe.br/sp/santo-andre',
+                                           target='_blank', className='link'),
+                                    ' e são referentes apenas ao município de Santo André. Os números que seguem os modelos atmosféricos WRF e BAM dizem respeito a resolução espacial de cada previsão. Quanto menor essa resolução, mais precisa é a previsão de tempo.',
+                                ]),
+                                html.P(className='info-content', children=[
+                                    'O ',
+                                    html.A('Centro de Previsão de Tempo e Estudos Climáticos (CPTEC)',
+                                           href='https://www.cptec.inpe.br', target='_blank', className='link'),
+                                    ' do ',
+                                    html.A('Instituto Nacional de Pesquisas Espaciais (INPE)',
+                                           href='http://www.inpe.br', target='_blank', className='link'),
+                                    ' é o centro mais avançado de previsão numérica de tempo e clima da América Latina, fornecendo previsões de tempo de curto e médio prazos e climáticas de alta precisão desde o início de 1995, além de dominar técnicas de modelagem numérica altamente complexas da atmosfera e dos oceanos a fim de prever condições futuras.',
+                                ]),
+                            ]),
+                            html.Div(className='info', children=[
+                                html.H3('Modelos atmosféricos', className='info-title'),
+                                html.P(className='info-content', children=[
+                                    'O modelo de ',
+                                    html.A('Pesquisa e Previsão do Tempo (WRF - Weather Research and Forecasting)',
+                                           href='https://en.wikipedia.org/wiki/Weather_Research_and_Forecasting_Model', target='_blank', className='link'),
+                                    ', desenvolvido por agências e universidades norte-americanas, é um sistema de previsão numérica do tempo projetado para atender às necessidades de pesquisa atmosférica e de previsão operacional. Sistemas de previsão numérica referem-se à simulações e previsões da atmosfera por modelos computacionais com o intuito de prever o tempo com vários dias de antecedência. O WRF possui dois núcleos dinâmicos, um sistema de assimilação de dados e uma arquitetura de software que permitem a computação paralela e extensibilidade do sistema, além de atender a uma ampla gama de aplicações meteorológicas em escalas que variam de metros a milhares de quilômetros.',
+                                ]),
+                                html.P(className='info-content', children=[
+                                    'O ',
+                                    html.A('Modelo Atmosférico Brasileiro (BAM - Brazilian Atmospheric Model)',
+                                           href='http://www.cntu.org.br/new/component/content/article?id=3807', target='_blank', className='link'),
+                                    ', desenvolvido pelo CPTEC, é um modelo global de previsão de tempo capaz de gerar as condições iniciais para a execução de modelos regionais, além de ser utilizado na geração das previsões climáticas sazionais e de cenários climáticos de mais longo prazo. O BAM apresenta-se como solução para deficiências de modelos utilizados anteriormente, possuindo vantagens como: a melhora na previsão para o sudeste do Brasil em decorrência de uma maior resolução horizontal, modelando melhor eventos com orografia complexa; e o aumento da resolução espacial com a qual as previsões de tempo e clima são processadas.',
+                                ]),
+                            ]),
+                        ]),
+                        html.Div(className='tab3-map-wrapper', children=[
+                            html.H5(className='tab3-map-title', children='Avisos Meteorológicos'),
+                            html.Div(className='tab3-map-filter', children=[
+                                cptec_poly_figure,
+                            ]),
+                            html.Div(className='tab3-map-labels', children=[
+                                html.Div(className='tab3-map-label-wrapper', children=[
+                                    html.Span('Aviso de observação', style={
+                                              'backgroundColor': 'rgba(223, 209, 126, .25)'}, className='tab3-map-label'),
+                                ]),
+                                html.Div(className='tab3-map-label-wrapper', children=[
+                                    html.Span('Aviso de atenção', style={
+                                              'backgroundColor': 'rgba(234, 176, 9, .25)'}, className='tab3-map-label'),
+                                ]),
+                                html.Div(className='tab3-map-label-wrapper', children=[
+                                    html.Span('Aviso especial', style={
+                                              'backgroundColor': 'rgba(253, 63, 110, .25)'}, className='tab3-map-label'),
+                                ]),
+                                html.Div(className='tab3-map-label-wrapper', children=[
+                                    html.Span('Aviso extraordinário de risco iminente', style={
+                                              'backgroundColor': 'rgba(44, 80, 237, .25)'}, className='tab3-map-label'),
+                                ]),
+                                html.Div(className='tab3-map-label-wrapper', children=[
+                                    html.Span('Aviso cessado', style={
+                                              'backgroundColor': 'rgba(195, 195, 195, .25)'}, className='tab3-map-label'),
+                                ]),
+                            ]),
+                        ]),
+                    ]),
                 ]),
-            ])
+            ]),
+
+            #Tab 4
+            dcc.Tab(label='Previsão de Alagamento', className='tab4', children=[
+                html.Div(className='tab4-container', children=[
+                    html.Div(className='tab4-graphs-wrapper', children=[
+                        html.Div(className='model-selection', children=[
+                            html.Label('Selecione o modelo de previsão:'),
+                            radio_button_model_tab4,
+                        ]),
+                        prediction_prob_figure,
+                    ]),
+                ])
+            ]),
         ]),
     ]),
     html.Div(className='copyright', children=[
