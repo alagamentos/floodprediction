@@ -2,14 +2,16 @@
 .ipynb_checkpoints
 **/.ipynb_checkpoints/
 
-# Ignore all /data/cleandata/ folders and files, except 'Enchentes_LatLong.csv' and 'lat_lng_estacoes.csv'
+# Ignore all /data/cleandata/ folders and files, except 'lat_lng_estacoes.csv'
 data/cleandata/**
 !data/cleandata/Estacoes/
 data/cleandata/Estacoes/**
 !data/cleandata/Estacoes/lat_lng_estacoes.csv
-!data/cleandata/Ordens de serviço/
 data/cleandata/Ordens de serviço/**
-!data/cleandata/Ordens de serviço/Enchentes_LatLong.csv
+
+# Ignore sensitive raw data in /data/rawdata/
+data/rawdata/Ordens de serviço/**
+data/rawdata/OpenWeather/**
 
 # Virtual Environment folder
 venv/
