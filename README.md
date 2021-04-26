@@ -8,6 +8,10 @@ Felipe Ippolito | 12.01378-0 | [feippolito](https://github.com/feippolito)
 Felipe Andrade | 15.00175-0 | [Kaisen-san](https://github.com/Kaisen-san)
 Vinícius Pereira | 16.03343-4 | [VinPer](https://github.com/VinPer)
 
+## Orientador
+
+Prof. Me. Tiago Sanches [Tiagoeem](https://github.com/Tiagoeem)
+
 ## Estrutura do projeto
 
 ```
