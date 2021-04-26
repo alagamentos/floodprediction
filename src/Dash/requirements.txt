@@ -1,4 +1,4 @@
-gunicorn==19.3.0
+gunicorn==19.5.0
 xgboost>=1.1
 numpy>=1.14
 pandas>=1.0
