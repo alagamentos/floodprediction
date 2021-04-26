@@ -1,6 +1,8 @@
-# TCC - Sistema Inteligente de Previsão de Alagamentos
+# Instituto Mauá de Tecnologia - Prefeitura de Santo André
 
-## Integrantes
+## TCC - Sistema Inteligente de Previsão de Alagamentos
+
+### Integrantes
 
 Nome | RA | GitHub
 ------------ | ------------- | -------------
@@ -8,11 +10,11 @@ Felipe Ippolito | 12.01378-0 | [feippolito](https://github.com/feippolito)
 Felipe Andrade | 15.00175-0 | [Kaisen-san](https://github.com/Kaisen-san)
 Vinícius Pereira | 16.03343-4 | [VinPer](https://github.com/VinPer)
 
-## Orientador
+### Orientador
 
-Prof. Me. Tiago Sanches [Tiagoeem](https://github.com/Tiagoeem)
+Prof. Me. Tiago Sanches ([Tiagoeem](https://github.com/Tiagoeem))
 
-## Estrutura do projeto
+### Estrutura do projeto
 
 ```
 .
@@ -28,7 +30,7 @@ Prof. Me. Tiago Sanches [Tiagoeem](https://github.com/Tiagoeem)
 ├── requirements.txt
 ```
 
-## Requerimentos
+### Requerimentos
 
 É necessário ter instalado os seguintes programas:
 
@@ -46,13 +48,13 @@ source ./venv/bin/activate # Ativa o virtual environment
 
 > Após a instalação dos programas, rode o comando `make setup` na pasta raíz do projeto
 
-### BigQuery
+#### BigQuery
 
 Para acessar os dados no [BigQuery](https://cloud.google.com/bigquery) é necessário ter a chave de acesso do projeto criado na plataforma. Isso não impacta o uso do projeto localmente, porém será necessário executar a limpeza dos dados através do `make build`, o que demora cerca 1h30 (a depender do poder de processamento do computador), além de não ser possível rodar os comandos `make upload_bq` e `make download_bq`. Caso tenha interesse, solicite a chave de acesso aos integrantes do grupo.
 
 > Uma vez com o arquivo *key.zip* em mãos, extraia-o e copie e cole a pasta *key* para dentro da pasta raíz do projeto.
 
-## Comandos Make
+### Comandos Make
 
 Configura o ambiente local e instala todas as dependências necessárias
 
@@ -112,5 +114,5 @@ Realiza o download dos dados no BigQuery para os arquivos de *merged.csv*, *erro
 make download_bq
 ```
 
-## Referências
+### Referências
 - [Artigos utilizados na revisão bibliográfica](https://drive.google.com/drive/folders/1RDT4sAvsjU82O3m3slLdigGo8T5wgxBc?usp=sharing)
