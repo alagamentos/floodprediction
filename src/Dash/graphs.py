@@ -108,7 +108,7 @@ def predict(model, xgb_path):
 y_xgb = {}
 y_xgb['wrf7'] = predict('wrf7', xgb_path)
 y_xgb['wrf'] = predict('wrf', xgb_path)
-
+y_xgb['bam'] = predict('bam', xgb_path)
 
 def get_geojson_polygon(lons, lats, color='blue'):
     if len(lons) != len(lats):
