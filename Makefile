@@ -3,7 +3,7 @@ SHELL := /bin/bash
 setup:
 	git config --local core.hooksPath .githooks/
 	npm i -g editorconfig
-	pip install -r requirements.txt
+	python3 -m pip install -r requirements.txt
 
 build:
 	make clean
@@ -12,22 +12,22 @@ build:
 	# make prep_data
 
 clean:
-	python ./src/Pipeline/clean_infopluviometricas.py
-	python ./src/Pipeline/clean_owm_history_bulk.py
+	python3 ./src/Pipeline/clean_infopluviometricas.py
+	python3 ./src/Pipeline/clean_owm_history_bulk.py
 
 error_regions:
-	python ./src/Pipeline/error_regions.py
+	python3 ./src/Pipeline/error_regions.py
 
 repair_data:
-	python ./src/Pipeline/repair_regions.py
-	python ./src/Pipeline/get_labels_day.py
-	python ./src/Pipeline/get_labels_hour.py
+	# python3 ./src/Pipeline/repair_regions.py
+	python3 ./src/Pipeline/get_labels_day.py
+	python3 ./src/Pipeline/get_labels_hour.py
 
 prep_data:
-	python ./src/Pipeline/prep_data.py
+	python3 ./src/Pipeline/prep_data.py
 
 upload_bq:
-	python ./src/Pipeline/upload_bigquery.py
+	# python3 ./src/Pipeline/upload_bigquery.py
 
 download_bq:
-	python ./src/Pipeline/download_bigquery.py
+	python3 ./src/Pipeline/download_bigquery.py

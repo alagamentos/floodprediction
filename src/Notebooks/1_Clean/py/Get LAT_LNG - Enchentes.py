@@ -20,7 +20,7 @@ enchentes.head(2)
 # In[ ]:
 
 
-geocoding_API_key = ''
+geocoding_API_key = 'AIzaSyDQSlkM_H09KtEaLgbqOwrWYeXvuJL1vA4'
 gmaps_geo = googlemaps.Client(key=geocoding_API_key) # Geocoding API
 
 
