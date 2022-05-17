@@ -26,7 +26,7 @@ PLOT_QUI = BLUE
 subplots_vertical_spacing = 0.22
 
 # BigQuery ===========================
-CREDENTIALS = service_account.Credentials.from_service_account_file('key/temporal-285820-cde76c259484.json')
+CREDENTIALS = service_account.Credentials.from_service_account_file('key/temporal-285820-5448c1d52cdb.json')
 PROJECT_ID = 'temporal-285820'
 DATA_TABLE = 'temporal-285820.dash.data'
 
@@ -50,12 +50,13 @@ plot_layout_kwargs = dict(template='plotly_dark',
 
 token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
 
-xgb_path = 'model/Identificacao_0H.json'
+xgb_path = 'src/Dash/model/Identificacao_0H.json'
 
 x_pred, y_pred = {}, {}
 
 x_pred['bam'], y_pred['bam'] = get_prediction('bam')
 x_pred['wrf'], y_pred['wrf'] = get_prediction('wrf')
+x_pred['wrf7'], y_pred['wrf7'] = get_prediction('wrf7')
 
 polygon_dict, SA_polygon, SA_layer = get_polygon()
 
@@ -105,7 +106,7 @@ def predict(model, xgb_path):
 
 
 y_xgb = {}
-y_xgb['bam'] = predict('bam', xgb_path)
+y_xgb['wrf7'] = predict('wrf7', xgb_path)
 y_xgb['wrf'] = predict('wrf', xgb_path)
 
 
