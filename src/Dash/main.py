@@ -23,7 +23,7 @@ import os
 # Prepdata ----------------------------------
 
 estacoes_path = 'src/Dash/data/lat_lng_estacoes.csv'
-ordemservico_path = '/home/gmrsilva/Documents/floodprediction/data/cleandata/Ordens de serviço/Enchentes_LatLong.csv'
+ordemservico_path = 'data/cleandata/Ordens de serviço/Enchentes_LatLong.csv'
 precipitacao_path = 'src/Dash/data/Precipitacao.csv'
 
 est = pd.read_csv(estacoes_path, sep=';').iloc[:-1, :]
