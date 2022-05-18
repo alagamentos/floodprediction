@@ -9,16 +9,9 @@ from urllib.request import urlopen
 
 def get_prediction(model):
 
-  # Obtendo dia para buscar previsão
-  if len(str(datetime.now().day)) == 1:
-      dia = '0' + str(datetime.now().day)
-  else:
-      dia = str(datetime.now().day)
-  if len(str(datetime.now().month)) == 1:
-      mes = '0' + str(datetime.now().month)
-  else:
-      mes = str(datetime.now().month)
-  ano = datetime.now().year
+  now = datetime.now()
+  today = now.strftime("%Y/%m/%d")
+  yesterday = (now - timedelta(days=1)).strftime("%Y/%m/%d")
 
   if model == 'wrf7':
     try:
