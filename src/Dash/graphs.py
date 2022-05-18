@@ -50,7 +50,7 @@ plot_layout_kwargs = dict(template='plotly_dark',
 
 token = 'pk.eyJ1IjoiZmlwcG9saXRvIiwiYSI6ImNqeXE4eGp5bjFudmozY3A3M2RwbzYxeHoifQ.OdNEEm5MYvc2AS4iO_X3Pw'
 
-xgb_path = 'src/Dash/model/Identificacao_0H.json'
+xgb_path = 'model/Identificacao_0H.json'
 
 x_pred, y_pred = {}, {}
 

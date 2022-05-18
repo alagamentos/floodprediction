@@ -22,9 +22,9 @@ import os
 
 # Prepdata ----------------------------------
 
-estacoes_path = 'src/Dash/data/lat_lng_estacoes.csv'
-ordemservico_path = 'data/cleandata/Ordens de serviço/Enchentes_LatLong.csv'
-precipitacao_path = 'src/Dash/data/Precipitacao.csv'
+estacoes_path = 'data/lat_lng_estacoes.csv'
+ordemservico_path = 'data/Enchentes_LatLong.csv'
+precipitacao_path = 'data/Precipitacao.csv'
 
 est = pd.read_csv(estacoes_path, sep=';').iloc[:-1, :]
 label = pd.read_csv(ordemservico_path, sep=';')
