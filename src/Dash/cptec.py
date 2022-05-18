@@ -23,10 +23,10 @@ def get_prediction(model):
   if model == 'wrf7':
     try:
       res_json = get(
-          f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{ano}/{mes}/{dia}/00/4704.json').json()
+          f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{today}/00/4704.json').json()
     except:
       res_json = get(
-        f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{ano}/{mes}/{int(dia)-1}/00/4704.json').json()
+        f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{yesterday}/00/4704.json').json()
   elif model == 'wrf':
     try:
       res_json = get(
