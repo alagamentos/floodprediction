@@ -23,22 +23,20 @@ def get_prediction(model):
   elif model == 'wrf':
     try:
       res_json = get(
-          f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_05km/recortes/grh/json/{ano}/{mes}/{dia}/00/4704.json').json()
+          f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_05km/recortes/grh/json/{today}/00/4704.json').json()
     except:
       res_json = get(
-        f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_05km/recortes/grh/json/{ano}/{mes}/{int(dia)-1}/00/4704.json').json()
+        f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_05km/recortes/grh/json/{yesterday}/00/4704.json').json()
   elif model == 'bam':
     try:
       res_json = get(
-          f'http://ftp.cptec.inpe.br/modelos/tempo/BAM/TQ0666L064/recortes/grh/json/{ano}/{mes}/{dia}/00/4704.json').json()
+          f'http://ftp.cptec.inpe.br/modelos/tempo/BAM/TQ0666L064/recortes/grh/json/{today}/00/4704.json').json()
     except:
       res_json = get(
-        f'http://ftp.cptec.inpe.br/modelos/tempo/BAM/TQ0666L064/recortes/grh/json/{ano}/{mes}/{int(dia)-1}/00/4704.json').json()
+        f'http://ftp.cptec.inpe.br/modelos/tempo/BAM/TQ0666L064/recortes/grh/json/{yesterday}/00/4704.json').json()
 
-  #Dados puros
   raw_data = res_json['datasets'][0]['data']
 
-  # Obtenção de dados necessários
   x_data_t = {}
   y_data = {}
 
