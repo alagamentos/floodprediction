@@ -9,24 +9,17 @@ from urllib.request import urlopen
 
 def get_prediction(model):
 
-  # Obtendo dia para buscar previsão
-  if len(str(datetime.now().day)) == 1:
-      dia = '0' + str(datetime.now().day)
-  else:
-      dia = str(datetime.now().day)
-  if len(str(datetime.now().month)) == 1:
-      mes = '0' + str(datetime.now().month)
-  else:
-      mes = str(datetime.now().month)
-  ano = datetime.now().year
+  now = datetime.now()
+  today = now.strftime("%Y/%m/%d")
+  yesterday = (now - timedelta(days=1)).strftime("%Y/%m/%d")
 
   if model == 'wrf7':
     try:
       res_json = get(
-          f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{ano}/{mes}/{dia}/00/4704.json').json()
+          f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{today}/00/4704.json').json()
     except:
       res_json = get(
-        f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{ano}/{mes}/{int(dia)-1}/00/4704.json').json()
+        f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{yesterday}/00/4704.json').json()
   elif model == 'wrf':
     try:
       res_json = get(

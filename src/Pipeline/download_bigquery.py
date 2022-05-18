@@ -32,7 +32,7 @@ TABLE_repaired = 'info_pluviometrica.repaired'
 TABLE_lat_lng_estacoes = 'estacoes.lat_lng_estacoes'
 TABLE_owm_history_bulk = 'openweather.history'
 
-CREDENTIALS = service_account.Credentials.from_service_account_file('/home/gmrsilva/Documents/floodprediction/key/temporal-285820-5448c1d52cdb.json')
+CREDENTIALS = service_account.Credentials.from_service_account_file('key/temporal-285820-5448c1d52cdb.json')
 
 
 df_merged = pd.read_gbq(f'SELECT * FROM {PROJECT_ID}.{TABLE_merged}', credentials=CREDENTIALS, project_id=PROJECT_ID)
