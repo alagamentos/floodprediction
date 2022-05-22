@@ -32,7 +32,7 @@ TABLE_repaired = 'info_pluviometrica.repaired'
 TABLE_lat_lng_estacoes = 'estacoes.lat_lng_estacoes'
 TABLE_owm_history_bulk = 'openweather.history'
 
-CREDENTIALS = service_account.Credentials.from_service_account_file('key/temporal-285820-cde76c259484.json')
+CREDENTIALS = service_account.Credentials.from_service_account_file('key/temporal-285820-5448c1d52cdb.json')
 
 
 df_merged = pd.read_gbq(f'SELECT * FROM {PROJECT_ID}.{TABLE_merged}', credentials=CREDENTIALS, project_id=PROJECT_ID)
@@ -68,5 +68,5 @@ df_openweather_history = pd.read_gbq(
     f'SELECT * FROM {PROJECT_ID}.{TABLE_owm_history_bulk}', credentials=CREDENTIALS, project_id=PROJECT_ID)
 df_openweather_history['Data_Hora'] = pd.to_datetime(df_openweather_history['Data_Hora'], yearfirst=True)
 df_openweather_history = df_openweather_history.sort_values(by='Data_Hora')
-df_openweather_history.to_csv('data/cleandata/OpenWeather/history_bulk.csv',  decimal='.', sep=';', index=False)
+df_openweather_history.to_csv('data/cleandata/openweather/history_bulk.csv',  decimal='.', sep=';', index=False)
 print('openweathermap history bulk done!')

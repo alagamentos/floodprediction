@@ -1,32 +1,67 @@
 import urllib.request
 import re
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from requests import get
 from shapely.geometry import Polygon
 from urllib.request import urlopen
 
 
 def get_prediction(model):
-  if model == 'bam':
-    with urllib.request.urlopen('https://previsaonumerica.cptec.inpe.br/novo/meteograma/bam/sp/santo-andre') as response:
-        html = str(response.read())
+
+  now = datetime.now()
+  today = now.strftime("%Y/%m/%d")
+  yesterday = (now - timedelta(days=1)).strftime("%Y/%m/%d")
+
+  if model == 'wrf7':
+    try:
+      res_json = get(
+          f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{today}/00/4704.json').json()
+    except:
+      res_json = get(
+        f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_07km/recortes/grh/json/{yesterday}/00/4704.json').json()
   elif model == 'wrf':
-    with urllib.request.urlopen('https://previsaonumerica.cptec.inpe.br/novo/meteograma/wrf/sp/santo-andre') as response:
-      html = str(response.read())
+    try:
+      res_json = get(
+          f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_05km/recortes/grh/json/{today}/00/4704.json').json()
+    except:
+      res_json = get(
+        f'http://ftp.cptec.inpe.br/modelos/tempo/WRF/ams_05km/recortes/grh/json/{yesterday}/00/4704.json').json()
+  elif model == 'bam':
+    try:
+      res_json = get(
+          f'http://ftp.cptec.inpe.br/modelos/tempo/BAM/TQ0666L064/recortes/grh/json/{today}/00/4704.json').json()
+    except:
+      res_json = get(
+        f'http://ftp.cptec.inpe.br/modelos/tempo/BAM/TQ0666L064/recortes/grh/json/{yesterday}/00/4704.json').json()
 
-  raw_string = {}
-  raw_string['precipitacao'] = re.search(r'"ident":\"precipitacao\",\"data\"\:(.*?),"uni', html).group(1)
-  raw_string['precipitacao_acc'] = re.search(r'\"precipitacao\-acumulada\",\"data\"\:(.*?),"uni', html).group(1)
-  raw_string['temperatura'] = re.search(r'\"ident\":\"temperatura\",\"data\":(.*?),"uni', html).group(1)
-  raw_string['temperatura_aparente'] = re.search(
-      r'\"ident\"\:\"temperatura-aparente\",\"data\":(.*?),"uni', html).group(1)
-  raw_string['umidade_relativa'] = re.search(r'\"umidade\-relativa\",\"data\"\:(.*?),"uni', html).group(1)
-  raw_string['pressao'] = re.search(r'\"ident\":\"pressao\-ao\-nivel\-do\-mar\",\"data\":(.*?),"uni', html).group(1)
+  raw_data = res_json['datasets'][0]['data']
 
-  keys = list(raw_string.keys())
-  x_data, x_data_t, y_data = {}, {}, {}
-  for k in keys:
-      x_data[k], x_data_t[k], y_data[k] = extract_data(raw_string[k])
+  x_data_t = {}
+  y_data = {}
+
+  # Obtenção de datetime corrigido
+  initial_date = datetime.fromisoformat(raw_data[0]['date']) # Data inicial devido a divergência entre modelos
+  x_data_t["precipitacao"] = [initial_date + timedelta(hours = i['fcst']) for i in raw_data]
+  x_data_t["precipitacao_acc"] = [initial_date + timedelta(hours = i['fcst']) for i in raw_data]
+  x_data_t["temperatura"] = [initial_date + timedelta(hours = i['fcst']) for i in raw_data]
+  x_data_t["temperatura_aparente"] = [initial_date + timedelta(hours = i['fcst']) for i in raw_data]
+  x_data_t["pressao"] = [initial_date + timedelta(hours = i['fcst']) for i in raw_data]
+  x_data_t["umidade_relativa"] = [initial_date + timedelta(hours = i['fcst']) for i in raw_data]
+
+  # Obtenção de dados meteorológicos
+  y_data["precipitacao"] = [i['prec'] for i in raw_data]
+  y_data["temperatura"] = [i['temp'] for i in raw_data]
+  y_data["temperatura_aparente"] = [i['heat_index'] for i in raw_data]
+  y_data["pressao"] = [i['press'] for i in raw_data]
+  y_data['umidade_relativa'] = [i['ur'] for i in raw_data]
+  acc = 0
+  for i in raw_data:
+    # soma a precipitação atual com a acumulada anterior
+    precipitacao_acc = i['prec']+acc
+    # atualiza o valor da precipitação acumulada
+    acc = precipitacao_acc
+    y_data['precipitacao_acc'] = (precipitacao_acc)
 
   return x_data_t, y_data
 

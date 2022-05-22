@@ -140,13 +140,14 @@ def update_map(date_range):
   return count, mapa, ordem_servico_figure, ordem_servico_figure_month, f'{media_anual} mm/ano'
 
 
-@app.callback(
-    [Output('cptec-mapa', 'figure'), Output('cptec-mapa-warning', 'children')],
-    [Input('rb-cptec-mapa', 'value')],
-)
-def update_polygon_mapa(time):
-  fig, text = make_cptec_polygon(time)
-  return fig, text.lower().capitalize()
+# @app.callback(
+#   # Output('cptec-mapa-warning', 'children')
+#     [Output('cptec-mapa', 'figure') ],
+#     [Input('rb-cptec-mapa', 'value')],
+# )
+# def update_polygon_mapa(time):
+#   fig, text = make_cptec_polygon(time)
+#   return fig, text.lower().capitalize()
 
 
 @app.callback(
@@ -276,7 +277,8 @@ ordemservico_figure_month = dcc.Graph(
 radio_button_model_tab3 = dcc.RadioItems(
     options=[
         {'label': 'WRF 05x05 km', 'value': 'wrf'},
-        {'label': 'BAM 20x20 km', 'value': 'bam'},
+        {'label': 'WRF 07x07 km', 'value': 'wrf7'},
+        {'label': 'BAM 20X20 km', 'value': 'bam'}
     ],
     id='rb-cptec-graphs',
     value='wrf',
@@ -311,7 +313,8 @@ radio_button_poly = dcc.RadioItems(
 radio_button_model_tab4 = dcc.RadioItems(
     options=[
         {'label': 'WRF 05x05 km', 'value': 'wrf'},
-        {'label': 'BAM 20x20 km', 'value': 'bam'},
+        {'label': 'WRF 07x07 km', 'value': 'wrf7'},
+        {'label': 'BAM 20X20 km', 'value': 'bam'}
     ],
     id='rb-prop-alagamento-graph',
     value='wrf',
@@ -425,20 +428,20 @@ root_layout = html.Div(className='root', children=[
                         ]),
                         cptec_figure,
                     ]),
-                    html.Div(className='model-selection', children=[
-                        html.Label('Selecione o período de previsão:'),
-                        radio_button_poly,
-                    ]),
+                    # html.Div(className='model-selection', children=[
+                    #     html.Label('Selecione o período de previsão:'),
+                    #     radio_button_poly,
+                    # ]),
                     html.Div(className='tab3-wrapper', children=[
                         html.Div(className='tab3-info-wrapper', children=[
-                            html.Div(className='card', children=[
-                                html.Div(className='card-wrapper', children=[
-                                    html.Span(id='cptec-mapa-warning', className='card-value'),
-                                    html.A(href='http://tempo.cptec.inpe.br/avisos', target='_blank',
-                                           className='card-tooltip')
-                                ]),
-                                html.H5('Aviso meteorológico para Santo André', className='card-title'),
-                            ]),
+                            # html.Div(className='card', children=[
+                            #     html.Div(className='card-wrapper', children=[
+                            #         html.Span(id='cptec-mapa-warning', className='card-value'),
+                            #         html.A(href='http://tempo.cptec.inpe.br/avisos', target='_blank',
+                            #                className='card-tooltip')
+                            #     ]),
+                            #     html.H5('Aviso meteorológico para Santo André', className='card-title'),
+                            # ]),
                             html.Div(className='info', children=[
                                 html.H3('Previsões numéricas', className='info-title'),
                                 html.P(className='info-content', children=[
@@ -474,32 +477,32 @@ root_layout = html.Div(className='root', children=[
                             ]),
                         ]),
                         html.Div(className='tab3-map-wrapper', children=[
-                            html.H5(className='tab3-map-title', children='Avisos Meteorológicos'),
-                            html.Div(className='tab3-map-filter', children=[
-                                cptec_poly_figure,
-                            ]),
-                            html.Div(className='tab3-map-labels', children=[
-                                html.Div(className='tab3-map-label-wrapper', children=[
-                                    html.Span('Aviso de observação', style={
-                                              'backgroundColor': 'rgba(223, 209, 126, .25)'}, className='tab3-map-label'),
-                                ]),
-                                html.Div(className='tab3-map-label-wrapper', children=[
-                                    html.Span('Aviso de atenção', style={
-                                              'backgroundColor': 'rgba(234, 176, 9, .25)'}, className='tab3-map-label'),
-                                ]),
-                                html.Div(className='tab3-map-label-wrapper', children=[
-                                    html.Span('Aviso especial', style={
-                                              'backgroundColor': 'rgba(253, 63, 110, .25)'}, className='tab3-map-label'),
-                                ]),
-                                html.Div(className='tab3-map-label-wrapper', children=[
-                                    html.Span('Aviso extraordinário de risco iminente', style={
-                                              'backgroundColor': 'rgba(44, 80, 237, .25)'}, className='tab3-map-label'),
-                                ]),
-                                html.Div(className='tab3-map-label-wrapper', children=[
-                                    html.Span('Aviso cessado', style={
-                                              'backgroundColor': 'rgba(195, 195, 195, .25)'}, className='tab3-map-label'),
-                                ]),
-                            ]),
+                            # html.H5(className='tab3-map-title', children='Avisos Meteorológicos'),
+                            # html.Div(className='tab3-map-filter', children=[
+                            #     cptec_poly_figure,
+                            # ]),
+                            # html.Div(className='tab3-map-labels', children=[
+                            #     html.Div(className='tab3-map-label-wrapper', children=[
+                            #         html.Span('Aviso de observação', style={
+                            #                   'backgroundColor': 'rgba(223, 209, 126, .25)'}, className='tab3-map-label'),
+                            #     ]),
+                            #     html.Div(className='tab3-map-label-wrapper', children=[
+                            #         html.Span('Aviso de atenção', style={
+                            #                   'backgroundColor': 'rgba(234, 176, 9, .25)'}, className='tab3-map-label'),
+                            #     ]),
+                            #     html.Div(className='tab3-map-label-wrapper', children=[
+                            #         html.Span('Aviso especial', style={
+                            #                   'backgroundColor': 'rgba(253, 63, 110, .25)'}, className='tab3-map-label'),
+                            #     ]),
+                            #     html.Div(className='tab3-map-label-wrapper', children=[
+                            #         html.Span('Aviso extraordinário de risco iminente', style={
+                            #                   'backgroundColor': 'rgba(44, 80, 237, .25)'}, className='tab3-map-label'),
+                            #     ]),
+                            #     html.Div(className='tab3-map-label-wrapper', children=[
+                            #         html.Span('Aviso cessado', style={
+                            #                   'backgroundColor': 'rgba(195, 195, 195, .25)'}, className='tab3-map-label'),
+                            #     ]),
+                            # ]),
                         ]),
                     ]),
                 ]),
