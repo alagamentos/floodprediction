@@ -7,7 +7,7 @@ xlrd
 scikit-learn
 plotly>=4.9
 kaleido
-dash==1.16.3
+dash==2.15.0
 shapely
 google-cloud-bigquery
 pandas-gbq
